@@ -1,7 +1,7 @@
 import ndarray from "ndarray";
 import regl_ from "regl";
 import { MAX_REPEATS_X, MAX_REPEATS_Y } from "./constants";
-import { float as f, rangeDup, duplicate, range, makePair } from "./utils";
+import { float as f, range, makePair } from "./utils";
 
 export interface LineData {
   /**
@@ -133,6 +133,10 @@ export default async function(
   const regl = regl_({
     canvas: canvas || document.createElement("canvas"),
     extensions: ["OES_texture_float"]
+  });
+
+  regl.on("lost", () => {
+    alert("Out of GPU memory, charts will be destroyed!");
   });
 
   // See https://github.com/regl-project/regl/issues/498
@@ -779,6 +783,71 @@ export default async function(
     framebuffer: regl.prop<any, "out">("out")
   });
 
+  const findMax = regl({
+    ...computeBase,
+
+    frag: `
+        precision mediump float;
+      
+        uniform sampler2D buffer;
+        
+        varying vec2 uv;
+        
+        void main() {
+          float width = ${f(heatmapWidth)};
+          float height = ${f(heatmapHeight)};
+          vec4 result = vec4(0);
+          for (float x = 0.0;x<=${f(heatmapWidth)};x++){
+            for (float y = 0.0;y<=${f(heatmapHeight)};y++){
+              result = max(result, texture2D(buffer, vec2(x / width, y / height)));
+            }
+          }
+          gl_FragColor = result;
+        }`,
+
+    uniforms: {
+      buffer: regl.prop<any, "buffer">("buffer")
+    },
+
+    framebuffer: regl.prop<any, "out">("out")
+  });
+
+  const calWeight = regl({
+    ...computeBase,
+    frag: `
+    precision mediump float;
+      
+    uniform sampler2D buffer;
+    uniform sampler2D heat;
+    
+    varying vec2 uv;
+    
+    void main() {
+      float width = ${f(heatmapWidth)};
+      float height = ${f(heatmapHeight)};
+      vec4 sum = vec4(0);
+      for (float i = 0.0; i< ${f(heatmapWidth)};i++){
+        vec4 pointer = texture2D(buffer, vec2(i / width, uv.y));
+        ${[0, 1, 2, 3]
+          .map(
+            i => `
+        sum[${i}] += texture2D(heat, vec2(i / width, pointer[${i}])).x;
+        `
+          )
+          .join("")}
+      }
+      gl_FragColor = sum;
+    }
+    `,
+
+    uniforms: {
+      buffer: regl.prop<any, "buffer">("buffer"),
+      heat: regl.prop<any, "heat">("heat")
+    },
+
+    framebuffer: regl.prop<any, "out">("out")
+  });
+
   console.time("Allocate buffers");
   const linesBuffer = regl.framebuffer({
     width: reshapedWidth,
@@ -795,14 +864,14 @@ export default async function(
   });
 
   const angleBuffer = regl.framebuffer({
-    width: reshapedWidth,
+    width: heatmapWidth,
     height: Math.ceil(data.length / 4),
     colorFormat: "rgba",
     colorType: "uint8"
   });
 
   const flatLinesBuffer = regl.framebuffer({
-    width: reshapedWidth,
+    width: heatmapWidth,
     height: Math.ceil(data.length / 4),
     colorFormat: "rgba",
     colorType: "uint8"
@@ -812,7 +881,7 @@ export default async function(
     width: 1,
     height: Math.ceil(data.length / 4),
     colorFormat: "rgba",
-    colorType: "uint8"
+    colorType: "float"
   });
 
   const sumsBuffer = regl.framebuffer({
@@ -839,6 +908,13 @@ export default async function(
   const heatBuffer = regl.framebuffer({
     width: heatmapWidth,
     height: heatmapHeight,
+    colorFormat: "rgba",
+    colorType: "float"
+  });
+
+  const maxValueBuffer = regl.framebuffer({
+    width: 1,
+    height: 1,
     colorFormat: "rgba",
     colorType: "float"
   });
@@ -885,7 +961,7 @@ export default async function(
           values: ndarray(data[series].yValues),
           times: ndarray(data[series].xValues),
           maxY: binY.stop,
-          maxX: maxDataPoints - 1,
+          maxX: maxDataPoints,
           column: Math.floor(i / 4),
           row: row,
           colorMask: colorMask(i),
@@ -941,7 +1017,15 @@ export default async function(
   });
   console.timeEnd("regl: merge");
 
+  console.time("regl: findMax");
+  findMax({
+    buffer: heatBuffer,
+    out: maxValueBuffer
+  });
+  const maxDensity = regl.read({ framebuffer: maxValueBuffer })[0];
+  console.timeEnd("regl: findMax");
   console.timeEnd("Compute heatmap");
+  console.log("max density is:", maxDensity);
 
   setTimeout(() => {
     console.time("generate intermedium buffer");
@@ -999,14 +1083,14 @@ export default async function(
       framebuffer: angleBuffer
     });
     result = result.filter((_, i) => i % 4 === 0);
-    console.log(lines[0]);
-    console.log(result);
-  }, 0); // plan to generate angular buffer
+  }, 0); // plan to generate angular and line buffer
 
   drawTexture({
     buffer: heatBuffer,
-    maxi: 50
+    maxi: maxDensity
   });
+
+  let indexCache = range(data.length);
 
   return {
     filterAngle: (startTime, endTime, startAngle, endAngle) => {
@@ -1043,10 +1127,65 @@ export default async function(
         .filter(x => x)
         .map(x => x - 1);
     },
+    findKTop: isHighest => {
+      console.time("find-top");
+
+      console.time("regl: calWeight");
+      calWeight({
+        buffer: flatLinesBuffer,
+        heat: heatBuffer,
+        out: filterAngleBuffer
+      });
+      const weights = [...regl.read({ framebuffer: filterAngleBuffer })]
+        .map((w, i) => {
+          return { w: w / Math.sqrt(data[i].xValues.length), i };
+        })
+        .filter(o => indexCache.includes(o.i))
+        .sort((a, b) => (isHighest ? b.w - a.w : a.w - b.w));
+      console.timeEnd("regl: calWeight");
+
+      if (isHighest) {
+        let diversityList = [];
+        for (let i = 0; diversityList.length < 3 && i < weights.length; i++) {
+          let flag = true;
+          for (let j = 0; j < diversityList.length; j++) {
+            let insertLine = data[weights[i].i];
+            let testLine = data[diversityList[j]];
+            let testLength = Math.min(
+              insertLine.xValues.length,
+              testLine.xValues.length
+            );
+            let subArr = insertLine.yValues
+              .slice(insertLine.yValues.length - testLength)
+              .map(
+                (v, i) =>
+                  (v -
+                    testLine.yValues[
+                      testLine.yValues.length - testLength + i
+                    ]) /
+                  binY.stop
+              );
+            if (standardDeviation(subArr) < 0.15) {
+              flag = false;
+              break;
+            }
+          }
+          if (flag) {
+            diversityList.push(weights[i].i);
+          }
+        }
+        console.timeEnd("find-top");
+        return diversityList;
+      } else {
+        console.timeEnd("find-top");
+        return weights.slice(0, 3).map(o => o.i);
+      }
+    },
     rerender: indexes => {
       if (!indexes) {
         indexes = range(data.length);
       }
+      indexCache = indexes;
       console.time("Compute heatmap");
       // batches of 4 * repeats
       const batchSize = 4 * repeatsX * repeatsY;
@@ -1078,7 +1217,7 @@ export default async function(
               values: ndarray(data[indexes[series]].yValues),
               times: ndarray(data[indexes[series]].xValues),
               maxY: binY.stop,
-              maxX: maxDataPoints - 1,
+              maxX: maxDataPoints,
               column: Math.floor(i / 4),
               row: row,
               colorMask: colorMask(i),
@@ -1127,8 +1266,38 @@ export default async function(
       console.timeEnd("Compute heatmap");
       drawTexture({
         buffer: heatBuffer,
-        maxi: 50
+        maxi: maxDensity
       });
-    }
+    },
+    destroy: () => {
+      regl.destroy();
+    },
+    maxX: binX.stop,
+    maxY: binY.stop,
+    maxDensity
   };
+}
+
+function standardDeviation(values) {
+  var avg = average(values);
+
+  var squareDiffs = values.map(function(value) {
+    var diff = value - avg;
+    var sqrDiff = diff * diff;
+    return sqrDiff;
+  });
+
+  var avgSquareDiff = average(squareDiffs);
+
+  var stdDev = Math.sqrt(avgSquareDiff);
+  return stdDev;
+}
+
+function average(data) {
+  var sum = data.reduce(function(sum, value) {
+    return sum + value;
+  }, 0);
+
+  var avg = sum / data.length;
+  return avg;
 }

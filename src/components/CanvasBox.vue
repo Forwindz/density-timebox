@@ -12,6 +12,12 @@
       @click="angleConfirm"
     ></canvas>
     <canvas
+      ref="canvasRawLine"
+      width="1000"
+      height="500"
+      style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
+    ></canvas>
+    <canvas
       ref="canvasOverlay"
       width="1000"
       height="500"
@@ -27,14 +33,14 @@
           <Radio label="ang">Angular Range</Radio>
         </RadioGroup>
       </div>
-      <!-- <div>
+      <div>
         <span>Raw line strategy: </span>
         <RadioGroup v-model="rawMode" type="button">
           <Radio label="null">Null</Radio>
           <Radio label="out">Outlier</Radio>
           <Radio label="rep">Representative</Radio>
         </RadioGroup>
-      </div> -->
+      </div>
     </div>
   </div>
 </template>
@@ -58,6 +64,7 @@ export default {
       canvas: null,
       contextHandler: null,
       canvasContext: null,
+      rawLineContext: null,
       filterMode: "rect",
       rawMode: "null",
       mouseDown: false,
@@ -69,6 +76,7 @@ export default {
   watch: {
     filter(value) {
       this.contextHandler.rerender(value);
+      this.getTopK();
     },
     contextHandler() {
       if (this.filter) {
@@ -77,16 +85,48 @@ export default {
     },
     filterMode() {
       this.resetFilter();
+    },
+    rawMode() {
+      this.getTopK();
     }
   },
   methods: {
+    getTopK() {
+      let kArray = [];
+      switch (this.rawMode) {
+        case "out":
+          kArray = this.contextHandler.findKTop(false);
+          break;
+        case "rep":
+          kArray = this.contextHandler.findKTop(true);
+          break;
+      }
+      this.rawLineContext.clearRect(0, 0, 1000, 500);
+      const colorMap = ["aqua", "limegreen", "brown"];
+      for (let i = 0; i < kArray.length; i++) {
+        const data = unobserve.aggregatedData[kArray[i]];
+        this.rawLineContext.globalAlpha = 1;
+        this.rawLineContext.strokeStyle = colorMap[i % 3];
+        this.rawLineContext.beginPath();
+        this.rawLineContext.moveTo(
+          (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
+          500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+        );
+        for (let j = 0; j < data[this.timeIndex].length; j++) {
+          this.rawLineContext.lineTo(
+            (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
+            500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+          );
+        }
+        this.rawLineContext.stroke();
+      }
+    },
     resetFilter() {
       this.$emit("filterChange", undefined);
       this.boxes = [];
       this.mouseDown = false;
       this.canvasContext.clearRect(0, 0, 1000, 500);
     },
-    filterBox() {},
     startMouse(e) {
       if (this.mouseDown) return;
       this.mouseDown = true;
@@ -117,7 +157,7 @@ export default {
       this.canvasContext.clearRect(0, 0, 1000, 500);
       if (this.filterMode == "rect") {
         this.canvasContext.globalAlpha = 0.3;
-        this.canvasContext.fillColor = "black";
+        this.canvasContext.fillStyle = "black";
         this.drawBoxes();
         this.canvasContext.fillRect(
           Math.min(this.coord[0], this.coord[2]),
@@ -127,7 +167,7 @@ export default {
         );
       } else {
         this.canvasContext.globalAlpha = 1;
-        this.canvasContext.stokeColor = "black";
+        this.canvasContext.strokeStyle = "black";
         this.canvasContext.beginPath();
         this.canvasContext.moveTo(this.coord[0], this.coord[1]);
         this.canvasContext.lineTo(this.coord[2], this.coord[3]);
@@ -139,7 +179,7 @@ export default {
           this.canvasContext.lineTo(this.coord[2], this.coord[3] + offset);
           this.canvasContext.stroke();
           this.canvasContext.globalAlpha = 0.3;
-          this.canvasContext.fillColor = "black";
+          this.canvasContext.fillStyle = "black";
           this.canvasContext.beginPath();
           this.canvasContext.moveTo(this.coord[0], this.coord[1]);
           this.canvasContext.lineTo(this.coord[2], this.coord[3] - offset);
@@ -151,26 +191,28 @@ export default {
     startFilter() {
       if (this.filterMode == "rect") {
         this.mouseDown = false;
-        let [left, right] = [this.coord[0], this.coord[2]]
-          .map(x => x / 1000)
-          .sort();
-        let [bottom, top] = [this.coord[1], this.coord[3]]
-          .map(x => 1 - x / 500)
-          .sort();
-        this.boxes.push([left, right, bottom, top]);
-        let filterResult = this.contextHandler.filterRange(
-          left,
-          right,
-          bottom,
-          top
-        );
-        if (this.filter) {
-          this.$emit(
-            "filterChange",
-            this.filter.filter(x => filterResult.includes(x))
+        if (this.coord[2] != 0 || this.coord[3] != 0) {
+          let [left, right] = [this.coord[0], this.coord[2]]
+            .map(x => x / 1000)
+            .sort();
+          let [bottom, top] = [this.coord[1], this.coord[3]]
+            .map(x => 1 - x / 500)
+            .sort();
+          this.boxes.push([left, right, bottom, top]);
+          let filterResult = this.contextHandler.filterRange(
+            left,
+            right,
+            bottom,
+            top
           );
-        } else {
-          this.$emit("filterChange", filterResult);
+          if (this.filter) {
+            this.$emit(
+              "filterChange",
+              this.filter.filter(x => filterResult.includes(x))
+            );
+          } else {
+            this.$emit("filterChange", filterResult);
+          }
         }
       }
       window.removeEventListener("mouseup", this.listener);
@@ -230,6 +272,7 @@ export default {
     setTimeout(() => {
       this.canvas = this.$refs.canvas;
       this.canvasContext = this.$refs.canvasOverlay.getContext("2d");
+      this.rawLineContext = this.$refs.canvasRawLine.getContext("2d");
       let scopeData = unobserve.aggregatedData.map(row => {
         return {
           xValues: row[this.timeIndex],
@@ -271,6 +314,11 @@ export default {
       ).then(handler => (this.contextHandler = handler));
       this.$Spin.hide();
     }, 0); // ensure spin shows
+  },
+  beforeDestroy() {
+    if (this.contextHandler) {
+      this.contextHandler.destroy();
+    }
   }
 };
 </script>

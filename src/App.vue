@@ -67,7 +67,7 @@
           </div>
         </Card>
         <Card style="margin-left:20px;flex-grow:1">
-          <div style="min-height: 200px;color:red" v-if="!chartConfigs.length">
+          <div style="min-height: 200px;color:red" v-if="!headers.length">
             Please load a dataset (.csv file) first!
             <Button
               @click="eventHandler('1')"
@@ -85,23 +85,31 @@
             >
           </div>
           <div v-else>
-            <template v-for="(config, i) in chartConfigs">
-              <CanvasBox
-                :key="
-                  config.aggregateName +
-                    '#' +
-                    config.timeName +
-                    '#' +
-                    config.valueName
-                "
-                :timeIndex="config.timeIndex"
-                :valueIndex="config.valueIndex"
-                :timeName="config.timeName"
-                :valueName="config.valueName"
-                :filter="config.filter"
-                @filterChange="handleFilterChange(i, $event)"
-              />
-            </template>
+            <div
+              style="min-height: 200px;color:red"
+              v-if="!chartConfigs.length"
+            >
+              Please use a valid configuration in left panel!
+            </div>
+            <div v-else>
+              <template v-for="(config, i) in chartConfigs">
+                <CanvasBox
+                  :key="
+                    config.aggregateName +
+                      '#' +
+                      config.timeName +
+                      '#' +
+                      config.valueName
+                  "
+                  :timeIndex="config.timeIndex"
+                  :valueIndex="config.valueIndex"
+                  :timeName="config.timeName"
+                  :valueName="config.valueName"
+                  :filter="config.filter"
+                  @filterChange="handleFilterChange(i, $event)"
+                />
+              </template>
+            </div>
           </div>
         </Card>
       </Content>
@@ -260,19 +268,22 @@ export default {
         }
         aggrMap.clear();
       }
-      this.chartConfigs = this.valueAttr.map(attr => {
-        return {
-          aggregateIndex: this.aggregateAttr,
-          timeIndex: this.timeAttr,
-          valueIndex: attr,
-          aggregateName: this.headers[this.aggregateAttr],
-          timeName: this.headers[this.timeAttr],
-          valueName: this.headers[attr],
-          filter: undefined,
-          emitFilter: undefined
-        };
-      });
-      this.filters = this.valueAttr.map(_ => undefined);
+      this.chartConfigs = this.valueAttr
+        .map(attr => {
+          if (attr == this.timeAttr) return null;
+          return {
+            aggregateIndex: this.aggregateAttr,
+            timeIndex: this.timeAttr,
+            valueIndex: attr,
+            aggregateName: this.headers[this.aggregateAttr],
+            timeName: this.headers[this.timeAttr],
+            valueName: this.headers[attr],
+            filter: undefined,
+            emitFilter: undefined
+          };
+        })
+        .filter(x => x);
+      this.filters = this.chartConfigs.map(_ => undefined);
       this.$Spin.hide();
     },
     handleFilterChange(index, filter) {

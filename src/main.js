@@ -2,7 +2,7 @@ import Vue from "vue";
 import App from "./App.vue";
 import iView from "view-design";
 
-import 'view-design/dist/styles/iview.css';
+import "view-design/dist/styles/iview.css";
 
 Vue.use(iView);
 
@@ -11,3 +11,16 @@ Vue.config.productionTip = false;
 new Vue({
   render: h => h(App)
 }).$mount("#app");
+
+// Detect integrated GPU
+const canvas = document.createElement("canvas");
+const gl = canvas.getContext("webgl");
+const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+const gpuInfo = gl
+  .getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+  .toLowerCase();
+if (gpuInfo.includes("intel")) {
+  alert(
+    "Your GPU memory may not big enough to run the program properly, but you can take a try."
+  );
+}
