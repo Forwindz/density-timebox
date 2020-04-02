@@ -6,7 +6,7 @@
       ref="canvas"
       width="1000"
       height="500"
-      style="width:1000px;height:500px;cursor:crosshair"
+      :style="{ width: '1000px', height: '500px', cursor }"
       @mousedown="startMouse"
       @mousemove="moveMouse"
       @click="angleConfirm"
@@ -67,6 +67,7 @@ export default {
       rawLineContext: null,
       filterMode: "rect",
       rawMode: "null",
+      cursor: "crosshair",
       mouseDown: false,
       listener: null,
       coord: [0, 0, 0, 0, 0],
@@ -130,9 +131,99 @@ export default {
     startMouse(e) {
       if (this.mouseDown) return;
       this.mouseDown = true;
-      this.coord = [0, 0, 0, 0, 0];
-      this.coord[0] = e.offsetX;
-      this.coord[1] = e.offsetY;
+      let x = e.offsetX,
+        y = e.offsetY,
+        flag = false;
+      if (this.filterMode == "rect") {
+        x /= 1000;
+        y = 1 - y / 500;
+        for (let box of this.boxes) {
+          if (
+            (Math.abs(x - box[0]) <= 0.002 || Math.abs(x - box[1]) <= 0.002) &&
+            y > box[2] &&
+            y < box[3]
+          ) {
+            if (Math.abs(x - box[0]) <= 0.002) {
+              this.mouseDown = "left";
+            } else {
+              this.mouseDown = "right";
+            }
+            flag = true;
+          } else if (
+            (Math.abs(y - box[2]) <= 0.004 || Math.abs(y - box[3]) <= 0.004) &&
+            x > box[0] &&
+            x < box[1]
+          ) {
+            if (Math.abs(y - box[2]) <= 0.004) {
+              this.mouseDown = "bottom";
+            } else {
+              this.mouseDown = "top";
+            }
+            flag = true;
+          } else if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
+            this.mouseDown = "move";
+            flag = true;
+          }
+          if (flag) {
+            this.coord = [
+              box[0] * 1000,
+              500 - box[3] * 500,
+              box[1] * 1000,
+              500 - box[2] * 500,
+              0
+            ];
+            this.boxes.splice(this.boxes.indexOf(box), 1);
+            let filterResult = undefined;
+            this.boxes.forEach(b => {
+              let tmpResult = this.contextHandler.filterRange(...b);
+              if (!filterResult) {
+                filterResult = tmpResult;
+              } else {
+                filterResult = filterResult.filter(x => tmpResult.includes(x));
+              }
+            });
+            this.$emit("filterChange", filterResult);
+            break;
+          }
+        }
+      } else {
+        if (
+          Math.abs(x - this.coord[0]) <= 2 &&
+          Math.abs(y - this.coord[1]) <= 2
+        ) {
+          this.mouseDown = "move";
+          flag = true;
+        } else if (
+          Math.abs(x - this.coord[2]) <= 2 &&
+          Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
+        ) {
+          this.mouseDown = "time";
+          flag = true;
+        } else if (
+          x > this.coord[0] &&
+          x < this.coord[2] &&
+          y >
+            (this.coord[1] * (this.coord[2] - x)) /
+              (this.coord[2] - this.coord[0]) +
+              ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
+                (x - this.coord[0])) /
+                (this.coord[2] - this.coord[0]) &&
+          y <
+            (this.coord[1] * (this.coord[2] - x)) /
+              (this.coord[2] - this.coord[0]) +
+              ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
+                (x - this.coord[0])) /
+                (this.coord[2] - this.coord[0])
+        ) {
+          this.mouseDown = "angular";
+          flag = true;
+        }
+      }
+      if (!flag) {
+        this.coord = [0, 0, 0, 0, 0];
+        this.coord[0] = e.offsetX;
+        this.coord[1] = e.offsetY;
+      }
       this.listener = this.startFilter.bind(this);
       window.addEventListener("mouseup", this.listener);
     },
@@ -146,10 +237,119 @@ export default {
         );
       }
     },
+    cursorShape(e) {
+      let x = e.offsetX,
+        y = e.offsetY;
+      switch (this.mouseDown) {
+        case "move":
+          this.cursor = "grabbing";
+          return;
+        case "left":
+        case "right":
+        case "time":
+          this.cursor = "ew-resize";
+          return;
+        case "top":
+        case "bottom":
+        case "angular":
+        case "range":
+          this.cursor = "ns-resize";
+          return;
+        case "magnet":
+        case true:
+          this.cursor = "crosshair";
+          return;
+        default:
+          if (this.filterMode == "rect") {
+            x /= 1000;
+            y = 1 - y / 500;
+            for (let box of this.boxes) {
+              if (
+                (Math.abs(x - box[0]) <= 0.002 ||
+                  Math.abs(x - box[1]) <= 0.002) &&
+                y > box[2] &&
+                y < box[3]
+              ) {
+                this.cursor = "ew-resize";
+                return;
+              }
+              if (
+                (Math.abs(y - box[2]) <= 0.004 ||
+                  Math.abs(y - box[3]) <= 0.004) &&
+                x > box[0] &&
+                x < box[1]
+              ) {
+                this.cursor = "ns-resize";
+                return;
+              }
+              if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
+                this.cursor = "move";
+                return;
+              }
+            }
+          } else {
+            if (
+              Math.abs(x - this.coord[0]) <= 2 &&
+              Math.abs(y - this.coord[1]) <= 2
+            ) {
+              this.cursor = "move";
+              return;
+            }
+            if (
+              Math.abs(x - this.coord[2]) <= 2 &&
+              Math.abs(y - this.coord[3]) <=
+                Math.abs(this.coord[4] - this.coord[3])
+            ) {
+              this.cursor = "ew-resize";
+              return;
+            }
+            if (
+              x > this.coord[0] &&
+              x < this.coord[2] &&
+              y >
+                (this.coord[1] * (this.coord[2] - x)) /
+                  (this.coord[2] - this.coord[0]) +
+                  ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
+                    (x - this.coord[0])) /
+                    (this.coord[2] - this.coord[0]) &&
+              y <
+                (this.coord[1] * (this.coord[2] - x)) /
+                  (this.coord[2] - this.coord[0]) +
+                  ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
+                    (x - this.coord[0])) /
+                    (this.coord[2] - this.coord[0])
+            ) {
+              this.cursor = "ns-resize";
+              return;
+            }
+          }
+          this.cursor = "crosshair";
+      }
+    },
     moveMouse(e) {
+      this.cursorShape(e);
       if (!this.mouseDown) return;
       if (this.mouseDown == "magnet") {
         this.coord[4] = e.offsetY;
+      } else if (this.mouseDown == "move") {
+        this.coord[0] += e.movementX;
+        this.coord[2] += e.movementX;
+        this.coord[1] += e.movementY;
+        this.coord[3] += e.movementY;
+        this.coord[4] += e.movementY;
+      } else if (this.mouseDown == "left") {
+        this.coord[0] = e.offsetX;
+      } else if (this.mouseDown == "right") {
+        this.coord[2] = e.offsetX;
+      } else if (this.mouseDown == "bottom") {
+        this.coord[3] = e.offsetY;
+      } else if (this.mouseDown == "top") {
+        this.coord[1] = e.offsetY;
+      } else if (this.mouseDown == "time") {
+        this.coord[2] = Math.max(this.coord[0] + 1, e.offsetX);
+      } else if (this.mouseDown == "angular") {
+        this.coord[3] += e.movementY;
+        this.coord[4] += e.movementY;
       } else {
         this.coord[2] = e.offsetX;
         this.coord[3] = e.offsetY;
@@ -172,7 +372,7 @@ export default {
         this.canvasContext.moveTo(this.coord[0], this.coord[1]);
         this.canvasContext.lineTo(this.coord[2], this.coord[3]);
         this.canvasContext.stroke();
-        if (this.mouseDown == "magnet") {
+        if (this.mouseDown && this.mouseDown !== true) {
           let offset = this.coord[4] - this.coord[3];
           this.canvasContext.beginPath();
           this.canvasContext.moveTo(this.coord[2], this.coord[3] - offset);
@@ -237,7 +437,7 @@ export default {
             start = this.coord.slice(2, 4);
           }
           this.coord = [...start, ...end, 0];
-        } else if (this.mouseDown == "magnet") {
+        } else if (this.mouseDown) {
           this.mouseDown = false;
           let offset = Math.abs(this.coord[4] - this.coord[3]);
           let startAngle =
