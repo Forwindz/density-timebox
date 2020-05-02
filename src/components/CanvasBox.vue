@@ -1,12 +1,17 @@
 <template>
   <div
-    style="display:flex;flex-direction:row;align-items:center;margin-bottom:20px;position:relative"
+    style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
   >
     <canvas
       ref="canvas"
       width="1000"
       height="500"
-      :style="{ width: '1000px', height: '500px', cursor }"
+      :style="{
+        width: '1000px',
+        height: '500px',
+        cursor,
+        transform: `scaleY(${upsideDownFactor})`,
+      }"
       @mousedown="startMouse"
       @mousemove="moveMouse"
       @click="angleConfirm"
@@ -16,16 +21,34 @@
       width="1000"
       height="500"
       style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
+      :style="{
+        transform: `scaleY(${upsideDownFactor})`,
+      }"
     ></canvas>
     <canvas
       ref="canvasOverlay"
       width="1000"
       height="500"
       style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
+      :style="{
+        transform: `scaleY(${upsideDownFactor})`,
+      }"
     ></canvas>
+    <div
+      ref="axisTop"
+      style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
+    ></div>
+    <div
+      ref="axisBottom"
+      style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
+    ></div>
+    <div
+      ref="axisLeft"
+      style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
+    ></div>
     <div class="control-panel">
       <p>Chart of "{{ timeName }}" - "{{ valueName }}"</p>
-      <Button icon="md-sync" @click="resetFilter">reset filter</Button>
+      <Button icon="md-sync" @click="resetFilter">reset filters</Button>
       <div>
         <span>Filter line strategy: </span>
         <RadioGroup v-model="filterMode" type="button">
@@ -37,19 +60,68 @@
         <span>Raw line strategy: </span>
         <RadioGroup v-model="rawMode" type="button">
           <Radio label="null">Null</Radio>
-          <Radio label="out">Outlier</Radio>
-          <Radio label="rep">Representative</Radio>
+          <Radio label="cur">Hover</Radio>
+          <Radio label="out">Min</Radio>
+          <Radio label="rep">Max</Radio>
         </RadioGroup>
       </div>
+      <div v-if="rawMode == 'rep'" style="display:flex;align-items:center">
+        <span style="margin-right:8px">Weight</span>
+        <Slider
+          v-model="diverse"
+          :min="0"
+          :max="1"
+          :step="0.001"
+          show-tip="never"
+          style="flex-grow:1"
+        />
+        <span style="margin-left:8px">Diverse</span>
+      </div>
+      <div v-if="rawMode != 'null'">
+        <div v-for="i in [0, 1, 2]" :key="i">
+          <span
+            ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker
+          ></span>
+          <Poptip
+            trigger="hover"
+            placement="bottom-end"
+            :width="800"
+            title="Data preview"
+            @on-popper-show="previewIndex = rawLines[i]"
+          >
+            <span style="margin-left:12px" v-if="i < rawLineNames.length">{{
+              rawLineNames[i]
+            }}</span>
+            <div slot="content">
+              <Table :columns="headers" :data="previewData" />
+            </div>
+          </Poptip>
+        </div>
+      </div>
+      <div>
+        <span>Color map: </span>
+        <span>1</span>
+        <span class="color-map"></span>
+        <InputNumber :min="1" v-model="maxDensity" :active-change="false" />
+      </div>
+      <div>
+        <span>Upside down:</span>
+        <iSwitch style="margin-left:12px" v-model="upsideDown" />
+      </div>
+      <Button icon="md-cloud-download" type="primary" @click="exportFig"
+        >export figure</Button
+      >
     </div>
   </div>
 </template>
 
 <script>
 import { binsx, binsy } from "../core/constants";
+import { exportCanvas } from "../core/utils";
 import { bin } from "vega-statistics";
 import unobserve from "../store";
 import render from "../core";
+import * as d3 from "d3";
 
 export default {
   props: {
@@ -57,7 +129,7 @@ export default {
     valueIndex: Number,
     timeName: String,
     valueName: String,
-    filter: Float32Array
+    filter: Float32Array,
   },
   data() {
     return {
@@ -67,12 +139,36 @@ export default {
       rawLineContext: null,
       filterMode: "rect",
       rawMode: "null",
+      diverse: 0.15,
       cursor: "crosshair",
       mouseDown: false,
       listener: null,
+      hoverListener: null,
       coord: [0, 0, 0, 0, 0],
-      boxes: []
+      boxes: [],
+      maxDensity: 1,
+      rawLines: [],
+      colorMap: ["aqua", "limegreen", "lightgreen"],
+      upsideDown: false,
+      headers: [],
+      previewIndex: -1,
     };
+  },
+  computed: {
+    rawLineNames() {
+      return [...this.rawLines].map((i) => unobserve.aggregatedData[i].key);
+    },
+    upsideDownFactor() {
+      return this.upsideDown ? -1 : 1;
+    },
+    previewData() {
+      if (this.previewIndex < 0) return [];
+      return [...unobserve.aggregatedData[this.previewIndex].ref]
+        .slice(0, 6)
+        .map((i, ii) =>
+          ii == 5 ? this.headers.map((_) => "...") : unobserve.data[i]
+        );
+    },
   },
   watch: {
     filter(value) {
@@ -89,25 +185,22 @@ export default {
     },
     rawMode() {
       this.getTopK();
-    }
-  },
-  methods: {
-    getTopK() {
-      let kArray = [];
-      switch (this.rawMode) {
-        case "out":
-          kArray = this.contextHandler.findKTop(false);
-          break;
-        case "rep":
-          kArray = this.contextHandler.findKTop(true);
-          break;
-      }
+    },
+    maxDensity() {
+      this.contextHandler.maxDensity = this.maxDensity;
+    },
+    diverse() {
+      this.getTopK();
+    },
+    colorMap() {
+      const kArray = this.rawLines;
       this.rawLineContext.clearRect(0, 0, 1000, 500);
-      const colorMap = ["aqua", "limegreen", "brown"];
+      const colorMap = this.colorMap;
       for (let i = 0; i < kArray.length; i++) {
         const data = unobserve.aggregatedData[kArray[i]];
         this.rawLineContext.globalAlpha = 1;
         this.rawLineContext.strokeStyle = colorMap[i % 3];
+        this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
           (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
@@ -122,11 +215,87 @@ export default {
         this.rawLineContext.stroke();
       }
     },
+  },
+  methods: {
+    hoverLines(e) {
+      const x = e.offsetX;
+      const y = e.offsetY;
+      const kArray = this.contextHandler
+        .filterRange(
+          (x - 5) / 1000,
+          (x + 5) / 1000,
+          1 - (y + 5) / 500,
+          1 - (y - 5) / 500
+        )
+        .filter((x) => !this.filter || this.filter.includes(x))
+        .slice(0, 3);
+      this.rawLineContext.clearRect(0, 0, 1000, 500);
+      const colorMap = this.colorMap;
+      for (let i = kArray.length - 1; i >= 0; i--) {
+        const data = unobserve.aggregatedData[kArray[i]];
+        this.rawLineContext.globalAlpha = 1;
+        this.rawLineContext.strokeStyle = colorMap[i % 3];
+        this.rawLineContext.lineWidth = 2;
+        this.rawLineContext.beginPath();
+        this.rawLineContext.moveTo(
+          (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
+          500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+        );
+        for (let j = 0; j < data[this.timeIndex].length; j++) {
+          this.rawLineContext.lineTo(
+            (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
+            500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+          );
+        }
+        this.rawLineContext.stroke();
+      }
+      this.rawLines = kArray;
+    },
+    getTopK() {
+      let kArray = [];
+      if (this.hoverListener) {
+        this.$refs.canvas.removeEventListener("mousemove", this.hoverListener);
+      }
+      switch (this.rawMode) {
+        case "cur":
+          this.hoverListener = this.hoverLines.bind(this);
+          this.$refs.canvas.addEventListener("mousemove", this.hoverListener);
+          break;
+        case "out":
+          kArray = this.contextHandler.findKTop(false);
+          break;
+        case "rep":
+          kArray = this.contextHandler.findKTop(true, this.diverse);
+          break;
+      }
+      this.rawLineContext.clearRect(0, 0, 1000, 500);
+      const colorMap = this.colorMap;
+      for (let i = kArray.length - 1; i >= 0; i--) {
+        const data = unobserve.aggregatedData[kArray[i]];
+        this.rawLineContext.globalAlpha = 1;
+        this.rawLineContext.strokeStyle = colorMap[i % 3];
+        this.rawLineContext.lineWidth = 2;
+        this.rawLineContext.beginPath();
+        this.rawLineContext.moveTo(
+          (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
+          500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+        );
+        for (let j = 0; j < data[this.timeIndex].length; j++) {
+          this.rawLineContext.lineTo(
+            (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
+            500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+          );
+        }
+        this.rawLineContext.stroke();
+      }
+      this.rawLines = kArray;
+    },
     resetFilter() {
       this.$emit("filterChange", undefined);
       this.boxes = [];
       this.mouseDown = false;
       this.canvasContext.clearRect(0, 0, 1000, 500);
+      this.coord = [0, 0, 0, 0, 0];
     },
     startMouse(e) {
       if (this.mouseDown) return;
@@ -170,16 +339,18 @@ export default {
               500 - box[3] * 500,
               box[1] * 1000,
               500 - box[2] * 500,
-              0
+              0,
             ];
             this.boxes.splice(this.boxes.indexOf(box), 1);
             let filterResult = undefined;
-            this.boxes.forEach(b => {
+            this.boxes.forEach((b) => {
               let tmpResult = this.contextHandler.filterRange(...b);
               if (!filterResult) {
                 filterResult = tmpResult;
               } else {
-                filterResult = filterResult.filter(x => tmpResult.includes(x));
+                filterResult = filterResult.filter((x) =>
+                  tmpResult.includes(x)
+                );
               }
             });
             this.$emit("filterChange", filterResult);
@@ -334,9 +505,9 @@ export default {
       } else if (this.mouseDown == "move") {
         this.coord[0] += e.movementX;
         this.coord[2] += e.movementX;
-        this.coord[1] += e.movementY;
-        this.coord[3] += e.movementY;
-        this.coord[4] += e.movementY;
+        this.coord[1] += e.movementY * this.upsideDownFactor;
+        this.coord[3] += e.movementY * this.upsideDownFactor;
+        this.coord[4] += e.movementY * this.upsideDownFactor;
       } else if (this.mouseDown == "left") {
         this.coord[0] = e.offsetX;
       } else if (this.mouseDown == "right") {
@@ -348,8 +519,8 @@ export default {
       } else if (this.mouseDown == "time") {
         this.coord[2] = Math.max(this.coord[0] + 1, e.offsetX);
       } else if (this.mouseDown == "angular") {
-        this.coord[3] += e.movementY;
-        this.coord[4] += e.movementY;
+        this.coord[3] += e.movementY * this.upsideDownFactor;
+        this.coord[4] += e.movementY * this.upsideDownFactor;
       } else {
         this.coord[2] = e.offsetX;
         this.coord[3] = e.offsetY;
@@ -393,10 +564,10 @@ export default {
         this.mouseDown = false;
         if (this.coord[2] != 0 || this.coord[3] != 0) {
           let [left, right] = [this.coord[0], this.coord[2]]
-            .map(x => x / 1000)
+            .map((x) => x / 1000)
             .sort();
           let [bottom, top] = [this.coord[1], this.coord[3]]
-            .map(x => 1 - x / 500)
+            .map((x) => 1 - x / 500)
             .sort();
           this.boxes.push([left, right, bottom, top]);
           let filterResult = this.contextHandler.filterRange(
@@ -408,7 +579,7 @@ export default {
           if (this.filter) {
             this.$emit(
               "filterChange",
-              this.filter.filter(x => filterResult.includes(x))
+              this.filter.filter((x) => filterResult.includes(x))
             );
           } else {
             this.$emit("filterChange", filterResult);
@@ -441,19 +612,11 @@ export default {
           this.mouseDown = false;
           let offset = Math.abs(this.coord[4] - this.coord[3]);
           let startAngle =
-            -(
-              Math.atan(
-                (this.coord[3] + offset - this.coord[1]) /
-                  (this.coord[2] - this.coord[0])
-              ) / Math.PI
-            ) * 180;
+            -(this.coord[3] + offset - this.coord[1]) /
+            (this.coord[2] - this.coord[0]);
           let endAngle =
-            -(
-              Math.atan(
-                (this.coord[3] - offset - this.coord[1]) /
-                  (this.coord[2] - this.coord[0])
-              ) / Math.PI
-            ) * 180;
+            -(this.coord[3] - offset - this.coord[1]) /
+            (this.coord[2] - this.coord[0]);
           this.$emit(
             "filterChange",
             this.contextHandler.filterAngle(
@@ -465,18 +628,27 @@ export default {
           );
         }
       }
-    }
+    },
+    exportFig() {
+      exportCanvas(
+        [this.$refs.canvas, this.$refs.canvasOverlay, this.$refs.canvasRawLine],
+        this.upsideDown
+      );
+    },
   },
   mounted() {
+    this.headers = unobserve.headers.map((title, key) => {
+      return { title, key, minWidth: 150 };
+    });
     this.$Spin.show();
     setTimeout(() => {
       this.canvas = this.$refs.canvas;
       this.canvasContext = this.$refs.canvasOverlay.getContext("2d");
       this.rawLineContext = this.$refs.canvasRawLine.getContext("2d");
-      let scopeData = unobserve.aggregatedData.map(row => {
+      let scopeData = unobserve.aggregatedData.map((row) => {
         return {
           xValues: row[this.timeIndex],
-          yValues: row[this.valueIndex]
+          yValues: row[this.valueIndex],
         };
       });
 
@@ -502,6 +674,11 @@ export default {
         }
       }
 
+      // const scaleY = d3
+      //   .scaleLinear()
+      //   .domain([0, maxY])
+      //   .range([0, 500]);
+
       // compute nice bin boundaries
       const binConfigX = bin({ maxbins: binsx, extent: [0, maxX - minX] });
       const binConfigY = bin({ maxbins: binsy, extent: [0, maxY] });
@@ -511,7 +688,10 @@ export default {
         binConfigX,
         binConfigY,
         this.canvas
-      ).then(handler => (this.contextHandler = handler));
+      ).then((handler) => {
+        this.contextHandler = handler;
+        this.maxDensity = handler.maxDensity;
+      });
       this.$Spin.hide();
     }, 0); // ensure spin shows
   },
@@ -519,7 +699,7 @@ export default {
     if (this.contextHandler) {
       this.contextHandler.destroy();
     }
-  }
+  },
 };
 </script>
 
@@ -530,7 +710,29 @@ export default {
   margin-left: 50px;
 
   > * {
-    margin-bottom: 12px !important;
+    margin-bottom: 8px !important;
   }
+}
+
+.color-map {
+  background-image: linear-gradient(
+    to right,
+    #fcfdbf,
+    #fece91 10%,
+    #fe9f6d 20%,
+    #f76f5c 30%,
+    #de4968 40%,
+    #b6377a 50%,
+    #8c2981 60%,
+    #651a80 70%,
+    #3b0f70 80%,
+    #150e37 90%,
+    #000004
+  );
+  display: inline-block;
+  width: 200px;
+  height: 32px;
+  margin: 0 10px;
+  vertical-align: middle;
 }
 </style>

@@ -21,6 +21,6 @@ const gpuInfo = gl
   .toLowerCase();
 if (gpuInfo.includes("intel")) {
   alert(
-    "Your GPU memory may not big enough to run the program properly, but you can take a try."
+    "Your GPU memory may not big enough to run the program properly, but you can have a try."
   );
 }

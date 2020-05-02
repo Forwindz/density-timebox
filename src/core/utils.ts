@@ -53,3 +53,26 @@ export function float(i: number) {
   }
   return `${Math.floor(i)}.0`;
 }
+
+export function exportCanvas(canvas: HTMLCanvasElement[], upsideDown: boolean) {
+  const exportCanvas = document.createElement("canvas");
+  exportCanvas.width = 1000;
+  exportCanvas.height = 500;
+  const context = exportCanvas.getContext("2d");
+  if (upsideDown) {
+    context.scale(1, -1);
+  }
+  for (let cvs of canvas) {
+    context.drawImage(cvs, 0, upsideDown ? -cvs.height : 0);
+  }
+  const exportBtn = document.createElement("a");
+  exportBtn.href = exportCanvas
+    .toDataURL()
+    .replace(/^data:image\/[^;]*/, "data:application/octet-stream");
+  exportBtn.download = "export.png";
+  exportBtn.click();
+}
+
+export function slope(array, min, max) {
+  return array.map((x) => Math.max(min, Math.min(max, x)));
+}

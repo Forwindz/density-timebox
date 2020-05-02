@@ -71,10 +71,10 @@ export interface scaleOption {
 export default function (data: Array<LineData>, attribute: number[], binX: BinConfig, binY: BinConfig, canvas?: HTMLCanvasElement, gaussianKernel?: number[][], lineWidth?: number, tangentExtent?: number, normalExtent?: number, doNormalize?: number, scaleOption?: scaleOption): Promise<{
     filterAngle: (startTime: any, endTime: any, startAngle: any, endAngle: any) => Float32Array;
     filterRange: (startTime: any, endTime: any, startValue: any, endValue: any) => Float32Array;
-    findKTop: (isHighest: any) => any[];
+    findKTop: (isHighest: any, diverse: any) => any[];
     rerender: (indexes: any) => void;
     destroy: () => void;
+    maxDensity: number;
     maxX: number;
     maxY: number;
-    maxDensity: number;
 }>;

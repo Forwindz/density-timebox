@@ -11,10 +11,16 @@
               ref="upload"
               :before-upload="readFileHandler"
             />
-            <MenuItem name="1">
-              <Icon type="ios-archive"></Icon>
-              Example data
-            </MenuItem>
+            <Submenu name="3">
+              <template slot="title">
+                <Icon type="ios-archive"></Icon>
+                Example data
+              </template>
+              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>
+              <MenuItem name="1-2">Airline(10.6M)</MenuItem>
+              <MenuItem name="1-3">Weather(29.6M)</MenuItem>
+              <MenuItem name="1-4">Reading(18.5M)</MenuItem>
+            </Submenu>
             <MenuItem name="2">
               <Icon type="ios-cloud-upload-outline"></Icon>
               Load data
@@ -28,7 +34,7 @@
           margin: '0 auto',
           padding: '0 50px',
           display: 'flex',
-          flexDirection: 'row'
+          flexDirection: 'row',
         }"
       >
         <Card class="sticky-content">
@@ -70,11 +76,29 @@
           <div style="min-height: 200px;color:red" v-if="!headers.length">
             Please load a dataset (.csv file) first!
             <Button
-              @click="eventHandler('1')"
+              @click="eventHandler('1-1')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example data</Button
+              >Example Stocks(25.2M)</Button
+            ><Button
+              @click="eventHandler('1-2')"
+              type="primary"
+              icon="ios-archive"
+              style="margin:0 12px"
+              >Example Airline(10.6M)</Button
+            ><Button
+              @click="eventHandler('1-3')"
+              type="primary"
+              icon="ios-archive"
+              style="margin:0 12px"
+              >Example Weather(29.6M)</Button
+            ><Button
+              @click="eventHandler('1-4')"
+              type="primary"
+              icon="ios-archive"
+              style="margin:0 12px"
+              >Example Reading(18.5M)</Button
             >
             <Button
               @click="eventHandler('2')"
@@ -113,7 +137,7 @@
           </div>
         </Card>
       </Content>
-      <Footer class="layout-footer-center">2020 &copy; VisLab.Wang</Footer>
+      <!-- <Footer class="layout-footer-center">2020 &copy; VisLab.Wang</Footer> -->
     </Layout>
   </div>
 </template>
@@ -137,7 +161,7 @@ function parseField(value, type) {
 export default {
   name: "App",
   components: {
-    CanvasBox
+    CanvasBox,
   },
   data() {
     return {
@@ -147,29 +171,26 @@ export default {
       timeAttr: 0,
       valueAttr: [],
       chartConfigs: [],
-      filters: []
+      filters: [],
     };
   },
   methods: {
     eventHandler(type) {
       this.$Spin.show();
-      switch (type) {
-        case "1":
-          generateData().then(data => {
-            this.$Spin.hide();
-            this.preProcessData(data);
-            this.generateCharts();
-          });
-          break;
-        case "2":
-          this.$refs.upload.handleClick();
+      if (type.startsWith("1")) {
+        generateData(type.split("-")[1]).then((data) => {
           this.$Spin.hide();
-          break;
+          this.preProcessData(data);
+          this.generateCharts();
+        });
+      } else if (type == "2") {
+        this.$refs.upload.handleClick();
+        this.$Spin.hide();
       }
     },
     readFileHandler(file) {
       this.$Spin.show();
-      readData(file).then(data => {
+      readData(file).then((data) => {
         this.$Spin.hide();
         this.preProcessData(data);
         this.generateCharts();
@@ -178,9 +199,10 @@ export default {
     },
     preProcessData(data) {
       this.headers = data[0];
+      unobserve.headers = data[0];
       unobserve.data = data.slice(1);
       if (data.length > 1) {
-        this.inferTypes = data[1].map(attr => {
+        this.inferTypes = data[1].map((attr) => {
           if (attr.includes("-") || attr.includes("/")) {
             let isDate = new Date(attr).toString();
             if (isDate.startsWith("Invalid")) {
@@ -197,6 +219,8 @@ export default {
         this.timeAttr = this.inferTypes.indexOf("date");
         let valueAttr = this.inferTypes.indexOf("number");
         if (this.aggregateAttr < 0) this.aggregateAttr = 0;
+        if (this.timeAttr < 0)
+          this.timeAttr = this.inferTypes.indexOf("number");
         if (this.timeAttr < 0) this.timeAttr = 0;
         if (valueAttr >= 0) this.valueAttr = [valueAttr];
       }
@@ -216,7 +240,8 @@ export default {
         this.headers[this.aggregateAttr] !=
           (this.chartConfigs.length && this.chartConfigs[0].aggregateName) ||
         this.valueAttr.find(
-          idx => !this.chartConfigs.find(config => config.valueIndex === idx)
+          (idx) =>
+            !this.chartConfigs.find((config) => config.valueIndex === idx)
         )
       ) {
         unobserve.aggregatedData = [];
@@ -224,52 +249,57 @@ export default {
         const infers = {
           [this.timeAttr]: this.inferTypes[this.timeAttr],
           ...this.valueAttr
-            .map(idx => {
+            .map((idx) => {
               return { [idx]: this.inferTypes[idx] };
             })
             .reduce((p, v) => {
               return { ...p, ...v };
-            }, {})
+            }, {}),
         };
-        unobserve.data.forEach(row => {
+        unobserve.data.forEach((row, i) => {
           let aggrList;
           const aggrKey = row[this.aggregateAttr];
           if (!aggrMap.has(aggrKey)) {
             aggrList = {
+              ref: [],
               [this.timeAttr]: [],
               ...this.valueAttr
-                .map(idx => {
+                .map((idx) => {
                   return { [idx]: [] };
                 })
                 .reduce((p, v) => {
                   return { ...p, ...v };
-                }, {})
+                }, {}),
             };
             aggrMap.set(aggrKey, aggrList);
           } else {
             aggrList = aggrMap.get(aggrKey);
           }
+          aggrList.ref.push(i);
           aggrList[this.timeAttr].push(
             parseField(row[this.timeAttr], infers[this.timeAttr])
           );
-          this.valueAttr.forEach(idx => {
+          this.valueAttr.forEach((idx) => {
             aggrList[idx].push(parseField(row[idx], infers[idx]));
           });
         });
-        for (let aggregated of aggrMap.values()) {
+        for (let [key, aggregated] of aggrMap.entries()) {
           unobserve.aggregatedData.push(
-            Object.entries(aggregated).reduce((p, v) => {
-              return {
-                ...p,
-                [v[0]]: new Float32Array(v[1])
-              };
-            }, {})
+            Object.entries(aggregated).reduce(
+              (p, v) => {
+                return {
+                  ...p,
+                  [v[0]]: new Float32Array(v[1]),
+                };
+              },
+              { key }
+            )
           );
         }
         aggrMap.clear();
       }
       this.chartConfigs = this.valueAttr
-        .map(attr => {
+        .map((attr) => {
           if (attr == this.timeAttr) return null;
           return {
             aggregateIndex: this.aggregateAttr,
@@ -279,17 +309,17 @@ export default {
             timeName: this.headers[this.timeAttr],
             valueName: this.headers[attr],
             filter: undefined,
-            emitFilter: undefined
+            emitFilter: undefined,
           };
         })
-        .filter(x => x);
-      this.filters = this.chartConfigs.map(_ => undefined);
+        .filter((x) => x);
+      this.filters = this.chartConfigs.map((_) => undefined);
       this.$Spin.hide();
     },
     handleFilterChange(index, filter) {
       this.filters.splice(index, 1, filter);
-      if (!this.filters.find(f => f)) {
-        this.chartConfigs.forEach(config => {
+      if (!this.filters.find((f) => f)) {
+        this.chartConfigs.forEach((config) => {
           this.$set(config, "filter", undefined);
         });
         return;
@@ -298,14 +328,14 @@ export default {
         new Set(
           this.filters
             .reduce((p, v) => [...p, ...(v ? v : [])], [])
-            .filter(x => !this.filters.find(f => !(f && f.includes(x))))
+            .filter((x) => !this.filters.find((f) => !(f && f.includes(x))))
         )
       );
-      this.chartConfigs.forEach(config => {
+      this.chartConfigs.forEach((config) => {
         this.$set(config, "filter", set);
       });
-    }
-  }
+    },
+  },
 };
 </script>
 

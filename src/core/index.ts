@@ -1,7 +1,7 @@
 import ndarray from "ndarray";
 import regl_ from "regl";
 import { MAX_REPEATS_X, MAX_REPEATS_Y } from "./constants";
-import { float as f, range, makePair } from "./utils";
+import { float as f, range, makePair, slope } from "./utils";
 
 export interface LineData {
   /**
@@ -101,7 +101,7 @@ export default async function(
     gaussianKernel = [
       [1, 2, 1],
       [2, 8, 2],
-      [1, 2, 1]
+      [1, 2, 1],
     ];
   }
   if (scaleOption === undefined) {
@@ -109,13 +109,13 @@ export default async function(
       xRatio: 1,
       yRatio: 1,
       xOffset: 0,
-      yOffset: 0
+      yOffset: 0,
     };
   }
 
   if (
     gaussianKernel.find(
-      gaussianRow => gaussianRow.length != gaussianKernel.length
+      (gaussianRow) => gaussianRow.length != gaussianKernel.length
     )
   ) {
     throw new Error("The input Gaussian kernal should be square matrix.");
@@ -132,7 +132,8 @@ export default async function(
 
   const regl = regl_({
     canvas: canvas || document.createElement("canvas"),
-    extensions: ["OES_texture_float"]
+    extensions: ["OES_texture_float"],
+    attributes: { preserveDrawingBuffer: true },
   });
 
   regl.on("lost", () => {
@@ -218,12 +219,12 @@ export default async function(
       maxX: regl.prop<any, "maxX">("maxX"),
       maxY: regl.prop<any, "maxY">("maxY"),
       column: regl.prop<any, "column">("column"),
-      row: regl.prop<any, "row">("row")
+      row: regl.prop<any, "row">("row"),
     },
 
     attributes: {
       time: regl.prop<any, "times">("times"),
-      value: regl.prop<any, "values">("values")
+      value: regl.prop<any, "values">("values"),
     },
 
     colorMask: regl.prop<any, "colorMask">("colorMask"),
@@ -235,114 +236,26 @@ export default async function(
     primitive: "line strip",
     lineWidth: () => 1,
 
-    framebuffer: regl.prop<any, "out">("out")
-  });
-
-  const drawAngle = regl({
-    vert: `
-        precision mediump float;
-
-        attribute vec2 valuePair;
-        attribute vec2 timePair;
-        attribute float index;
-
-        uniform float maxX;
-        uniform float maxY;
-        uniform float lineIdx;
-
-        varying float angle;
-
-        void main() {
-          float heatmapX = ${f(heatmapWidth)};
-          float heatmapY = ${f(heatmapHeight)};
-
-          vec2 tangent = vec2(timePair.y, valuePair.y) - vec2(timePair.x, valuePair.x);
-          tangent /= vec2(maxX, maxY);
-          tangent *= vec2(1000, 500);
-          float deg_PI = atan(tangent.y / tangent.x);
-          float deg = floor(deg_PI * 180.0 / 3.1415926) + 91.0;
-
-          angle = deg / 255.0;
-          int ii = int(index) - int(index) / 2 * 2;
-          float xx;
-          if (ii == 0) {
-            xx = timePair.x;
-          } else {
-            xx = timePair.y;
-          }
-          vec2 position = vec2(xx / maxX, (floor(lineIdx / 4.0) + 0.5) / ceil(${f(
-            data.length
-          )} / 4.0));
-
-          // scale to [-1, 1]
-          gl_Position = vec4(
-            2.0 * (position.x - 0.5),
-            2.0 * (position.y - 0.5),
-            0, 1);
-        }`,
-
-    frag: `
-        precision mediump float;
-
-        varying float angle;
-      
-        void main() {
-          gl_FragColor = vec4(angle);
-        }`,
-
-    uniforms: {
-      maxX: regl.prop<any, "maxX">("maxX"),
-      maxY: regl.prop<any, "maxY">("maxY"),
-      lineIdx: regl.prop<any, "lineIdx">("lineIdx")
-    },
-
-    attributes: {
-      valuePair: regl.prop<any, "rawValue">("rawValue"),
-      timePair: regl.prop<any, "timePair">("timePair"),
-      index: regl.prop<any, "index">("index")
-    },
-
-    colorMask: regl.prop<any, "colorMask">("colorMask"),
-
-    depth: { enable: false, mask: false },
-
-    count: regl.prop<any, "count">("count"),
-
-    primitive: "line strip",
-    lineWidth: () => 1,
-
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   const drawFlatLine = regl({
     vert: `
         precision mediump float;
 
-        attribute vec2 valuePair;
-        attribute vec2 timePair;
-        attribute float index;
+        attribute float value;
+        attribute float time;
 
         uniform float maxX;
         uniform float maxY;
         uniform float lineIdx;
 
-        varying float angle;
+        varying float v;
 
         void main() {
-          float heatmapX = ${f(heatmapWidth)};
-          float heatmapY = ${f(heatmapHeight)};
+          v = value / maxY;
 
-          int ii = int(index) - int(index) / 2 * 2;
-          float xx;
-          if (ii == 0) {
-            xx = timePair.x;
-            angle = valuePair.x / maxY;
-          } else {
-            xx = timePair.y;
-            angle = valuePair.y / maxY;
-          }
-
-          vec2 position = vec2(xx / maxX, (floor(lineIdx / 4.0) + 0.5) / ceil(${f(
+          vec2 position = vec2(time / maxX, (floor(lineIdx / 4.0) + 0.5) / ceil(${f(
             data.length
           )} / 4.0));
 
@@ -356,25 +269,40 @@ export default async function(
     frag: `
         precision mediump float;
 
-        varying float angle;
+        varying float v;
       
         void main() {
-          gl_FragColor = vec4(angle);
+          gl_FragColor = vec4(v);
         }`,
 
     uniforms: {
       maxX: regl.prop<any, "maxX">("maxX"),
       maxY: regl.prop<any, "maxY">("maxY"),
-      lineIdx: regl.prop<any, "lineIdx">("lineIdx")
+      lineIdx: regl.prop<any, "lineIdx">("lineIdx"),
     },
 
     attributes: {
-      valuePair: regl.prop<any, "rawValue">("rawValue"),
-      timePair: regl.prop<any, "timePair">("timePair"),
-      index: regl.prop<any, "index">("index")
+      value: regl.prop<any, "values">("values"),
+      time: regl.prop<any, "times">("times"),
     },
 
     colorMask: regl.prop<any, "colorMask">("colorMask"),
+
+    // additive blending
+    blend: {
+      enable: true,
+      func: {
+        srcRGB: "one",
+        srcAlpha: 1,
+        dstRGB: "one",
+        dstAlpha: 1,
+      },
+      equation: {
+        rgb: "add",
+        alpha: "add",
+      },
+      color: [0, 0, 0, 0],
+    },
 
     depth: { enable: false, mask: false },
 
@@ -383,7 +311,7 @@ export default async function(
     primitive: "line strip",
     lineWidth: () => 1,
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "flatOut">("flatOut"),
   });
 
   const computeBase = {
@@ -399,12 +327,12 @@ export default async function(
         }`,
 
     attributes: {
-      position: [-4, -4, 4, -4, 0, 4]
+      position: [-4, -4, 4, -4, 0, 4],
     },
 
     depth: { enable: false, mask: false },
 
-    count: 3
+    count: 3,
   };
 
   /**
@@ -453,9 +381,9 @@ export default async function(
       }
     `,
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer")
+      buffer: regl.prop<any, "buffer">("buffer"),
     },
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   /**
@@ -509,10 +437,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer")
+      buffer: regl.prop<any, "buffer">("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   /**
@@ -542,7 +470,7 @@ export default async function(
 
     uniforms: {
       sums: regl.prop<any, "sums">("sums"),
-      buffer: regl.prop<any, "buffer">("buffer")
+      buffer: regl.prop<any, "buffer">("buffer"),
     },
 
     // additive blending
@@ -552,16 +480,16 @@ export default async function(
         srcRGB: "one",
         srcAlpha: 1,
         dstRGB: "one",
-        dstAlpha: 1
+        dstAlpha: 1,
       },
       equation: {
         rgb: "add",
-        alpha: "add"
+        alpha: "add",
       },
-      color: [0, 0, 0, 0]
+      color: [0, 0, 0, 0],
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   /**
@@ -590,10 +518,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer")
+      buffer: regl.prop<any, "buffer">("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
   const mergeBufferVertically = regl({
     ...computeBase,
@@ -619,10 +547,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer")
+      buffer: regl.prop<any, "buffer">("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   /**
@@ -635,7 +563,7 @@ export default async function(
         precision mediump float;
       
         uniform sampler2D buffer;
-        uniform float plasma[30];
+        uniform float plasma[33];
         uniform float maxi;
         
         varying vec2 uv;
@@ -648,17 +576,17 @@ export default async function(
             gl_FragColor = vec4(0);
           } else {
             float normValue = value / maxi;
-            float step = 1.0 / 9.0;
-            for (int i = 0; i < 9; i++) {
+            float step = 1.0 / 10.0;
+            for (int i = 0; i < 10; i++) {
               if (normValue <= float(i + 1) * step) {
-                float rangeValue = (normValue - float(i) * step) * 9.0;
+                float rangeValue = (normValue - float(i) * step) * 10.0;
                 vec3 aColor = vec3(plasma[i * 3 + 0], plasma[i * 3 + 1], plasma[i * 3 + 2]);
                 vec3 bColor = vec3(plasma[(i + 1) * 3 + 0], plasma[(i + 1) * 3 + 1], plasma[(i + 1) * 3 + 2]);
                 gl_FragColor = vec4(aColor * (1.0 - rangeValue) + bColor * rangeValue, 1.0);
                 return;
               }
             }
-            gl_FragColor = vec4(plasma[27], plasma[28], plasma[29], 1);
+            gl_FragColor = vec4(plasma[30], plasma[31], plasma[32], 1);
           }
         }`,
 
@@ -666,25 +594,39 @@ export default async function(
       buffer: regl.prop<any, "buffer">("buffer"),
       maxi: regl.prop<any, "maxi">("maxi"),
       ...[
-        [0.9411764705882353, 0.9764705882352941, 0.12941176470588237],
-        [0.9882352941176471, 0.807843137254902, 0.1450980392156863],
-        [0.9882352941176471, 0.6509803921568628, 0.21176470588235294],
-        [0.9490196078431372, 0.5137254901960784, 0.2980392156862745],
-        [0.8823529411764706, 0.39215686274509803, 0.3843137254901961],
-        [0.796078431372549, 0.2784313725490196, 0.4745098039215686],
-        [0.6941176470588235, 0.16470588235294117, 0.5647058823529412],
-        [0.5647058823529412, 0.050980392156862744, 0.6431372549019608],
-        [0.41568627450980394, 0, 0.6588235294117647],
-        [0.25882352941176473, 0.011764705882352941, 0.615686274509804]
+        [0.9882352941176471, 0.9921568627450981, 0.7490196078431373],
+        [0.996078431372549, 0.807843137254902, 0.5686274509803921],
+        [0.996078431372549, 0.6235294117647059, 0.42745098039215684],
+        [0.9686274509803922, 0.43529411764705883, 0.3607843137254902],
+        [0.8705882352941177, 0.28627450980392155, 0.40784313725490196],
+        [0.7137254901960784, 0.21568627450980393, 0.47843137254901963],
+        [0.5490196078431373, 0.1607843137254902, 0.5058823529411764],
+        [0.396078431372549, 0.10196078431372549, 0.5019607843137255],
+        [0.23137254901960785, 0.058823529411764705, 0.4392156862745098],
+        [0.08235294117647059, 0.054901960784313725, 0.21568627450980393],
+        [0, 0, 0.01568627450980392],
       ]
+        // ...[
+        //   [0.9411764705882353, 0.9764705882352941, 0.12941176470588237],
+        //   [0.9882352941176471, 0.807843137254902, 0.1450980392156863],
+        //   [0.9882352941176471, 0.6509803921568628, 0.21176470588235294],
+        //   [0.9490196078431372, 0.5137254901960784, 0.2980392156862745],
+        //   [0.8823529411764706, 0.39215686274509803, 0.3843137254901961],
+        //   [0.796078431372549, 0.2784313725490196, 0.4745098039215686],
+        //   [0.6941176470588235, 0.16470588235294117, 0.5647058823529412],
+        //   [0.5647058823529412, 0.050980392156862744, 0.6431372549019608],
+        //   [0.41568627450980394, 0, 0.6588235294117647],
+        //   [0.25882352941176473, 0.011764705882352941, 0.615686274509804],
+        //   [0.050980392156862744, 0.03137254901960784, 0.5294117647058824],
+        // ]
         .reduce((p, v) => [...p, ...v], [])
         .reduce((p, v, i) => {
           return {
             ...p,
-            [`plasma[${i}]`]: v
+            [`plasma[${i}]`]: v,
           };
-        }, {})
-    }
+        }, {}),
+    },
   });
 
   const filterByAngles = regl({
@@ -704,23 +646,46 @@ export default async function(
         void main() {
           // get r and draw it
           float width = ${f(heatmapWidth)};
+          float height = ${f(heatmapHeight)};
           float start = startTime * width;
           float end = endTime * width;
-          vec4 result = vec4(0);
+          vec4 result = vec4(1);
+          vec4 valid = vec4(0);
           for (float pointer = 0.0;pointer<=${f(heatmapWidth)};pointer++){
             if (pointer >= start && pointer <= end){
               vec4 angle = texture2D(buffer, vec2((pointer + 0.5) / width, uv.y));
-              ${[0, 1, 2, 3]
-                .map(
-                  i => `
-              if (angle[${i}] * 255.0 - 91.0 >= startAngle && angle[${i}] * 255.0 - 91.0 <= endAngle) {
-                result[${i}] = 1.0;
+              for (float pointer2 = 0.0;pointer2<=${f(
+                heatmapWidth
+              )};pointer2++){
+                if (pointer2 > pointer && pointer2 <= end){
+                  vec4 angle2 = texture2D(buffer, vec2((pointer2 + 0.5) / width, uv.y));
+                  float diff = 0.0;
+                  ${[0, 1, 2, 3]
+                    .map(
+                      (i) => `
+                  if(angle2[${i}] > 0.0) {
+                    valid[${i}] = 1.0;
+                  }
+                  diff = (angle2[${i}] - angle[${i}]) * 500.0 / (pointer2 - pointer) * width / 1000.0;
+                  if (diff < startAngle || diff > endAngle) {
+                    result[${i}] = 0.0;
+                  }
+                  `
+                    )
+                    .join("")}
+                }
               }
-              `
-                )
-                .join("")}
             }
           }
+          ${[0, 1, 2, 3]
+            .map(
+              (i) => `
+          if(valid[${i}] <= 0.0) {
+            result[${i}] = 0.0;
+          }
+          `
+            )
+            .join("")}
           gl_FragColor = result;
         }`,
 
@@ -729,10 +694,10 @@ export default async function(
       startTime: regl.prop<any, "startTime">("startTime"),
       endTime: regl.prop<any, "endTime">("endTime"),
       startAngle: regl.prop<any, "startAngle">("startAngle"),
-      endAngle: regl.prop<any, "endAngle">("endAngle")
+      endAngle: regl.prop<any, "endAngle">("endAngle"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   const filterByValues = regl({
@@ -760,7 +725,7 @@ export default async function(
               vec4 angle = texture2D(buffer, vec2((pointer + 0.5) / width, uv.y));
               ${[0, 1, 2, 3]
                 .map(
-                  i => `
+                  (i) => `
               if (angle[${i}] >= startValue && angle[${i}] <= endValue) {
                 result[${i}] = 1.0;
               }
@@ -777,10 +742,10 @@ export default async function(
       startTime: regl.prop<any, "startTime">("startTime"),
       endTime: regl.prop<any, "endTime">("endTime"),
       startValue: regl.prop<any, "startValue">("startValue"),
-      endValue: regl.prop<any, "endValue">("endValue")
+      endValue: regl.prop<any, "endValue">("endValue"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   const findMax = regl({
@@ -806,10 +771,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer")
+      buffer: regl.prop<any, "buffer">("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   const calWeight = regl({
@@ -830,7 +795,7 @@ export default async function(
         vec4 pointer = texture2D(buffer, vec2(i / width, uv.y));
         ${[0, 1, 2, 3]
           .map(
-            i => `
+            (i) => `
         sum[${i}] += texture2D(heat, vec2(i / width, pointer[${i}])).x;
         `
           )
@@ -842,10 +807,10 @@ export default async function(
 
     uniforms: {
       buffer: regl.prop<any, "buffer">("buffer"),
-      heat: regl.prop<any, "heat">("heat")
+      heat: regl.prop<any, "heat">("heat"),
     },
 
-    framebuffer: regl.prop<any, "out">("out")
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   console.time("Allocate buffers");
@@ -853,70 +818,63 @@ export default async function(
     width: reshapedWidth,
     height: reshapedHeight,
     colorFormat: "rgba",
-    colorType: "uint8"
+    colorType: "uint8",
   });
 
   const gaussianBuffer = regl.framebuffer({
     width: reshapedWidth,
     height: reshapedHeight,
     colorFormat: "rgba",
-    colorType: "float"
-  });
-
-  const angleBuffer = regl.framebuffer({
-    width: heatmapWidth,
-    height: Math.ceil(data.length / 4),
-    colorFormat: "rgba",
-    colorType: "uint8"
+    colorType: "float",
   });
 
   const flatLinesBuffer = regl.framebuffer({
     width: heatmapWidth,
     height: Math.ceil(data.length / 4),
     colorFormat: "rgba",
-    colorType: "uint8"
+    colorType: "float",
   });
 
   const filterAngleBuffer = regl.framebuffer({
     width: 1,
     height: Math.ceil(data.length / 4),
     colorFormat: "rgba",
-    colorType: "float"
+    colorType: "float",
   });
 
   const sumsBuffer = regl.framebuffer({
     width: reshapedWidth,
     height: repeatsY,
     colorFormat: "rgba",
-    colorType: "float"
+    colorType: "float",
   });
 
   const resultBuffer = regl.framebuffer({
     width: reshapedWidth,
     height: reshapedHeight,
     colorFormat: "rgba",
-    colorType: "float"
+    colorType: "float",
   });
 
   const preMergedBuffer = regl.framebuffer({
     width: heatmapWidth,
     height: reshapedHeight,
     colorFormat: "rgba",
-    colorType: "float"
+    colorType: "float",
   });
 
   const heatBuffer = regl.framebuffer({
     width: heatmapWidth,
     height: heatmapHeight,
     colorFormat: "rgba",
-    colorType: "float"
+    colorType: "float",
   });
 
   const maxValueBuffer = regl.framebuffer({
     width: 1,
     height: 1,
     colorFormat: "rgba",
-    colorType: "float"
+    colorType: "float",
   });
   console.timeEnd("Allocate buffers");
 
@@ -936,6 +894,11 @@ export default async function(
   // how many series have already been drawn
   let finishedSeries = 0;
 
+  regl.clear({
+    color: [0, 0, 0, 0],
+    framebuffer: flatLinesBuffer,
+  });
+
   for (let b = 0; b < numSeries; b += batchSize) {
     console.time("Prepare Batch");
 
@@ -945,7 +908,7 @@ export default async function(
     // clear the lines buffer before the next batch
     regl.clear({
       color: [0, 0, 0, 0],
-      framebuffer: linesBuffer
+      framebuffer: linesBuffer,
     });
 
     loop: for (let row = 0; row < repeatsY; row++) {
@@ -962,11 +925,13 @@ export default async function(
           times: ndarray(data[series].xValues),
           maxY: binY.stop,
           maxX: maxDataPoints,
+          lineIdx: series,
           column: Math.floor(i / 4),
           row: row,
           colorMask: colorMask(i),
           count: valueLength,
-          out: linesBuffer
+          out: linesBuffer,
+          flatOut: flatLinesBuffer,
         };
 
         series++;
@@ -976,6 +941,10 @@ export default async function(
 
     console.info(`Drawing ${lines.length} lines.`);
 
+    console.time("regl: drawFlatLine");
+    drawFlatLine(lines);
+    console.timeEnd("regl: drawFlatLine");
+
     console.time("regl: drawLine");
     drawLine(lines);
     console.timeEnd("regl: drawLine");
@@ -983,7 +952,7 @@ export default async function(
     console.time("regl: gaussian");
     gaussian({
       buffer: linesBuffer,
-      out: gaussianBuffer
+      out: gaussianBuffer,
     });
     console.timeEnd("regl: gaussian");
 
@@ -992,7 +961,7 @@ export default async function(
     console.time("regl: sum");
     sum({
       buffer: gaussianBuffer,
-      out: sumsBuffer
+      out: sumsBuffer,
     });
     console.timeEnd("regl: sum");
 
@@ -1000,7 +969,7 @@ export default async function(
     normalize({
       buffer: gaussianBuffer,
       sums: sumsBuffer,
-      out: resultBuffer
+      out: resultBuffer,
     });
     console.timeEnd("regl: normalize");
   }
@@ -1008,86 +977,29 @@ export default async function(
   console.time("regl: merge");
   mergeBufferHorizontally({
     buffer: resultBuffer,
-    out: preMergedBuffer
+    out: preMergedBuffer,
   });
 
   mergeBufferVertically({
     buffer: preMergedBuffer,
-    out: heatBuffer
+    out: heatBuffer,
   });
   console.timeEnd("regl: merge");
+  console.timeEnd("Compute heatmap");
 
   console.time("regl: findMax");
   findMax({
     buffer: heatBuffer,
-    out: maxValueBuffer
+    out: maxValueBuffer,
   });
-  const maxDensity = regl.read({ framebuffer: maxValueBuffer })[0];
+  let maxDensity = Math.ceil(regl.read({ framebuffer: maxValueBuffer })[0]);
+
   console.timeEnd("regl: findMax");
-  console.timeEnd("Compute heatmap");
   console.log("max density is:", maxDensity);
-
-  setTimeout(() => {
-    console.time("generate intermedium buffer");
-
-    console.time("Prepare Batch");
-    // array to hold the lines that should be rendered
-    let lines = new Array(numSeries);
-
-    // clear the lines buffer before the next batch
-    regl.clear({
-      color: [0, 0, 0, 0],
-      framebuffer: angleBuffer
-    });
-
-    for (let series = 0; series < numSeries; series++) {
-      // console.log(series, Math.floor(i / 4), row);
-      let valueLength = data[series].xValues.length;
-
-      lines[series] = {
-        rawValue: makePair(ndarray(data[series].yValues)),
-        timePair: makePair(ndarray(data[series].xValues)),
-        index: range(valueLength * 2 - 2),
-        maxY: binY.stop,
-        maxX: maxDataPoints,
-        lineIdx: series,
-        colorMask: colorMask(series),
-        count: valueLength * 2 - 2,
-        out: angleBuffer
-      };
-    }
-    lines = lines.filter(l => l.count); // empty line will cause WebGL crash
-    console.timeEnd("Prepare Batch");
-
-    console.info(`Drawing ${lines.length} lines' angles.`);
-
-    console.time("regl: drawAngle");
-    drawAngle(lines);
-    console.timeEnd("regl: drawAngle");
-
-    console.time("regl: drawFlatLine");
-    drawFlatLine(
-      lines.map(x => {
-        return { ...x, out: flatLinesBuffer };
-      })
-    );
-    console.timeEnd("regl: drawFlatLine");
-
-    console.timeEnd("generate intermedium buffer");
-
-    let result = regl.read({
-      x: 0,
-      y: 0,
-      width: heatmapWidth,
-      height: 1,
-      framebuffer: angleBuffer
-    });
-    result = result.filter((_, i) => i % 4 === 0);
-  }, 0); // plan to generate angular and line buffer
 
   drawTexture({
     buffer: heatBuffer,
-    maxi: maxDensity
+    maxi: maxDensity,
   });
 
   let indexCache = range(data.length);
@@ -1095,56 +1007,64 @@ export default async function(
   return {
     filterAngle: (startTime, endTime, startAngle, endAngle) => {
       console.time("compute angle range");
+      [startTime, endTime] = slope([startTime, endTime], 0, 1);
+      [startAngle, endAngle] = slope([startAngle, endAngle], -90, 90);
       filterByAngles({
-        buffer: angleBuffer,
+        buffer: flatLinesBuffer,
         out: filterAngleBuffer,
         startTime,
         endTime,
         startAngle,
-        endAngle
+        endAngle,
       });
       let filterResult = regl.read({ framebuffer: filterAngleBuffer });
       console.timeEnd("compute angle range");
       return new Float32Array(filterResult)
         .map((x, i) => (x ? i + 1 : 0))
-        .filter(x => x)
-        .map(x => x - 1);
+        .filter((x) => x)
+        .map((x) => x - 1);
     },
     filterRange: (startTime, endTime, startValue, endValue) => {
       console.time("compute rect range");
+      [startTime, endTime, startValue, endValue] = slope(
+        [startTime, endTime, startValue, endValue],
+        0,
+        1
+      );
       filterByValues({
         buffer: flatLinesBuffer,
         out: filterAngleBuffer,
         startTime,
         endTime,
         startValue,
-        endValue
+        endValue,
       });
       let filterResult = regl.read({ framebuffer: filterAngleBuffer });
       console.timeEnd("compute rect range");
       return new Float32Array(filterResult)
         .map((x, i) => (x ? i + 1 : 0))
-        .filter(x => x)
-        .map(x => x - 1);
+        .filter((x) => x)
+        .map((x) => x - 1);
     },
-    findKTop: isHighest => {
+    findKTop: (isHighest, diverse) => {
       console.time("find-top");
 
       console.time("regl: calWeight");
       calWeight({
         buffer: flatLinesBuffer,
         heat: heatBuffer,
-        out: filterAngleBuffer
+        out: filterAngleBuffer,
       });
       const weights = [...regl.read({ framebuffer: filterAngleBuffer })]
         .map((w, i) => {
-          return { w: w / Math.sqrt(data[i].xValues.length), i };
+          if (!data[i]) return { w: 0, i };
+          return { w: w, i };
         })
-        .filter(o => indexCache.includes(o.i))
+        .filter((o) => indexCache.includes(o.i))
         .sort((a, b) => (isHighest ? b.w - a.w : a.w - b.w));
       console.timeEnd("regl: calWeight");
 
-      if (isHighest) {
+      if (isHighest && diverse) {
         let diversityList = [];
         for (let i = 0; diversityList.length < 3 && i < weights.length; i++) {
           let flag = true;
@@ -1165,7 +1085,7 @@ export default async function(
                     ]) /
                   binY.stop
               );
-            if (standardDeviation(subArr) < 0.15) {
+            if (standardDeviation(subArr) < diverse) {
               flag = false;
               break;
             }
@@ -1178,10 +1098,10 @@ export default async function(
         return diversityList;
       } else {
         console.timeEnd("find-top");
-        return weights.slice(0, 3).map(o => o.i);
+        return weights.slice(0, 3).map((o) => o.i);
       }
     },
-    rerender: indexes => {
+    rerender: (indexes) => {
       if (!indexes) {
         indexes = range(data.length);
       }
@@ -1195,7 +1115,7 @@ export default async function(
       let finishedSeries = 0;
       regl.clear({
         color: [0, 0, 0, 0],
-        framebuffer: resultBuffer
+        framebuffer: resultBuffer,
       });
       for (let b = 0; b < indexes.length; b += batchSize) {
         console.time("Prepare Batch");
@@ -1204,7 +1124,7 @@ export default async function(
         // clear the lines buffer before the next batch
         regl.clear({
           color: [0, 0, 0, 0],
-          framebuffer: linesBuffer
+          framebuffer: linesBuffer,
         });
         loop2: for (let row = 0; row < repeatsY; row++) {
           for (let i = 0; i < 4 * repeatsX; i++) {
@@ -1222,7 +1142,7 @@ export default async function(
               row: row,
               colorMask: colorMask(i),
               count: valueLength,
-              out: linesBuffer
+              out: linesBuffer,
             };
             series++;
           }
@@ -1235,46 +1155,56 @@ export default async function(
         console.time("regl: gaussian");
         gaussian({
           buffer: linesBuffer,
-          out: gaussianBuffer
+          out: gaussianBuffer,
         });
         console.timeEnd("regl: gaussian");
         finishedSeries += lines.length;
         console.time("regl: sum");
         sum({
           buffer: gaussianBuffer,
-          out: sumsBuffer
+          out: sumsBuffer,
         });
         console.timeEnd("regl: sum");
         console.time("regl: normalize");
         normalize({
           buffer: gaussianBuffer,
           sums: sumsBuffer,
-          out: resultBuffer
+          out: resultBuffer,
         });
         console.timeEnd("regl: normalize");
       }
       console.time("regl: merge");
       mergeBufferHorizontally({
         buffer: resultBuffer,
-        out: preMergedBuffer
+        out: preMergedBuffer,
       });
       mergeBufferVertically({
         buffer: preMergedBuffer,
-        out: heatBuffer
+        out: heatBuffer,
       });
       console.timeEnd("regl: merge");
       console.timeEnd("Compute heatmap");
       drawTexture({
         buffer: heatBuffer,
-        maxi: maxDensity
+        maxi: maxDensity,
       });
     },
     destroy: () => {
       regl.destroy();
     },
+    get maxDensity() {
+      return maxDensity;
+    },
+    set maxDensity(v) {
+      if (maxDensity == v || v < 1) return;
+      maxDensity = v;
+      drawTexture({
+        buffer: heatBuffer,
+        maxi: maxDensity,
+      });
+    },
     maxX: binX.stop,
     maxY: binY.stop,
-    maxDensity
   };
 }
 

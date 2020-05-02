@@ -1,4 +1,5 @@
 export default {
   data: [],
-  aggregatedData: []
+  aggregatedData: [],
+  headers: []
 };
