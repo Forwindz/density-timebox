@@ -1,7 +1,6 @@
-import ndarray from "ndarray";
 import regl_ from "regl";
 import { MAX_REPEATS_X, MAX_REPEATS_Y } from "./constants";
-import { float as f, range, makePair, slope } from "./utils";
+import { float as f, range, slope } from "./utils";
 
 export interface LineData {
   /**
@@ -132,7 +131,11 @@ export default async function(
 
   const regl = regl_({
     canvas: canvas || document.createElement("canvas"),
-    extensions: ["OES_texture_float"],
+    extensions: [
+      "OES_texture_float",
+      "ANGLE_instanced_arrays",
+      "WEBGL_color_buffer_float", // for FireFox needs to explicit enable float
+    ],
     attributes: { preserveDrawingBuffer: true },
   });
 
@@ -140,8 +143,8 @@ export default async function(
     alert("Out of GPU memory, charts will be destroyed!");
   });
 
-  // See https://github.com/regl-project/regl/issues/498
   const maxRenderbufferSize = Math.min(regl.limits.maxRenderbufferSize, 4096);
+  const maxKDBufferSize = Math.min(regl.limits.maxRenderbufferSize, 16000) - 1;
 
   const maxRepeatsX = Math.floor(maxRenderbufferSize / heatmapWidth);
   const maxRepeatsY = Math.floor(maxRenderbufferSize / heatmapHeight);
@@ -157,6 +160,16 @@ export default async function(
     MAX_REPEATS_Y
   );
 
+  const kdRepeatsX = Math.floor(maxKDBufferSize / heatmapWidth);
+  const kdBufferWidth = Math.round(kdRepeatsX * heatmapWidth);
+  const kdBufferHeight = Math.ceil(numSeries / 4 / kdRepeatsX);
+  if (kdBufferHeight > maxKDBufferSize) {
+    alert(
+      "Your GPU memory is not big enough to store the data, please try another smaller dataset."
+    );
+    return;
+  }
+
   console.info(
     `Can repeat ${maxRepeatsX}x${maxRepeatsY} times. Repeating ${repeatsX}x${repeatsY} times.`
   );
@@ -164,129 +177,92 @@ export default async function(
   const reshapedWidth = heatmapWidth * repeatsX;
   const reshapedHeight = heatmapHeight * repeatsY;
 
+  console.time("build data buffer");
+  const dataLength = data.reduce((p, v) => p + v.xValues.length, 0);
+  const timeArray = new Float32Array(dataLength);
+  const valueArray = new Float32Array(dataLength);
+  const segmentInstanceGeometry = regl.buffer([
+    [0, -lineWidth / 2],
+    [1, -lineWidth / 2],
+    [1, lineWidth / 2],
+    [0, -lineWidth / 2],
+    [1, lineWidth / 2],
+    [0, lineWidth / 2],
+  ]);
+  const indexGeometry = regl.buffer(
+    new Array(repeatsX * repeatsY * heatmapWidth).fill(0).map((_, i) => i)
+  );
+  let linePointer = 0;
+  const lineCache = data.map((x, i) => {
+    const offset = linePointer;
+    timeArray.set(x.xValues, linePointer);
+    valueArray.set(x.yValues, linePointer);
+    linePointer += x.xValues.length;
+    return {
+      offsetA: offset * Float32Array.BYTES_PER_ELEMENT,
+      offsetB: (offset + 1) * Float32Array.BYTES_PER_ELEMENT,
+      count: Math.max(x.xValues.length - 1, 0),
+      lineIdx: i,
+    };
+  });
+  const timeBuffer = regl.buffer(timeArray);
+  const valueBuffer = regl.buffer(valueArray);
+  console.timeEnd("build data buffer");
+
   console.info(
     `Canvas size ${reshapedWidth}x${reshapedHeight}. Tangent Gaussian size ${tangentExtent}. Normal Gaussian size ${f(
       normalExtent
     )}. Line width ${lineWidth}. MaxX ${binX.stop}. MaxY ${binY.stop}`
   );
 
-  const drawLine = regl({
+  const drawScatter = regl({
     vert: `
     precision mediump float;
       
     attribute float time;
     attribute float value;
   
-    uniform float maxX;
-    uniform float maxY;
-    uniform float column;
-    uniform float row;
-  
     void main() {
-      float repeatsX = ${f(repeatsX)};
-      float repeatsY = ${f(repeatsY)};
+      float maxX = ${f(maxDataPoints)};
+      float maxY = ${f(binY.stop)};
   
       // time and value start at 0 so we can simplify the scaling
-      float x = column / repeatsX + time / (maxX * repeatsX);
+      float x = time / maxX;
       
       // move up by 0.3 pixels so that the line is guaranteed to be drawn
-      float yOffset = row / repeatsY + 0.3 / ${f(reshapedHeight)};
+      float yOffset = 0.3 / ${f(heatmapHeight)};
       // squeeze by 0.6 pixels
       float squeeze = 1.0 - 0.6 / ${f(heatmapHeight)};
-      float yValue = value / (maxY * repeatsY) * squeeze;
+      float yValue = value / maxY * squeeze;
       float y = yOffset + yValue;
-  
-      // squeeze y by 0.3 pixels so that the line is guaranteed to be drawn
-      float yStretch = 2.0 - 0.6 / ${f(reshapedHeight)};
   
       // scale to [-1, 1]
       gl_Position = vec4(
-        2.0 * (x - 0.5),
-        2.0 * (y - 0.5),
-        0, 1);
+        x * 2.0 - 1.0,
+        y * 2.0 - 1.0,
+        0,
+        1
+      );
+      gl_PointSize = 1.05;
     }`,
 
     frag: `
     precision mediump float;
-    varying vec4 uv;
   
     void main() {
-      // we will control the color with the color mask
       gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
     }`,
 
-    uniforms: {
-      maxX: regl.prop<any, "maxX">("maxX"),
-      maxY: regl.prop<any, "maxY">("maxY"),
-      column: regl.prop<any, "column">("column"),
-      row: regl.prop<any, "row">("row"),
-    },
-
     attributes: {
-      time: regl.prop<any, "times">("times"),
-      value: regl.prop<any, "values">("values"),
+      time: {
+        buffer: timeBuffer,
+        stride: Float32Array.BYTES_PER_ELEMENT,
+      },
+      value: {
+        buffer: valueBuffer,
+        stride: Float32Array.BYTES_PER_ELEMENT,
+      },
     },
-
-    colorMask: regl.prop<any, "colorMask">("colorMask"),
-
-    depth: { enable: false, mask: false },
-
-    count: regl.prop<any, "count">("count"),
-
-    primitive: "line strip",
-    lineWidth: () => 1,
-
-    framebuffer: regl.prop<any, "out">("out"),
-  });
-
-  const drawFlatLine = regl({
-    vert: `
-        precision mediump float;
-
-        attribute float value;
-        attribute float time;
-
-        uniform float maxX;
-        uniform float maxY;
-        uniform float lineIdx;
-
-        varying float v;
-
-        void main() {
-          v = value / maxY;
-
-          vec2 position = vec2(time / maxX, (floor(lineIdx / 4.0) + 0.5) / ceil(${f(
-            data.length
-          )} / 4.0));
-
-          // scale to [-1, 1]
-          gl_Position = vec4(
-            2.0 * (position.x - 0.5),
-            2.0 * (position.y - 0.5),
-            0, 1);
-        }`,
-
-    frag: `
-        precision mediump float;
-
-        varying float v;
-      
-        void main() {
-          gl_FragColor = vec4(v);
-        }`,
-
-    uniforms: {
-      maxX: regl.prop<any, "maxX">("maxX"),
-      maxY: regl.prop<any, "maxY">("maxY"),
-      lineIdx: regl.prop<any, "lineIdx">("lineIdx"),
-    },
-
-    attributes: {
-      value: regl.prop<any, "values">("values"),
-      time: regl.prop<any, "times">("times"),
-    },
-
-    colorMask: regl.prop<any, "colorMask">("colorMask"),
 
     // additive blending
     blend: {
@@ -306,12 +282,216 @@ export default async function(
 
     depth: { enable: false, mask: false },
 
+    count: dataLength,
+
+    primitive: "points",
+
+    framebuffer: regl.prop<any, "out">("out"),
+  });
+
+  const drawLine = regl({
+    vert: `
+    precision mediump float;
+      
+    attribute float timeA;
+    attribute float valueA;
+    attribute float timeB;
+    attribute float valueB;
+    attribute vec2 position;
+  
+    uniform float column;
+    uniform float row;
+
+    vec2 parsePoint(float time, float value) {
+      float repeatsX = ${f(repeatsX)};
+      float repeatsY = ${f(repeatsY)};
+      float maxX = ${f(maxDataPoints)};
+      float maxY = ${f(binY.stop)};
+  
+      // time and value start at 0 so we can simplify the scaling
+      float x = column / repeatsX + time / (maxX * repeatsX);
+      
+      // move up by 0.3 pixels so that the line is guaranteed to be drawn
+      float yOffset = row / repeatsY + 0.3 / ${f(reshapedHeight)};
+      // squeeze by 0.6 pixels
+      float squeeze = 1.0 - 0.6 / ${f(heatmapHeight)};
+      float yValue = value / (maxY * repeatsY) * squeeze;
+      float y = yOffset + yValue;
+
+      return vec2(x, y);
+    }
+  
+    void main() {
+      vec2 pointA = parsePoint(timeA, valueA);
+      vec2 pointB = parsePoint(timeB, valueB);
+
+      vec2 xBasis = pointB - pointA;
+      vec2 yBasis = normalize(vec2(-xBasis.y, xBasis.x)) / length(vec2(${f(
+        reshapedWidth
+      )}, ${f(reshapedHeight)})) * 2.0;
+
+      vec2 pos = pointA + xBasis * position.x + yBasis * position.y;
+  
+      // scale to [-1, 1]
+      gl_Position = vec4(
+        pos.x * 2.0 - 1.0,
+        pos.y * 2.0 - 1.0,
+        0,
+        1
+      );
+    }`,
+
+    frag: `
+    precision mediump float;
+    varying vec4 uv;
+  
+    void main() {
+      // we will control the color with the color mask
+      gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    }`,
+
+    uniforms: {
+      column: regl.prop<any, "column">("column"),
+      row: regl.prop<any, "row">("row"),
+    },
+
+    attributes: {
+      position: {
+        buffer: segmentInstanceGeometry,
+        divisor: 0,
+      },
+      timeA: {
+        buffer: timeBuffer,
+        divisor: 1,
+        offset: regl.prop<any, "offsetA">("offsetA"),
+        stride: Float32Array.BYTES_PER_ELEMENT,
+      },
+      timeB: {
+        buffer: timeBuffer,
+        divisor: 1,
+        offset: regl.prop<any, "offsetB">("offsetB"),
+        stride: Float32Array.BYTES_PER_ELEMENT,
+      },
+      valueA: {
+        buffer: valueBuffer,
+        divisor: 1,
+        offset: regl.prop<any, "offsetA">("offsetA"),
+        stride: Float32Array.BYTES_PER_ELEMENT,
+      },
+      valueB: {
+        buffer: valueBuffer,
+        divisor: 1,
+        offset: regl.prop<any, "offsetB">("offsetB"),
+        stride: Float32Array.BYTES_PER_ELEMENT,
+      },
+    },
+
+    colorMask: regl.prop<any, "colorMask">("colorMask"),
+
+    depth: { enable: false, mask: false },
+
+    instances: regl.prop<any, "count">("count"),
+
+    count: 6,
+
+    primitive: "triangles",
+    // lineWidth: () => 1,
+
+    framebuffer: regl.prop<any, "out">("out"),
+  });
+
+  const drawKDBuffer = regl({
+    vert: `
+    precision mediump float;
+      
+    uniform sampler2D lines;
+    uniform float offset;
+
+    attribute float index;
+ 
+    varying vec4 value;
+  
+    void main() {
+      float heatmapWidth = ${f(heatmapWidth)};
+      float heatmapHeight = ${f(heatmapHeight)};
+      float repeatsX = ${f(repeatsX)};
+      float repeatsY = ${f(repeatsY)};
+      float kdRepeatsX = ${f(kdRepeatsX)};
+      float kdRepeatsY = ${f(kdBufferHeight)};
+
+      float indexAfterOffset = index + offset * heatmapWidth;
+
+      float row = floor(floor(indexAfterOffset / heatmapWidth) / repeatsX);
+      float col = floor((indexAfterOffset - row * repeatsX * heatmapWidth) / heatmapWidth);
+      float pix = indexAfterOffset - (row * repeatsX + col) * heatmapWidth;
+
+      float kdRow = floor(floor(indexAfterOffset / heatmapWidth) / kdRepeatsX);
+      float kdCol = floor((indexAfterOffset + offset * repeatsX * repeatsY - row * kdRepeatsX * heatmapWidth) / heatmapWidth);
+
+      vec4 base = vec4(0);
+      vec4 height = vec4(0);
+
+      float baseX = col / repeatsX + (pix + 0.5) / repeatsX / heatmapWidth;
+      float baseY = row / repeatsY + 0.5 / repeatsY / heatmapHeight;
+
+      for (float i = 0.0; i < ${f(heatmapHeight)}; i++) {
+        vec4 line = texture2D(lines, vec2(baseX, baseY + i / repeatsY / heatmapHeight));
+        ${[0, 1, 2, 3]
+          .map(
+            (i) => `
+        if (line[${i}] > 1e-3) {
+          if (height[${i}] == 0.0) {
+            base[${i}] = i;
+          }
+          height[${i}] += 1.0;
+        }`
+          )
+          .join("")}
+      }
+
+      value = base + height * 1024.0;
+
+      vec2 position = vec2(
+        kdCol / kdRepeatsX,
+        kdRow / kdRepeatsY
+      );
+  
+      // scale to [-1, 1]
+      gl_Position = vec4(
+        position * 2.0 - 1.0,
+        0,
+        1
+      );
+      gl_PointSize = 1.0;
+    }`,
+
+    frag: `
+    precision mediump float;
+
+    varying vec4 value;
+  
+    void main() {
+      gl_FragColor = vec4(value);
+    }`,
+
+    uniforms: {
+      lines: regl.prop<any, "lines">("lines"),
+      offset: regl.prop<any, "offset">("offset"),
+    },
+
+    attributes: {
+      index: {
+        buffer: indexGeometry,
+      },
+    },
+
+    depth: { enable: false, mask: false },
+
     count: regl.prop<any, "count">("count"),
 
-    primitive: "line strip",
-    lineWidth: () => 1,
+    primitive: "points",
 
-    framebuffer: regl.prop<any, "flatOut">("flatOut"),
+    framebuffer: regl.prop<any, "out">("out"),
   });
 
   const computeBase = {
@@ -572,7 +752,7 @@ export default async function(
           // get r and draw it
           float value = texture2D(buffer, uv).r;
 
-          if (value <= 0.01) {
+          if (value <= 0.001) {
             gl_FragColor = vec4(0);
           } else {
             float normValue = value / maxi;
@@ -814,6 +994,13 @@ export default async function(
   });
 
   console.time("Allocate buffers");
+  const approximateDensityBuffer = regl.framebuffer({
+    width: heatmapWidth,
+    height: heatmapHeight,
+    colorFormat: "rgba",
+    colorType: "float",
+  });
+
   const linesBuffer = regl.framebuffer({
     width: reshapedWidth,
     height: reshapedHeight,
@@ -824,13 +1011,6 @@ export default async function(
   const gaussianBuffer = regl.framebuffer({
     width: reshapedWidth,
     height: reshapedHeight,
-    colorFormat: "rgba",
-    colorType: "float",
-  });
-
-  const flatLinesBuffer = regl.framebuffer({
-    width: heatmapWidth,
-    height: Math.ceil(data.length / 4),
     colorFormat: "rgba",
     colorType: "float",
   });
@@ -876,6 +1056,13 @@ export default async function(
     colorFormat: "rgba",
     colorType: "float",
   });
+
+  const kdBuffer = regl.framebuffer({
+    width: kdBufferWidth,
+    height: kdBufferHeight,
+    colorFormat: "rgba",
+    colorType: "float",
+  });
   console.timeEnd("Allocate buffers");
 
   function colorMask(i) {
@@ -886,6 +1073,12 @@ export default async function(
 
   console.time("Compute heatmap");
 
+  // console.time("density approximation");
+  // drawScatter({
+  //   out: approximateDensityBuffer,
+  // });
+  // console.timeEnd("density approximation");
+
   // batches of 4 * repeats
   const batchSize = 4 * repeatsX * repeatsY;
 
@@ -893,11 +1086,6 @@ export default async function(
   let series = 0;
   // how many series have already been drawn
   let finishedSeries = 0;
-
-  regl.clear({
-    color: [0, 0, 0, 0],
-    framebuffer: flatLinesBuffer,
-  });
 
   for (let b = 0; b < numSeries; b += batchSize) {
     console.time("Prepare Batch");
@@ -911,6 +1099,8 @@ export default async function(
       framebuffer: linesBuffer,
     });
 
+    let offset = series;
+
     loop: for (let row = 0; row < repeatsY; row++) {
       for (let i = 0; i < 4 * repeatsX; i++) {
         if (series >= numSeries) {
@@ -918,20 +1108,13 @@ export default async function(
         }
 
         // console.log(series, Math.floor(i / 4), row);
-        let valueLength = data[series].xValues.length;
 
         lines[series - finishedSeries] = {
-          values: ndarray(data[series].yValues),
-          times: ndarray(data[series].xValues),
-          maxY: binY.stop,
-          maxX: maxDataPoints,
-          lineIdx: series,
+          ...lineCache[series],
           column: Math.floor(i / 4),
           row: row,
           colorMask: colorMask(i),
-          count: valueLength,
           out: linesBuffer,
-          flatOut: flatLinesBuffer,
         };
 
         series++;
@@ -941,13 +1124,22 @@ export default async function(
 
     console.info(`Drawing ${lines.length} lines.`);
 
-    console.time("regl: drawFlatLine");
-    drawFlatLine(lines);
-    console.timeEnd("regl: drawFlatLine");
+    // console.time("regl: drawFlatLine");
+    // drawFlatLine(lines);
+    // console.timeEnd("regl: drawFlatLine");
 
     console.time("regl: drawLine");
     drawLine(lines);
     console.timeEnd("regl: drawLine");
+
+    console.time("regl: drawKD");
+    drawKDBuffer({
+      lines: linesBuffer,
+      count: Math.ceil(lines.length / 4),
+      offset,
+      out: kdBuffer,
+    });
+    console.timeEnd("regl: drawKD");
 
     console.time("regl: gaussian");
     gaussian({
@@ -987,20 +1179,34 @@ export default async function(
   console.timeEnd("regl: merge");
   console.timeEnd("Compute heatmap");
 
-  console.time("regl: findMax");
-  findMax({
-    buffer: heatBuffer,
-    out: maxValueBuffer,
-  });
-  let maxDensity = Math.ceil(regl.read({ framebuffer: maxValueBuffer })[0]);
+  let maxDensity = 1;
+  setTimeout(() => {
+    console.time("regl: findMax");
+    findMax({
+      buffer: heatBuffer,
+      out: maxValueBuffer,
+    });
+    maxDensity = Math.ceil(
+      regl.read({
+        framebuffer: maxValueBuffer,
+      })[0]
+    );
 
-  console.timeEnd("regl: findMax");
-  console.log("max density is:", maxDensity);
+    console.timeEnd("regl: findMax");
+    console.log("max density is:", maxDensity);
+
+    drawTexture({
+      buffer: heatBuffer,
+      maxi: maxDensity,
+    });
+  }); // async find max
 
   drawTexture({
     buffer: heatBuffer,
     maxi: maxDensity,
   });
+
+  console.log(regl.read({ framebuffer: kdBuffer }));
 
   let indexCache = range(data.length);
 
@@ -1009,14 +1215,14 @@ export default async function(
       console.time("compute angle range");
       [startTime, endTime] = slope([startTime, endTime], 0, 1);
       [startAngle, endAngle] = slope([startAngle, endAngle], -90, 90);
-      filterByAngles({
-        buffer: flatLinesBuffer,
-        out: filterAngleBuffer,
-        startTime,
-        endTime,
-        startAngle,
-        endAngle,
-      });
+      // filterByAngles({
+      //   buffer: flatLinesBuffer,
+      //   out: filterAngleBuffer,
+      //   startTime,
+      //   endTime,
+      //   startAngle,
+      //   endAngle,
+      // });
       let filterResult = regl.read({ framebuffer: filterAngleBuffer });
       console.timeEnd("compute angle range");
       return new Float32Array(filterResult)
@@ -1031,14 +1237,14 @@ export default async function(
         0,
         1
       );
-      filterByValues({
-        buffer: flatLinesBuffer,
-        out: filterAngleBuffer,
-        startTime,
-        endTime,
-        startValue,
-        endValue,
-      });
+      // filterByValues({
+      //   buffer: flatLinesBuffer,
+      //   out: filterAngleBuffer,
+      //   startTime,
+      //   endTime,
+      //   startValue,
+      //   endValue,
+      // });
       let filterResult = regl.read({ framebuffer: filterAngleBuffer });
       console.timeEnd("compute rect range");
       return new Float32Array(filterResult)
@@ -1050,11 +1256,11 @@ export default async function(
       console.time("find-top");
 
       console.time("regl: calWeight");
-      calWeight({
-        buffer: flatLinesBuffer,
-        heat: heatBuffer,
-        out: filterAngleBuffer,
-      });
+      // calWeight({
+      //   buffer: flatLinesBuffer,
+      //   heat: heatBuffer,
+      //   out: filterAngleBuffer,
+      // });
       const weights = [...regl.read({ framebuffer: filterAngleBuffer })]
         .map((w, i) => {
           if (!data[i]) return { w: 0, i };
@@ -1132,16 +1338,11 @@ export default async function(
               break loop2;
             }
             // console.log(series, Math.floor(i / 4), row);
-            let valueLength = data[indexes[series]].xValues.length;
             lines[series - finishedSeries] = {
-              values: ndarray(data[indexes[series]].yValues),
-              times: ndarray(data[indexes[series]].xValues),
-              maxY: binY.stop,
-              maxX: maxDataPoints,
+              ...lineCache[indexes[series]],
               column: Math.floor(i / 4),
               row: row,
               colorMask: colorMask(i),
-              count: valueLength,
               out: linesBuffer,
             };
             series++;

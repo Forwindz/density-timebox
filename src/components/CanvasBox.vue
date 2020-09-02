@@ -671,6 +671,7 @@ export default {
         let length = scopeData[i].xValues.length;
         for (let j = 0; j < length; j++) {
           scopeData[i].xValues[j] -= minX;
+          scopeData[i].yValues[j] -= minY;
         }
       }
 
@@ -681,16 +682,31 @@ export default {
 
       // compute nice bin boundaries
       const binConfigX = bin({ maxbins: binsx, extent: [0, maxX - minX] });
-      const binConfigY = bin({ maxbins: binsy, extent: [0, maxY] });
+      const binConfigY = bin({ maxbins: binsy, extent: [0, maxY - minY] });
       render(
         scopeData,
-        [0, maxX - minX, minY, maxY],
+        [0, maxX - minX, 0, maxY - minY],
         binConfigX,
         binConfigY,
         this.canvas
       ).then((handler) => {
         this.contextHandler = handler;
         this.maxDensity = handler.maxDensity;
+        let countdown = 10;
+        let interval = setInterval(() => {
+          if (!this.contextHandler) {
+            clearInterval(interval);
+            return;
+          } // context is destroyed
+          if (this.maxDensity !== handler.maxDensity) {
+            this.maxDensity = handler.maxDensity;
+            clearInterval(interval);
+          }
+          if (countdown <= 0) {
+            clearInterval(interval);
+          }
+          countdown--;
+        }, 1000); // assume max density will be updated in 10s
       });
       this.$Spin.hide();
     }, 0); // ensure spin shows
@@ -698,6 +714,7 @@ export default {
   beforeDestroy() {
     if (this.contextHandler) {
       this.contextHandler.destroy();
+      this.contextHandler = null;
     }
   },
 };
