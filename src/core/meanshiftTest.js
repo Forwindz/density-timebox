@@ -1,68 +1,102 @@
-import regl_ from "regl";
-import { MAX_REPEATS_X, MAX_REPEATS_Y } from "./constants";
-import { float as f, range, slope } from "./utils";
-
+const regl_ = require("regl");
+const gl_ = require("gl");
+const parse = require("csv-parse/lib/sync");
+const fs = require("fs");
+const { bin } = require("vega-statistics");
 const MeanShift = require("./meanshift");
-const meanShift = new MeanShift();
 
-export interface LineData {
-  /**
-   * array of x-values
-   */
-  xValues: Float32Array;
-  /**
-   * array of y-values
-   */
-  yValues: Float32Array;
+function getData() {
+  const arr = [];
+
+  let result = fs.readFileSync("../data/stocks.filtered.csv");
+  let data = parse(result, {
+    skip_empty_lines: true,
+  });
+
+  const rand = Math.random;
+  const theta = 5;
+
+  let name = "",
+    number = -1,
+    count = 0,
+    count2 = 0,
+    flag,
+    flag2;
+
+  for (let i = 1; i < data.length; ++i) {
+    name = data[i][0];
+    count = 0;
+    flag = false;
+    flag2 = false;
+    let flag3 = true;
+    let tmpx = [],
+      tmpy = [];
+    for (let j = i; j < data.length && name === data[j][0]; j++) {
+      let date = Date.parse(data[j][1]) / (24 * 3600 * 1000),
+        value = parseFloat(data[j][2]);
+      count++;
+      if (
+        j > i &&
+        Math.abs(parseFloat(data[j - 1][2]) - parseFloat(data[j][2])) > 5
+      ) {
+        flag2 = true;
+      }
+      if (
+        j > i &&
+        Math.abs(parseFloat(data[j - 1][2]) - parseFloat(data[j][2])) > 2
+      ) {
+        flag3 = false;
+      }
+      if (parseFloat(data[j][2]) > 70) {
+        flag = true;
+      }
+      if (date > 300 + 13179 && date < 1100 + 13179) {
+        tmpx.push(date);
+        tmpy.push(value);
+      }
+    }
+    if (
+      parseFloat(data[i + count - 1][2]) > 20 &&
+      parseFloat(data[i + count - 1][2]) < 30 &&
+      rand() > 0.1
+    ) {
+      flag = true;
+    }
+    if (
+      parseFloat(data[i + count - 1][2]) > 10 &&
+      parseFloat(data[i + count - 1][2]) < 20 &&
+      rand() > 0.1
+    ) {
+      flag = true;
+    }
+    if (tmpx.length <= 1 || flag || !(flag2 || flag3)) {
+      i += count;
+      continue;
+    }
+    number++;
+    if (count == 1) {
+      // console.log(data[i], data[i-1], data[i][0]===data[i-1][0]);
+    }
+    arr.push({
+      xValues: new Float32Array(tmpx.length),
+      yValues: new Float32Array(tmpx.length),
+    });
+    for (let j = 0; j < tmpx.length; j++) {
+      arr[number].xValues[j] = tmpx[j];
+      arr[number].yValues[j] = tmpy[j];
+    }
+    i += count;
+  }
+
+  console.log(arr);
+  return arr;
 }
 
-export interface BinConfig {
-  /**
-   * The start of the range.
-   */
-  start: number;
-  /**
-   * The end of the range.
-   */
-  stop: number;
-  /**
-   * The size of bin steps.
-   */
-  step: number;
-}
-
-export interface Result {
-  /**
-   * Start of the time bin.
-   */
-  x: number;
-  /**
-   * Start fo teh value bin.
-   */
-  y: number;
-  /**
-   * Computed density.
-   */
-  value: number;
-}
-
-export interface scaleOption {
-  /**
-   * the ratio of original width to current width
-   */
-  xRatio: number;
-  /**
-   * the ratio of original height to current height
-   */
-  yRatio: number;
-  /**
-   * the x-offset of the present window
-   */
-  xOffset: number;
-  /**
-   * the y-offset of the present window
-   */
-  yOffset: number;
+function f(i) {
+  if (i - Math.floor(i) > 0) {
+    return i;
+  }
+  return `${Math.floor(i)}.0`;
 }
 
 /**
@@ -79,18 +113,18 @@ export interface scaleOption {
  * @param doNormalize
  * @param scaleOption
  */
-export default async function(
-  data: Array<LineData>,
-  attribute: number[],
-  binX: BinConfig,
-  binY: BinConfig,
-  canvas?: HTMLCanvasElement,
-  gaussianKernel?: number[][],
-  lineWidth: number = 1,
-  tangentExtent: number = 0,
-  normalExtent: number = 0,
-  doNormalize: number = 1,
-  scaleOption?: scaleOption
+function main(
+  data,
+  attribute,
+  binX,
+  binY,
+  canvas,
+  gaussianKernel,
+  lineWidth = 1,
+  tangentExtent = 0,
+  normalExtent = 0,
+  doNormalize = 1,
+  scaleOption
 ) {
   const [numSeries, maxDataPoints] = [data.length, attribute[1]];
 
@@ -132,18 +166,19 @@ export default async function(
     `GaussianKernelSize: ${gaussianKernel.length}x${gaussianKernel.length}`
   );
 
+  const gl = gl_(1000, 500, { preserveDrawingBuffer: true });
+
   const regl = regl_({
-    canvas: canvas || document.createElement("canvas"),
+    gl,
     extensions: [
       "OES_texture_float",
       "ANGLE_instanced_arrays",
       "WEBGL_color_buffer_float", // for FireFox needs to explicit enable float
     ],
-    attributes: { preserveDrawingBuffer: true },
   });
 
   regl.on("lost", () => {
-    alert("Out of GPU memory, charts will be destroyed!");
+    console.error("Out of GPU memory, charts will be destroyed!");
   });
 
   const maxRenderbufferSize = Math.min(regl.limits.maxRenderbufferSize, 4096);
@@ -280,8 +315,8 @@ export default async function(
     }`,
 
     uniforms: {
-      column: regl.prop<any, "column">("column"),
-      row: regl.prop<any, "row">("row"),
+      column: regl.prop("column"),
+      row: regl.prop("row"),
     },
 
     attributes: {
@@ -292,41 +327,41 @@ export default async function(
       timeA: {
         buffer: timeBuffer,
         divisor: 1,
-        offset: regl.prop<any, "offsetA">("offsetA"),
+        offset: regl.prop("offsetA"),
         stride: Float32Array.BYTES_PER_ELEMENT,
       },
       timeB: {
         buffer: timeBuffer,
         divisor: 1,
-        offset: regl.prop<any, "offsetB">("offsetB"),
+        offset: regl.prop("offsetB"),
         stride: Float32Array.BYTES_PER_ELEMENT,
       },
       valueA: {
         buffer: valueBuffer,
         divisor: 1,
-        offset: regl.prop<any, "offsetA">("offsetA"),
+        offset: regl.prop("offsetA"),
         stride: Float32Array.BYTES_PER_ELEMENT,
       },
       valueB: {
         buffer: valueBuffer,
         divisor: 1,
-        offset: regl.prop<any, "offsetB">("offsetB"),
+        offset: regl.prop("offsetB"),
         stride: Float32Array.BYTES_PER_ELEMENT,
       },
     },
 
-    colorMask: regl.prop<any, "colorMask">("colorMask"),
+    colorMask: regl.prop("colorMask"),
 
     depth: { enable: false, mask: false },
 
-    instances: regl.prop<any, "count">("count"),
+    instances: regl.prop("count"),
 
     count: 6,
 
     primitive: "triangles",
     // lineWidth: () => 1,
 
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
 
   const computeBase = {
@@ -396,9 +431,9 @@ export default async function(
       }
     `,
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer"),
+      buffer: regl.prop("buffer"),
     },
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
 
   /**
@@ -452,10 +487,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer"),
+      buffer: regl.prop("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
 
   /**
@@ -484,8 +519,8 @@ export default async function(
         }`,
 
     uniforms: {
-      sums: regl.prop<any, "sums">("sums"),
-      buffer: regl.prop<any, "buffer">("buffer"),
+      sums: regl.prop("sums"),
+      buffer: regl.prop("buffer"),
     },
 
     // additive blending
@@ -504,7 +539,7 @@ export default async function(
       color: [0, 0, 0, 0],
     },
 
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
 
   /**
@@ -533,10 +568,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer"),
+      buffer: regl.prop("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
   const mergeBufferVertically = regl({
     ...computeBase,
@@ -562,10 +597,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer"),
+      buffer: regl.prop("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
 
   /**
@@ -586,7 +621,7 @@ export default async function(
           for (float j = 0.0; j < ${f(heatmapHeight)}; j++) {
             float texelRow = (j + 0.5) / ${f(heatmapWidth)};
             vec4 value = texture2D(buffer, vec2(uv.x, texelRow));
-            sum = max(sum, value);
+            sum += value;
           }
         
           // max should be at least 1, prevents problems with empty buffers
@@ -594,10 +629,10 @@ export default async function(
         }`,
 
     uniforms: {
-      buffer: regl.prop<any, "buffer">("buffer"),
+      buffer: regl.prop("buffer"),
     },
 
-    framebuffer: regl.prop<any, "out">("out"),
+    framebuffer: regl.prop("out"),
   });
 
   console.time("Allocate buffers");
@@ -752,92 +787,48 @@ export default async function(
     out: maxDensityBuffer,
   });
 
-  let res = regl.read({ framebuffer: maxDensityBuffer });
-  res = res.filter((_, i) => i % 4 == 0);
-
-  console.log(res);
-
-  const minDensityValue = Math.min(...res);
-  const maxDensityValue = Math.max(...res);
-
-  const MAX_STEP = 10;
-
-  const lerp = (value) =>
-    1 /
-    (((value - minDensityValue) / (maxDensityValue - minDensityValue)) *
-      (1 - 1 / MAX_STEP) +
-      1 / MAX_STEP);
-
-  const lerpedDistribution = res.map((x) => lerp(x));
-  const sliceArray = [];
-
-  for (let i = 0; i < lerpedDistribution.length; ) {
-    const step = Math.min(
-      Math.floor(lerpedDistribution[i]),
-      lerpedDistribution.length - i
-    );
-    sliceArray.push(step);
-    i += step;
-  }
-
-  console.log(sliceArray);
-
-  const vectorizedLines = [];
-
-  for (let line of data) {
-    const getLinePoint = (x) => {
-      const xPixels = line.xValues.map((i) => (i / binX.stop) * heatmapWidth);
-      const index = xPixels.findIndex((v) => x >= v);
-      if (x <= xPixels[0]) return 0;
-      if (index >= line.yValues.length - 1) {
-        return line.yValues[line.yValues.length - 1];
-      } else {
-        const ratio =
-          (x - xPixels[index]) / (xPixels[index + 1] - xPixels[index]);
-        return (
-          line.yValues[index + 1] * ratio + line.yValues[index] * (1 - ratio)
-        );
-      }
-    };
-    let pointer = 0;
-    const getLineArea = (step) => {
-      let areaSum = 0;
-      const end = pointer + step;
-      for (let i = pointer; i < end; i++) {
-        areaSum += getLinePoint(i);
-      }
-      pointer += step;
-      return areaSum;
-    };
-    vectorizedLines.push(sliceArray.map(getLineArea));
-  }
-
-  console.log(vectorizedLines);
-
-  console.log(meanShift.cluster(vectorizedLines, 20));
-
-  return {
-    filterAngle: () => {
-      return new Float32Array([]);
-    },
-    filterRange: () => {
-      return new Float32Array([]);
-    },
-    findKTop: () => {
-      console.time("find-top");
-
-      console.time("regl: calWeight");
-      return [];
-    },
-    rerender: () => {},
-    destroy: () => {
-      regl.destroy();
-    },
-    get maxDensity() {
-      return 1;
-    },
-    set maxDensity(_) {},
-    maxX: binX.stop,
-    maxY: binY.stop,
-  };
+  const res = regl.read({ framebuffer: maxDensityBuffer });
+  return res.filter((_, i) => i % 4 == 0);
 }
+
+const data = getData();
+let maxY = data[0].yValues[0],
+  minY = maxY;
+let maxX = data[0].xValues[0],
+  minX = maxX;
+for (let i = 0; i < data.length; i++) {
+  let length = data[i].xValues.length;
+  for (let j = 0; j < length; j++) {
+    let yValue = data[i].yValues[j],
+      xValue = data[i].xValues[j];
+    if (yValue > 5000) {
+      console.log("!!!!!!", i);
+    }
+    maxY = Math.max(maxY, yValue);
+    minY = Math.min(minY, yValue);
+    maxX = Math.max(maxX, xValue);
+    minX = Math.min(minX, xValue);
+  }
+}
+for (let i = 0; i < data.length; i++) {
+  let length = data[i].xValues.length;
+  for (let j = 0; j < length; j++) {
+    data[i].xValues[j] -= minX;
+    data[i].yValues[j] -= minY;
+  }
+}
+console.log(maxX, maxY, minX, minY);
+// compute nice bin boundaries
+const binConfigX = bin({ maxbins: 1000, extent: [0, maxX - minX] });
+const binConfigY = bin({ maxbins: 500, extent: [0, maxY - minY] });
+
+const meanShift = new MeanShift();
+
+const heatmap = main(
+  getData(),
+  [0, maxX - minX, 0, maxY - minY],
+  binConfigX,
+  binConfigY
+);
+
+console.log(heatmap);

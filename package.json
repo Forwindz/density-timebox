@@ -11,6 +11,7 @@
     "core-js": "^3.6.4",
     "csv-parse": "^4.8.8",
     "d3": "^5.16.0",
+    "gl": "^4.6.1",
     "ndarray": "^1.0.19",
     "ndarray-pack": "^1.2.1",
     "ndarray-tile": "^1.0.3",
