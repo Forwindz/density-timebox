@@ -807,14 +807,20 @@ export default async function(
         areaSum += getLinePoint(i);
       }
       pointer += step;
-      return areaSum;
+      return areaSum / step;
     };
-    vectorizedLines.push(sliceArray.map(getLineArea));
+    const normalize = (arr) => {
+      // make array 0-mean
+      const sum = arr.reduce((p, v) => p + v);
+      const avg = sum / arr.length;
+      return arr.map((item) => item - avg);
+    };
+    vectorizedLines.push(normalize(sliceArray.map(getLineArea)));
   }
 
   console.log(vectorizedLines);
 
-  console.log(meanShift.cluster(vectorizedLines, 20));
+  console.log(meanShift.cluster(vectorizedLines, 25));
 
   return {
     filterAngle: () => {

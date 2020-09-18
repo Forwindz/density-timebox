@@ -131,8 +131,8 @@ class MeanShift {
 }
 
 MeanShift.options = {
-  minDistance: 0.001,
-  groupDistanceTolerance: 0.1,
+  minDistance: 0.01,
+  groupDistanceTolerance: 1,
 };
 
 module.exports = MeanShift;
