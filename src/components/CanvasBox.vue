@@ -47,35 +47,50 @@
       style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
     ></div>
     <div class="control-panel">
-      <p>Chart of "{{ timeName }}" - "{{ valueName }}"</p>
-      <Button icon="md-sync" @click="resetFilter">reset filters</Button>
       <div>
         <span>Filter line strategy: </span>
         <RadioGroup v-model="filterMode" type="button">
-          <Radio label="rect">Rectangle Range</Radio>
-          <Radio label="ang">Angular Range</Radio>
+          <Radio label="knn">KNN</Radio>
+          <Radio label="rnn">Radius</Radio>
+          <Radio label="rect">Brush</Radio>
+          <Radio label="ang">Angle</Radio>
+          <Radio label="attr">Attr</Radio>
         </RadioGroup>
       </div>
       <div>
-        <span>Raw line strategy: </span>
-        <RadioGroup v-model="rawMode" type="button">
+        <span>Representative line config: </span>
+        <!-- <RadioGroup v-model="rawMode" type="button">
           <Radio label="null">Null</Radio>
           <Radio label="cur">Hover</Radio>
           <Radio label="out">Min</Radio>
           <Radio label="rep">Max</Radio>
-        </RadioGroup>
+        </RadioGroup> -->
       </div>
-      <div v-if="rawMode == 'rep'" style="display:flex;align-items:center">
-        <span style="margin-right:8px">Weight</span>
-        <Slider
-          v-model="diverse"
-          :min="0"
-          :max="1"
-          :step="0.001"
-          show-tip="never"
-          style="flex-grow:1"
-        />
-        <span style="margin-left:8px">Diverse</span>
+      <div v-if="rawMode == 'rep'" style="margin-left:12px">
+        <div style="display:flex;align-items:center">
+          <span style="margin-right:8px">Rep-line count</span>
+          <Slider
+            v-model="repCount"
+            :min="0"
+            :max="20"
+            :step="1"
+            show-tip="never"
+            style="flex-grow:1"
+          />
+          <span style="margin-left:8px">3</span>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span style="margin-right:8px">Weight</span>
+          <Slider
+            v-model="diverse"
+            :min="0"
+            :max="1"
+            :step="0.001"
+            show-tip="never"
+            style="flex-grow:1"
+          />
+          <span style="margin-left:8px">Diverse</span>
+        </div>
       </div>
       <div v-if="rawMode != 'null'">
         <div v-for="i in [0, 1, 2]" :key="i">
@@ -105,23 +120,34 @@
         <InputNumber :min="1" v-model="maxDensity" :active-change="false" />
       </div>
       <div>
-        <span>Upside down:</span>
+        <span>Reverse y-axis:</span>
         <iSwitch style="margin-left:12px" v-model="upsideDown" />
+      </div>
+      <div>
+        <span>Show value of cursor:</span>
+        <iSwitch style="margin-left:12px" v-model="showCursorValue" />
+      </div>
+      <div>
+        <span>Normalize density:</span>
+        <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
       </div>
       <Button icon="md-cloud-download" type="primary" @click="exportFig"
         >export figure</Button
+      >
+      <Button icon="md-cloud-download" type="primary" @click="exportFig"
+        >view selected data</Button
       >
     </div>
   </div>
 </template>
 
 <script>
-import { binsx, binsy } from "../core/constants";
-import { exportCanvas } from "../core/utils";
-import { bin } from "vega-statistics";
-import unobserve from "../store";
-import render from "../core";
-import * as d3 from "d3";
+import { binsx, binsy } from '../core/constants';
+import { exportCanvas } from '../core/utils';
+import { bin } from 'vega-statistics';
+import unobserve from '../store';
+import render from '../core';
+import * as d3 from 'd3';
 
 export default {
   props: {
@@ -137,10 +163,11 @@ export default {
       contextHandler: null,
       canvasContext: null,
       rawLineContext: null,
-      filterMode: "rect",
-      rawMode: "null",
+      filterMode: 'rect',
+      rawMode: 'rep',
+      repCount: 3,
       diverse: 0.15,
-      cursor: "crosshair",
+      cursor: 'crosshair',
       mouseDown: false,
       listener: null,
       hoverListener: null,
@@ -148,8 +175,10 @@ export default {
       boxes: [],
       maxDensity: 1,
       rawLines: [],
-      colorMap: ["aqua", "limegreen", "lightgreen"],
+      colorMap: ['aqua', 'limegreen', 'lightgreen'],
       upsideDown: false,
+      showCursorValue: true,
+      normalizeDensity: true,
       headers: [],
       previewIndex: -1,
     };
@@ -166,7 +195,7 @@ export default {
       return [...unobserve.aggregatedData[this.previewIndex].ref]
         .slice(0, 6)
         .map((i, ii) =>
-          ii == 5 ? this.headers.map((_) => "...") : unobserve.data[i]
+          ii == 5 ? this.headers.map((_) => '...') : unobserve.data[i]
         );
     },
   },
@@ -254,17 +283,17 @@ export default {
     getTopK() {
       let kArray = [];
       if (this.hoverListener) {
-        this.$refs.canvas.removeEventListener("mousemove", this.hoverListener);
+        this.$refs.canvas.removeEventListener('mousemove', this.hoverListener);
       }
       switch (this.rawMode) {
-        case "cur":
+        case 'cur':
           this.hoverListener = this.hoverLines.bind(this);
-          this.$refs.canvas.addEventListener("mousemove", this.hoverListener);
+          this.$refs.canvas.addEventListener('mousemove', this.hoverListener);
           break;
-        case "out":
+        case 'out':
           kArray = this.contextHandler.findKTop(false);
           break;
-        case "rep":
+        case 'rep':
           kArray = this.contextHandler.findKTop(true, this.diverse);
           break;
       }
@@ -291,7 +320,7 @@ export default {
       this.rawLines = kArray;
     },
     resetFilter() {
-      this.$emit("filterChange", undefined);
+      this.$emit('filterChange', undefined);
       this.boxes = [];
       this.mouseDown = false;
       this.canvasContext.clearRect(0, 0, 1000, 500);
@@ -303,7 +332,7 @@ export default {
       let x = e.offsetX,
         y = e.offsetY,
         flag = false;
-      if (this.filterMode == "rect") {
+      if (this.filterMode == 'rect') {
         x /= 1000;
         y = 1 - y / 500;
         for (let box of this.boxes) {
@@ -313,9 +342,9 @@ export default {
             y < box[3]
           ) {
             if (Math.abs(x - box[0]) <= 0.002) {
-              this.mouseDown = "left";
+              this.mouseDown = 'left';
             } else {
-              this.mouseDown = "right";
+              this.mouseDown = 'right';
             }
             flag = true;
           } else if (
@@ -324,13 +353,13 @@ export default {
             x < box[1]
           ) {
             if (Math.abs(y - box[2]) <= 0.004) {
-              this.mouseDown = "bottom";
+              this.mouseDown = 'bottom';
             } else {
-              this.mouseDown = "top";
+              this.mouseDown = 'top';
             }
             flag = true;
           } else if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
-            this.mouseDown = "move";
+            this.mouseDown = 'move';
             flag = true;
           }
           if (flag) {
@@ -353,7 +382,7 @@ export default {
                 );
               }
             });
-            this.$emit("filterChange", filterResult);
+            this.$emit('filterChange', filterResult);
             break;
           }
         }
@@ -362,13 +391,13 @@ export default {
           Math.abs(x - this.coord[0]) <= 2 &&
           Math.abs(y - this.coord[1]) <= 2
         ) {
-          this.mouseDown = "move";
+          this.mouseDown = 'move';
           flag = true;
         } else if (
           Math.abs(x - this.coord[2]) <= 2 &&
           Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
         ) {
-          this.mouseDown = "time";
+          this.mouseDown = 'time';
           flag = true;
         } else if (
           x > this.coord[0] &&
@@ -386,7 +415,7 @@ export default {
                 (x - this.coord[0])) /
                 (this.coord[2] - this.coord[0])
         ) {
-          this.mouseDown = "angular";
+          this.mouseDown = 'angular';
           flag = true;
         }
       }
@@ -396,7 +425,7 @@ export default {
         this.coord[1] = e.offsetY;
       }
       this.listener = this.startFilter.bind(this);
-      window.addEventListener("mouseup", this.listener);
+      window.addEventListener('mouseup', this.listener);
     },
     drawBoxes() {
       for (let box of this.boxes) {
@@ -412,26 +441,26 @@ export default {
       let x = e.offsetX,
         y = e.offsetY;
       switch (this.mouseDown) {
-        case "move":
-          this.cursor = "grabbing";
+        case 'move':
+          this.cursor = 'grabbing';
           return;
-        case "left":
-        case "right":
-        case "time":
-          this.cursor = "ew-resize";
+        case 'left':
+        case 'right':
+        case 'time':
+          this.cursor = 'ew-resize';
           return;
-        case "top":
-        case "bottom":
-        case "angular":
-        case "range":
-          this.cursor = "ns-resize";
+        case 'top':
+        case 'bottom':
+        case 'angular':
+        case 'range':
+          this.cursor = 'ns-resize';
           return;
-        case "magnet":
+        case 'magnet':
         case true:
-          this.cursor = "crosshair";
+          this.cursor = 'crosshair';
           return;
         default:
-          if (this.filterMode == "rect") {
+          if (this.filterMode == 'rect') {
             x /= 1000;
             y = 1 - y / 500;
             for (let box of this.boxes) {
@@ -441,7 +470,7 @@ export default {
                 y > box[2] &&
                 y < box[3]
               ) {
-                this.cursor = "ew-resize";
+                this.cursor = 'ew-resize';
                 return;
               }
               if (
@@ -450,11 +479,11 @@ export default {
                 x > box[0] &&
                 x < box[1]
               ) {
-                this.cursor = "ns-resize";
+                this.cursor = 'ns-resize';
                 return;
               }
               if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
-                this.cursor = "move";
+                this.cursor = 'move';
                 return;
               }
             }
@@ -463,7 +492,7 @@ export default {
               Math.abs(x - this.coord[0]) <= 2 &&
               Math.abs(y - this.coord[1]) <= 2
             ) {
-              this.cursor = "move";
+              this.cursor = 'move';
               return;
             }
             if (
@@ -471,7 +500,7 @@ export default {
               Math.abs(y - this.coord[3]) <=
                 Math.abs(this.coord[4] - this.coord[3])
             ) {
-              this.cursor = "ew-resize";
+              this.cursor = 'ew-resize';
               return;
             }
             if (
@@ -490,35 +519,35 @@ export default {
                     (x - this.coord[0])) /
                     (this.coord[2] - this.coord[0])
             ) {
-              this.cursor = "ns-resize";
+              this.cursor = 'ns-resize';
               return;
             }
           }
-          this.cursor = "crosshair";
+          this.cursor = 'crosshair';
       }
     },
     moveMouse(e) {
       this.cursorShape(e);
       if (!this.mouseDown) return;
-      if (this.mouseDown == "magnet") {
+      if (this.mouseDown == 'magnet') {
         this.coord[4] = e.offsetY;
-      } else if (this.mouseDown == "move") {
+      } else if (this.mouseDown == 'move') {
         this.coord[0] += e.movementX;
         this.coord[2] += e.movementX;
         this.coord[1] += e.movementY * this.upsideDownFactor;
         this.coord[3] += e.movementY * this.upsideDownFactor;
         this.coord[4] += e.movementY * this.upsideDownFactor;
-      } else if (this.mouseDown == "left") {
+      } else if (this.mouseDown == 'left') {
         this.coord[0] = e.offsetX;
-      } else if (this.mouseDown == "right") {
+      } else if (this.mouseDown == 'right') {
         this.coord[2] = e.offsetX;
-      } else if (this.mouseDown == "bottom") {
+      } else if (this.mouseDown == 'bottom') {
         this.coord[3] = e.offsetY;
-      } else if (this.mouseDown == "top") {
+      } else if (this.mouseDown == 'top') {
         this.coord[1] = e.offsetY;
-      } else if (this.mouseDown == "time") {
+      } else if (this.mouseDown == 'time') {
         this.coord[2] = Math.max(this.coord[0] + 1, e.offsetX);
-      } else if (this.mouseDown == "angular") {
+      } else if (this.mouseDown == 'angular') {
         this.coord[3] += e.movementY * this.upsideDownFactor;
         this.coord[4] += e.movementY * this.upsideDownFactor;
       } else {
@@ -526,9 +555,9 @@ export default {
         this.coord[3] = e.offsetY;
       }
       this.canvasContext.clearRect(0, 0, 1000, 500);
-      if (this.filterMode == "rect") {
+      if (this.filterMode == 'rect') {
         this.canvasContext.globalAlpha = 0.3;
-        this.canvasContext.fillStyle = "black";
+        this.canvasContext.fillStyle = 'black';
         this.drawBoxes();
         this.canvasContext.fillRect(
           Math.min(this.coord[0], this.coord[2]),
@@ -538,7 +567,7 @@ export default {
         );
       } else {
         this.canvasContext.globalAlpha = 1;
-        this.canvasContext.strokeStyle = "black";
+        this.canvasContext.strokeStyle = 'black';
         this.canvasContext.beginPath();
         this.canvasContext.moveTo(this.coord[0], this.coord[1]);
         this.canvasContext.lineTo(this.coord[2], this.coord[3]);
@@ -550,7 +579,7 @@ export default {
           this.canvasContext.lineTo(this.coord[2], this.coord[3] + offset);
           this.canvasContext.stroke();
           this.canvasContext.globalAlpha = 0.3;
-          this.canvasContext.fillStyle = "black";
+          this.canvasContext.fillStyle = 'black';
           this.canvasContext.beginPath();
           this.canvasContext.moveTo(this.coord[0], this.coord[1]);
           this.canvasContext.lineTo(this.coord[2], this.coord[3] - offset);
@@ -560,7 +589,7 @@ export default {
       }
     },
     startFilter() {
-      if (this.filterMode == "rect") {
+      if (this.filterMode == 'rect') {
         this.mouseDown = false;
         if (this.coord[2] != 0 || this.coord[3] != 0) {
           let [left, right] = [this.coord[0], this.coord[2]]
@@ -578,26 +607,26 @@ export default {
           );
           if (this.filter) {
             this.$emit(
-              "filterChange",
+              'filterChange',
               this.filter.filter((x) => filterResult.includes(x))
             );
           } else {
-            this.$emit("filterChange", filterResult);
+            this.$emit('filterChange', filterResult);
           }
         }
       }
-      window.removeEventListener("mouseup", this.listener);
+      window.removeEventListener('mouseup', this.listener);
       this.listener = null;
     },
     angleConfirm() {
       if (
-        this.filterMode == "ang" &&
+        this.filterMode == 'ang' &&
         this.coord[2] &&
         this.coord[3] &&
         this.coord[0] != this.coord[2]
       ) {
         if (this.mouseDown === true) {
-          this.mouseDown = "magnet";
+          this.mouseDown = 'magnet';
           let start = [0, 0];
           let end = [0, 0];
           if (this.coord[0] < this.coord[2]) {
@@ -618,7 +647,7 @@ export default {
             -(this.coord[3] - offset - this.coord[1]) /
             (this.coord[2] - this.coord[0]);
           this.$emit(
-            "filterChange",
+            'filterChange',
             this.contextHandler.filterAngle(
               this.coord[0] / 1000,
               this.coord[2] / 1000,
@@ -643,8 +672,8 @@ export default {
     this.$Spin.show();
     setTimeout(() => {
       this.canvas = this.$refs.canvas;
-      this.canvasContext = this.$refs.canvasOverlay.getContext("2d");
-      this.rawLineContext = this.$refs.canvasRawLine.getContext("2d");
+      this.canvasContext = this.$refs.canvasOverlay.getContext('2d');
+      this.rawLineContext = this.$refs.canvasRawLine.getContext('2d');
       let scopeData = unobserve.aggregatedData.map((row) => {
         return {
           xValues: row[this.timeIndex],

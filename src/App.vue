@@ -3,7 +3,7 @@
     <Layout>
       <Header>
         <Menu mode="horizontal" theme="dark" @on-select="eventHandler">
-          <h1 class="layout-logo">Density-based Timebox</h1>
+          <h1 class="layout-logo">CCH-based density</h1>
           <div class="layout-nav">
             <Upload
               action="/"
@@ -54,7 +54,7 @@
               </template>
             </Select>
             <p>Value Attribute(s):</p>
-            <Select v-model="valueAttr" style="width:200px" multiple>
+            <Select v-model="valueAttr" style="width:200px">
               <template v-for="(attr, i) in headers">
                 <Option v-if="inferTypes[i] == 'number'" :value="i" :key="i">{{
                   attr
@@ -143,23 +143,23 @@
 </template>
 
 <script>
-import CanvasBox from "./components/CanvasBox.vue";
-import { generateData, readData } from "./core/data-gen";
-import unobserve from "./store";
+import CanvasBox from './components/CanvasBox.vue';
+import { generateData, readData } from './core/data-gen';
+import unobserve from './store';
 
 function parseField(value, type) {
   switch (type) {
-    case "string":
+    case 'string':
       return 0;
-    case "date":
+    case 'date':
       return Math.floor(new Date(value) / (24 * 3600 * 1000));
-    case "number":
+    case 'number':
       return parseFloat(value);
   }
 }
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
     CanvasBox,
   },
@@ -169,7 +169,7 @@ export default {
       inferTypes: [],
       aggregateAttr: 0,
       timeAttr: 0,
-      valueAttr: [],
+      valueAttr: 0,
       chartConfigs: [],
       filters: [],
     };
@@ -177,13 +177,13 @@ export default {
   methods: {
     eventHandler(type) {
       this.$Spin.show();
-      if (type.startsWith("1")) {
-        generateData(type.split("-")[1]).then((data) => {
+      if (type.startsWith('1')) {
+        generateData(type.split('-')[1]).then((data) => {
           this.$Spin.hide();
           this.preProcessData(data);
           this.generateCharts();
         });
-      } else if (type == "2") {
+      } else if (type == '2') {
         this.$refs.upload.handleClick();
         this.$Spin.hide();
       }
@@ -203,58 +203,44 @@ export default {
       unobserve.data = data.slice(1);
       if (data.length > 1) {
         this.inferTypes = data[1].map((attr) => {
-          if (attr.includes("-") || attr.includes("/")) {
+          if (attr.includes('-') || attr.includes('/')) {
             let isDate = new Date(attr).toString();
-            if (isDate.startsWith("Invalid")) {
-              return "string";
+            if (isDate.startsWith('Invalid')) {
+              return 'string';
             }
-            return "date";
+            return 'date';
           }
           if (/^\d*(\.\d*)?$/.test(attr)) {
-            return "number";
+            return 'number';
           }
-          return "string";
+          return 'string';
         });
-        this.aggregateAttr = this.inferTypes.indexOf("string");
-        this.timeAttr = this.inferTypes.indexOf("date");
-        let valueAttr = this.inferTypes.indexOf("number");
+        this.aggregateAttr = this.inferTypes.indexOf('string');
+        this.timeAttr = this.inferTypes.indexOf('date');
         if (this.aggregateAttr < 0) this.aggregateAttr = 0;
         if (this.timeAttr < 0)
-          this.timeAttr = this.inferTypes.indexOf("number");
+          this.timeAttr = this.inferTypes.indexOf('number');
         if (this.timeAttr < 0) this.timeAttr = 0;
-        if (valueAttr >= 0) this.valueAttr = [valueAttr];
+        this.valueAttr = this.inferTypes.indexOf('number');
+        if (this.valueAttr === this.timeAttr)
+          this.valueAttr = this.inferTypes.indexOf('number', this.timeAttr + 1);
+        if (this.valueAttr < 0) this.valueAttr = 0;
       }
     },
     generateCharts() {
-      if (this.valueAttr.length > 3) {
-        if (
-          !confirm(
-            "This may causing out of GPU memory, are you sure to continue?"
-          )
-        ) {
-          return;
-        }
-      }
       this.$Spin.show();
       if (
         this.headers[this.aggregateAttr] !=
           (this.chartConfigs.length && this.chartConfigs[0].aggregateName) ||
-        this.valueAttr.find(
-          (idx) =>
-            !this.chartConfigs.find((config) => config.valueIndex === idx)
+        !this.chartConfigs.find(
+          (config) => config.valueIndex === this.valueAttr
         )
       ) {
         unobserve.aggregatedData = [];
         let aggrMap = new Map();
         const infers = {
           [this.timeAttr]: this.inferTypes[this.timeAttr],
-          ...this.valueAttr
-            .map((idx) => {
-              return { [idx]: this.inferTypes[idx] };
-            })
-            .reduce((p, v) => {
-              return { ...p, ...v };
-            }, {}),
+          [this.valueAttr]: this.inferTypes[this.valueAttr],
         };
         unobserve.data.forEach((row, i) => {
           let aggrList;
@@ -263,13 +249,7 @@ export default {
             aggrList = {
               ref: [],
               [this.timeAttr]: [],
-              ...this.valueAttr
-                .map((idx) => {
-                  return { [idx]: [] };
-                })
-                .reduce((p, v) => {
-                  return { ...p, ...v };
-                }, {}),
+              [this.valueAttr]: [],
             };
             aggrMap.set(aggrKey, aggrList);
           } else {
@@ -279,9 +259,9 @@ export default {
           aggrList[this.timeAttr].push(
             parseField(row[this.timeAttr], infers[this.timeAttr])
           );
-          this.valueAttr.forEach((idx) => {
-            aggrList[idx].push(parseField(row[idx], infers[idx]));
-          });
+          aggrList[this.valueAttr].push(
+            parseField(row[this.valueAttr], infers[this.valueAttr])
+          );
         });
         for (let [key, aggregated] of aggrMap.entries()) {
           unobserve.aggregatedData.push(
@@ -298,21 +278,22 @@ export default {
         }
         aggrMap.clear();
       }
-      this.chartConfigs = this.valueAttr
-        .map((attr) => {
-          if (attr == this.timeAttr) return null;
-          return {
+      if (this.valueAttr === this.timeAttr) {
+        this.chartConfigs = [];
+      } else {
+        this.chartConfigs = [
+          {
             aggregateIndex: this.aggregateAttr,
             timeIndex: this.timeAttr,
-            valueIndex: attr,
+            valueIndex: this.valueAttr,
             aggregateName: this.headers[this.aggregateAttr],
             timeName: this.headers[this.timeAttr],
-            valueName: this.headers[attr],
+            valueName: this.headers[this.valueAttr],
             filter: undefined,
             emitFilter: undefined,
-          };
-        })
-        .filter((x) => x);
+          },
+        ];
+      }
       this.filters = this.chartConfigs.map((_) => undefined);
       this.$Spin.hide();
     },
@@ -320,7 +301,7 @@ export default {
       this.filters.splice(index, 1, filter);
       if (!this.filters.find((f) => f)) {
         this.chartConfigs.forEach((config) => {
-          this.$set(config, "filter", undefined);
+          this.$set(config, 'filter', undefined);
         });
         return;
       }
@@ -332,7 +313,7 @@ export default {
         )
       );
       this.chartConfigs.forEach((config) => {
-        this.$set(config, "filter", set);
+        this.$set(config, 'filter', set);
       });
     },
   },
