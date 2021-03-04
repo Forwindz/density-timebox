@@ -146,6 +146,15 @@
       :columns="tableColumns"
       :data="tableData"
     >
+      <template slot-scope="{ row, index }" slot="name">
+        <p
+          v-if="index >= tableData.length - 2"
+          style="font-style:italic;font-weight:700"
+        >
+          {{ row.name }}
+        </p>
+        <div v-else>{{ row.name }}</div>
+      </template>
       <template slot-scope="{}" slot="op">
         <Button type="primary" size="small" style="margin-right: 5px"
           >Show</Button
@@ -197,7 +206,7 @@ export default {
       headers: [],
       previewIndex: -1,
       tableColumns: [
-        { title: 'Query', align: 'center', key: 'name' },
+        { title: 'Query', align: 'center', slot: 'name' },
         { title: 'Min start time', align: 'center', key: 'minT' },
         { title: 'Max start time', align: 'center', key: 'maxT' },
         { title: 'Count', align: 'center', key: 'count' },
