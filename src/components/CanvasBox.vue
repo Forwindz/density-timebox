@@ -155,11 +155,18 @@
         </p>
         <div v-else>{{ row.name }}</div>
       </template>
-      <template slot-scope="{}" slot="op">
-        <Button type="primary" size="small" style="margin-right: 5px"
+      <template slot-scope="{ row, index }" slot="op">
+        <Button
+          ghost
+          :type="row.query === selectedQuery ? 'primary' : 'default'"
+          size="small"
+          style="margin-right: 5px"
+          @click="selectedQuery = row.query"
           >Show</Button
         >
-        <Button type="error" size="small">Delete</Button>
+        <Button type="error" size="small" v-if="index < tableData.length - 2"
+          >Delete</Button
+        >
       </template>
     </Table>
   </div>
@@ -205,6 +212,7 @@ export default {
       normalizeDensity: true,
       headers: [],
       previewIndex: -1,
+      selectedQuery: '$int',
       tableColumns: [
         { title: 'Query', align: 'center', slot: 'name' },
         { title: 'Min start time', align: 'center', key: 'minT' },
@@ -725,8 +733,8 @@ export default {
         this.upsideDown
       );
     },
-    hightlightRow(row, index) {
-      return index === 0 ? 'selected-table-row' : '';
+    hightlightRow(row) {
+      return row.query === this.selectedQuery ? 'selected-table-row' : '';
     },
   },
   mounted() {
@@ -841,6 +849,11 @@ export default {
 
   tr.selected-table-row td {
     background: #d3ebff;
+  }
+
+  .ivu-btn-ghost.ivu-btn-default {
+    color: #000;
+    border-color: #888;
   }
 }
 </style>
