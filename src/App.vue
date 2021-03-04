@@ -53,7 +53,7 @@
                 }}</Option>
               </template>
             </Select>
-            <p>Value Attribute(s):</p>
+            <p>Value Attribute:</p>
             <Select v-model="valueAttr" style="width:200px">
               <template v-for="(attr, i) in headers">
                 <Option v-if="inferTypes[i] == 'number'" :value="i" :key="i">{{
@@ -68,8 +68,53 @@
               type="primary"
               style="width:200px"
               :disabled="!headers.length"
-              >generate chart(s)</Button
+              >generate chart</Button
             >
+            <div style="margin-top:100px">
+              <p>Layers:</p>
+              <draggable v-model="layers">
+                <div
+                  v-for="layer in layers"
+                  :key="layer.id"
+                  style="display:flex;align-items:center;border:1px solid gray;margin-top:4px;background:white;cursor:pointer"
+                >
+                  <Icon type="md-menu" style="cursor:move" />
+                  <Poptip
+                    :width="200"
+                    style="flex-grow:1"
+                    trigger="hover"
+                    :title="'Layer: ' + layer.name"
+                  >
+                    <p style="width:170px;padding-left: 12px">
+                      {{ layer.name }}
+                    </p>
+                    <div slot="content" style="display:flex;align-items:center">
+                      <span style="margin-right:8px">Opacity</span>
+                      <Slider
+                        v-model="layer.opacity"
+                        :min="0"
+                        :max="1"
+                        :step="0.01"
+                        show-tip="never"
+                        style="flex-grow:1"
+                      />
+                      <span style="margin-left:8px;white-space:pre-wrap;"
+                        >{{
+                          Math.round(layer.opacity * 100)
+                            .toString()
+                            .padStart(3)
+                        }}%</span
+                      >
+                    </div>
+                  </Poptip>
+                  <Icon
+                    :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
+                    :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
+                    @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
+                  />
+                </div>
+              </draggable>
+            </div>
           </div>
         </Card>
         <Card style="margin-left:20px;flex-grow:1">
@@ -143,6 +188,7 @@
 </template>
 
 <script>
+import draggable from 'vuedraggable';
 import CanvasBox from './components/CanvasBox.vue';
 import { generateData, readData } from './core/data-gen';
 import unobserve from './store';
@@ -162,6 +208,7 @@ export default {
   name: 'App',
   components: {
     CanvasBox,
+    draggable,
   },
   data() {
     return {
@@ -172,6 +219,33 @@ export default {
       valueAttr: 0,
       chartConfigs: [],
       filters: [],
+      layers: [
+        {
+          id: 'rep',
+          name: 'representative line',
+          opacity: 1,
+        },
+        {
+          id: 'sDensity',
+          name: 'selected density',
+          opacity: 0,
+        },
+        {
+          id: 'sLine',
+          name: 'selected line',
+          opacity: 1,
+        },
+        {
+          id: 'density',
+          name: 'density',
+          opacity: 1,
+        },
+        {
+          id: 'raw',
+          name: 'raw line',
+          opacity: 0,
+        },
+      ],
     };
   },
   methods: {

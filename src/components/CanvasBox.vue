@@ -1,143 +1,158 @@
 <template>
-  <div
-    style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
-  >
-    <canvas
-      ref="canvas"
-      width="1000"
-      height="500"
-      :style="{
-        width: '1000px',
-        height: '500px',
-        cursor,
-        transform: `scaleY(${upsideDownFactor})`,
-      }"
-      @mousedown="startMouse"
-      @mousemove="moveMouse"
-      @click="angleConfirm"
-    ></canvas>
-    <canvas
-      ref="canvasRawLine"
-      width="1000"
-      height="500"
-      style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
-      :style="{
-        transform: `scaleY(${upsideDownFactor})`,
-      }"
-    ></canvas>
-    <canvas
-      ref="canvasOverlay"
-      width="1000"
-      height="500"
-      style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
-      :style="{
-        transform: `scaleY(${upsideDownFactor})`,
-      }"
-    ></canvas>
+  <div>
     <div
-      ref="axisTop"
-      style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
-    ></div>
-    <div
-      ref="axisBottom"
-      style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
-    ></div>
-    <div
-      ref="axisLeft"
-      style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
-    ></div>
-    <div class="control-panel">
-      <div>
-        <span>Filter line strategy: </span>
-        <RadioGroup v-model="filterMode" type="button">
-          <Radio label="knn">KNN</Radio>
-          <Radio label="rnn">Radius</Radio>
-          <Radio label="rect">Brush</Radio>
-          <Radio label="ang">Angle</Radio>
-          <Radio label="attr">Attr</Radio>
-        </RadioGroup>
-      </div>
-      <div>
-        <span>Representative line config: </span>
-        <!-- <RadioGroup v-model="rawMode" type="button">
+      style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
+    >
+      <canvas
+        ref="canvas"
+        width="1000"
+        height="500"
+        :style="{
+          width: '1000px',
+          height: '500px',
+          cursor,
+          transform: `scaleY(${upsideDownFactor})`,
+        }"
+        @mousedown="startMouse"
+        @mousemove="moveMouse"
+        @click="angleConfirm"
+      ></canvas>
+      <canvas
+        ref="canvasRawLine"
+        width="1000"
+        height="500"
+        style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
+        :style="{
+          transform: `scaleY(${upsideDownFactor})`,
+        }"
+      ></canvas>
+      <canvas
+        ref="canvasOverlay"
+        width="1000"
+        height="500"
+        style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"
+        :style="{
+          transform: `scaleY(${upsideDownFactor})`,
+        }"
+      ></canvas>
+      <div
+        ref="axisTop"
+        style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
+      ></div>
+      <div
+        ref="axisBottom"
+        style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
+      ></div>
+      <div
+        ref="axisLeft"
+        style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
+      ></div>
+      <div class="control-panel">
+        <div>
+          <span>Filter line by: </span>
+          <RadioGroup v-model="filterMode" type="button" size="small">
+            <Radio label="knn">KNN</Radio>
+            <Radio label="rnn">Radius</Radio>
+            <Radio label="rect">Brush</Radio>
+            <Radio label="ang">Angle</Radio>
+            <Radio label="attr">Attr</Radio>
+          </RadioGroup>
+        </div>
+        <div>
+          <span>Representative line config: </span>
+          <!-- <RadioGroup v-model="rawMode" type="button">
           <Radio label="null">Null</Radio>
           <Radio label="cur">Hover</Radio>
           <Radio label="out">Min</Radio>
           <Radio label="rep">Max</Radio>
         </RadioGroup> -->
-      </div>
-      <div v-if="rawMode == 'rep'" style="margin-left:12px">
-        <div style="display:flex;align-items:center">
-          <span style="margin-right:8px">Rep-line count</span>
-          <Slider
-            v-model="repCount"
-            :min="0"
-            :max="20"
-            :step="1"
-            show-tip="never"
-            style="flex-grow:1"
-          />
-          <span style="margin-left:8px">3</span>
         </div>
-        <div style="display:flex;align-items:center">
-          <span style="margin-right:8px">Weight</span>
-          <Slider
-            v-model="diverse"
-            :min="0"
-            :max="1"
-            :step="0.001"
-            show-tip="never"
-            style="flex-grow:1"
-          />
-          <span style="margin-left:8px">Diverse</span>
+        <div v-if="rawMode == 'rep'" style="margin-left:2em">
+          <div style="display:flex;align-items:center">
+            <span style="margin-right:8px">Rep-line count</span>
+            <Slider
+              v-model="repCount"
+              :min="0"
+              :max="20"
+              :step="1"
+              show-tip="never"
+              style="flex-grow:1"
+            />
+            <span style="margin-left:8px">3</span>
+          </div>
+          <div style="display:flex;align-items:center">
+            <span style="margin-right:8px">Weight</span>
+            <Slider
+              v-model="diverse"
+              :min="0"
+              :max="1"
+              :step="0.001"
+              show-tip="never"
+              style="flex-grow:1"
+            />
+            <span style="margin-left:8px">Diverse</span>
+          </div>
         </div>
-      </div>
-      <div v-if="rawMode != 'null'">
-        <div v-for="i in [0, 1, 2]" :key="i">
-          <span
-            ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker
-          ></span>
-          <Poptip
-            trigger="hover"
-            placement="bottom-end"
-            :width="800"
-            title="Data preview"
-            @on-popper-show="previewIndex = rawLines[i]"
-          >
-            <span style="margin-left:12px" v-if="i < rawLineNames.length">{{
-              rawLineNames[i]
-            }}</span>
-            <div slot="content">
-              <Table :columns="headers" :data="previewData" />
-            </div>
-          </Poptip>
+        <div v-if="rawMode != 'null'">
+          <div v-for="i in [0, 1, 2]" :key="i">
+            <span
+              ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker
+            ></span>
+            <Poptip
+              trigger="hover"
+              placement="bottom-end"
+              :width="800"
+              title="Data preview"
+              @on-popper-show="previewIndex = rawLines[i]"
+            >
+              <span style="margin-left:12px" v-if="i < rawLineNames.length">{{
+                rawLineNames[i]
+              }}</span>
+              <div slot="content">
+                <Table :columns="headers" :data="previewData" />
+              </div>
+            </Poptip>
+          </div>
         </div>
+        <div>
+          <span>Color map: </span>
+          <span>1</span>
+          <span class="color-map"></span>
+          <InputNumber :min="1" v-model="maxDensity" :active-change="false" />
+        </div>
+        <div>
+          <span>Reverse y-axis:</span>
+          <iSwitch style="margin-left:12px" v-model="upsideDown" />
+        </div>
+        <div>
+          <span>Show value of cursor:</span>
+          <iSwitch style="margin-left:12px" v-model="showCursorValue" />
+        </div>
+        <div>
+          <span>Normalize density:</span>
+          <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
+        </div>
+        <Button icon="md-cloud-download" type="primary" @click="exportFig"
+          >export figure</Button
+        >
+        <Button icon="ios-apps" type="primary" @click="exportFig"
+          >view selected data</Button
+        >
       </div>
-      <div>
-        <span>Color map: </span>
-        <span>1</span>
-        <span class="color-map"></span>
-        <InputNumber :min="1" v-model="maxDensity" :active-change="false" />
-      </div>
-      <div>
-        <span>Reverse y-axis:</span>
-        <iSwitch style="margin-left:12px" v-model="upsideDown" />
-      </div>
-      <div>
-        <span>Show value of cursor:</span>
-        <iSwitch style="margin-left:12px" v-model="showCursorValue" />
-      </div>
-      <div>
-        <span>Normalize density:</span>
-        <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
-      </div>
-      <Button icon="md-cloud-download" type="primary" @click="exportFig"
-        >export figure</Button
-      >
-      <Button icon="md-cloud-download" type="primary" @click="exportFig"
-        >view selected data</Button
-      >
     </div>
+    <Table
+      :row-class-name="hightlightRow"
+      border
+      :columns="tableColumns"
+      :data="tableData"
+    >
+      <template slot-scope="{}" slot="op">
+        <Button type="primary" size="small" style="margin-right: 5px"
+          >Show</Button
+        >
+        <Button type="error" size="small">Delete</Button>
+      </template>
+    </Table>
   </div>
 </template>
 
@@ -181,6 +196,17 @@ export default {
       normalizeDensity: true,
       headers: [],
       previewIndex: -1,
+      tableColumns: [
+        { title: 'Query', align: 'center', key: 'name' },
+        { title: 'Min start time', align: 'center', key: 'minT' },
+        { title: 'Max start time', align: 'center', key: 'maxT' },
+        { title: 'Count', align: 'center', key: 'count' },
+        { title: 'Min value', align: 'center', key: 'minV' },
+        { title: 'Max value', align: 'center', key: 'maxV' },
+        { title: 'Mean value', align: 'center', key: 'mean' },
+        { title: 'Variance', align: 'center', key: 'var' },
+        { title: 'Operations', align: 'center', slot: 'op' },
+      ],
     };
   },
   computed: {
@@ -197,6 +223,32 @@ export default {
         .map((i, ii) =>
           ii == 5 ? this.headers.map((_) => '...') : unobserve.data[i]
         );
+    },
+    tableData() {
+      return [
+        {
+          query: '$int',
+          name: 'intersection',
+          minT: '2006-2-7',
+          maxT: '2008-1-2',
+          count: 249,
+          minV: 0,
+          maxV: 68,
+          mean: '20.99',
+          var: '3.33',
+        },
+        {
+          query: '$uni',
+          name: 'union',
+          minT: '2006-2-7',
+          maxT: '2012-10-1',
+          count: 1039,
+          minV: 0,
+          maxV: 69,
+          mean: '19.17',
+          var: '4.14',
+        },
+      ];
     },
   },
   watch: {
@@ -664,65 +716,68 @@ export default {
         this.upsideDown
       );
     },
+    hightlightRow(row, index) {
+      return index === 0 ? 'selected-table-row' : '';
+    },
   },
   mounted() {
     this.headers = unobserve.headers.map((title, key) => {
       return { title, key, minWidth: 150 };
     });
-    this.$Spin.show();
-    setTimeout(() => {
-      this.canvas = this.$refs.canvas;
-      this.canvasContext = this.$refs.canvasOverlay.getContext('2d');
-      this.rawLineContext = this.$refs.canvasRawLine.getContext('2d');
-      let scopeData = unobserve.aggregatedData.map((row) => {
-        return {
-          xValues: row[this.timeIndex],
-          yValues: row[this.valueIndex],
-        };
-      });
+    // this.$Spin.show();
+    // setTimeout(() => {
+    //   this.canvas = this.$refs.canvas;
+    //   this.canvasContext = this.$refs.canvasOverlay.getContext('2d');
+    //   this.rawLineContext = this.$refs.canvasRawLine.getContext('2d');
+    //   let scopeData = unobserve.aggregatedData.map((row) => {
+    //     return {
+    //       xValues: row[this.timeIndex],
+    //       yValues: row[this.valueIndex],
+    //     };
+    //   });
 
-      let maxY = scopeData[0].yValues[0],
-        minY = maxY;
-      let maxX = scopeData[0].xValues[0],
-        minX = maxX;
-      for (let i = 0; i < scopeData.length; i++) {
-        let length = scopeData[i].xValues.length;
-        for (let j = 0; j < length; j++) {
-          let yValue = scopeData[i].yValues[j],
-            xValue = scopeData[i].xValues[j];
-          maxY = Math.max(maxY, yValue);
-          minY = Math.min(minY, yValue);
-          maxX = Math.max(maxX, xValue);
-          minX = Math.min(minX, xValue);
-        }
-      }
-      for (let i = 0; i < scopeData.length; i++) {
-        let length = scopeData[i].xValues.length;
-        for (let j = 0; j < length; j++) {
-          scopeData[i].xValues[j] -= minX;
-        }
-      }
+    //   let maxY = scopeData[0].yValues[0],
+    //     minY = maxY;
+    //   let maxX = scopeData[0].xValues[0],
+    //     minX = maxX;
+    //   for (let i = 0; i < scopeData.length; i++) {
+    //     let length = scopeData[i].xValues.length;
+    //     for (let j = 0; j < length; j++) {
+    //       let yValue = scopeData[i].yValues[j],
+    //         xValue = scopeData[i].xValues[j];
+    //       maxY = Math.max(maxY, yValue);
+    //       minY = Math.min(minY, yValue);
+    //       maxX = Math.max(maxX, xValue);
+    //       minX = Math.min(minX, xValue);
+    //     }
+    //   }
+    //   for (let i = 0; i < scopeData.length; i++) {
+    //     let length = scopeData[i].xValues.length;
+    //     for (let j = 0; j < length; j++) {
+    //       scopeData[i].xValues[j] -= minX;
+    //     }
+    //   }
 
-      // const scaleY = d3
-      //   .scaleLinear()
-      //   .domain([0, maxY])
-      //   .range([0, 500]);
+    //   // const scaleY = d3
+    //   //   .scaleLinear()
+    //   //   .domain([0, maxY])
+    //   //   .range([0, 500]);
 
-      // compute nice bin boundaries
-      const binConfigX = bin({ maxbins: binsx, extent: [0, maxX - minX] });
-      const binConfigY = bin({ maxbins: binsy, extent: [0, maxY] });
-      render(
-        scopeData,
-        [0, maxX - minX, minY, maxY],
-        binConfigX,
-        binConfigY,
-        this.canvas
-      ).then((handler) => {
-        this.contextHandler = handler;
-        this.maxDensity = handler.maxDensity;
-      });
-      this.$Spin.hide();
-    }, 0); // ensure spin shows
+    //   // compute nice bin boundaries
+    //   const binConfigX = bin({ maxbins: binsx, extent: [0, maxX - minX] });
+    //   const binConfigY = bin({ maxbins: binsy, extent: [0, maxY] });
+    //   render(
+    //     scopeData,
+    //     [0, maxX - minX, minY, maxY],
+    //     binConfigX,
+    //     binConfigY,
+    //     this.canvas
+    //   ).then((handler) => {
+    //     this.contextHandler = handler;
+    //     this.maxDensity = handler.maxDensity;
+    //   });
+    //   this.$Spin.hide();
+    // }, 0); // ensure spin shows
   },
   beforeDestroy() {
     if (this.contextHandler) {
@@ -763,5 +818,20 @@ export default {
   height: 32px;
   margin: 0 10px;
   vertical-align: middle;
+}
+
+.ivu-table-tbody {
+  tr.ivu-table-row-hover {
+    outline: 2px solid red;
+    outline-offset: -2px;
+
+    td {
+      background: transparent;
+    }
+  }
+
+  tr.selected-table-row td {
+    background: #d3ebff;
+  }
 }
 </style>
