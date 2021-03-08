@@ -121,6 +121,21 @@
             <Radio label="attr">Attr</Radio>
           </RadioGroup>
         </div>
+        <div v-if="filterMode === 'attr'" style="margin-left: 2em;">
+          <Form>
+            <FormItem label="Attribute Column">
+              <Select v-model="attributeColumn" placeholder="Choose a column for attribute filtering">
+                <Option v-for="header in headers" :value="header.key" :key="header.title">{{header.title}}</Option>
+              </Select>
+            </FormItem>
+            <FormItem label="Value">
+              <Input v-model="attributeValue"></Input>
+            </FormItem>
+            <Button type="info" style="float: right" @click="addAttrQuery">add attribute query</Button>
+          </Form>
+<!--          <span>Column Name</span>-->
+<!--          <span>Attribute Value</span>-->
+        </div>
         <div>
           <span>Representative line config: </span>
           <!-- <RadioGroup v-model="rawMode" type="button">
@@ -156,27 +171,27 @@
             <span style="margin-left:8px">Diverse</span>
           </div>
         </div>
-        <div v-if="rawMode != 'null'">
-          <div v-for="i in [0, 1, 2]" :key="i">
-            <span
-            ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker
-            ></span>
-            <Poptip
-                trigger="hover"
-                placement="bottom-end"
-                :width="800"
-                title="Data preview"
-                @on-popper-show="previewIndex = rawLines[i]"
-            >
-              <span style="margin-left:12px" v-if="i < rawLineNames.length">{{
-                  rawLineNames[i]
-                }}</span>
-              <div slot="content">
-                <Table :columns="headers" :data="previewData" />
-              </div>
-            </Poptip>
-          </div>
-        </div>
+<!--        <div v-if="rawMode != 'null'">-->
+<!--          <div v-for="i in [0, 1, 2]" :key="i">-->
+<!--            <span-->
+<!--            ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker-->
+<!--            ></span>-->
+<!--            <Poptip-->
+<!--                trigger="hover"-->
+<!--                placement="bottom-end"-->
+<!--                :width="800"-->
+<!--                title="Data preview"-->
+<!--                @on-popper-show="previewIndex = rawLines[i]"-->
+<!--            >-->
+<!--              <span style="margin-left:12px" v-if="i < rawLineNames.length">{{-->
+<!--                  rawLineNames[i]-->
+<!--                }}</span>-->
+<!--              <div slot="content">-->
+<!--                <Table :columns="headers" :data="previewData" />-->
+<!--              </div>-->
+<!--            </Poptip>-->
+<!--          </div>-->
+<!--        </div>-->
         <div>
           <div class="select-colormap">
             <Select id="colormap" placeholder="Choose colormap" v-model="colormapIndexCache">
@@ -286,7 +301,7 @@ import { bin } from 'vega-statistics';
 import unobserve from '../store';
 import render from '../core';
 import * as d3 from 'd3';
-import {lineRectCollide, sqr, dist2, getAngle2, eq, updatePoint, movePoint, calculateDifference, calculateCurvature} from "@/core/util";
+import {lineRectCollide, sqr, dist2, getAngle2, eq, updatePoint, movePoint, calculateDifference, calculateCurvature, mix} from "@/core/util";
 import KDTree from '../core/kdtree'
 import seedrandom from 'seedrandom';
 import moment from "moment";
@@ -299,6 +314,7 @@ export default {
     valueName: String,
     filter: Float32Array,
     layers: Array,
+    // headers: Array,
   },
   data() {
     return {
@@ -376,6 +392,9 @@ export default {
       // representative line presentation
       repModal: false,
       repStaticInformation: [],
+
+      attributeColumn: null,
+      attributeValue: null,
     };
   },
   computed: {
@@ -515,6 +534,18 @@ export default {
       if (index >= unobserve.querys.length)
         return;
       this.hovering(unobserve.querys[index]);
+    },
+
+    addAttrQuery() {
+      unobserve.querys.push({
+        type: 'attr',
+        info: {
+          ind: this.attributeColumn,
+          val: this.attributeValue,
+        }
+      })
+      // console.log(unobserve.querys);
+      this.renderBoxes();
     },
 
 
@@ -1424,6 +1455,12 @@ export default {
         );
         // }
         if (!query.cache) {
+          const minX = Math.min(query.start[0], query.end[0]),
+              maxX= Math.max(query.start[0],query.end[0]),
+              minY= Math.min(query.start[1],query.end[1]),
+              maxY= Math.max(query.start[1],query.end[1]);
+          console.log(minX, maxX, minY, maxY);
+          console.log(query);
           const result = new Set(
               this.tree
                   .brush(
@@ -1453,6 +1490,54 @@ export default {
                       )
                   )
                   .map(({ raw }) => raw[5])
+                  .filter(id => {
+                    // return true;
+                    const line = unobserve.result[id];
+                    let l = 0, r = line.length - 1, lp = 0, rp = r, mid, tmpY;
+                    while( l <= r) {
+                      mid = (l + r ) >> 1;
+                      if (line[mid].x >= minX) {
+                        lp = mid;
+                        r = mid - 1;
+                      }
+                      else
+                        l = mid + 1;
+                    }
+
+                    l = 0;
+                    r = line.length -1;
+                    while( l <= r) {
+                      mid = (l + r) >> 1;
+                      if (line[mid].x <= maxX) {
+                        rp = mid;
+                        l = mid + 1;
+                      } else {
+                        r = mid -1;
+                      }
+                    }
+                    // console.log(lp, rp);
+                    for (let i = lp; i <=rp; i++) {
+                      if (line[i].y < minY  || line[i].y > maxY){
+                        // console.log(line[i]);
+                        return false;
+                      }
+                    }
+                    if (lp) {
+                      tmpY = mix(line[lp-1], line[lp], minX).y;
+                      if (tmpY < minY || tmpY > maxY) {
+                        // console.log(tmpY);
+                        return false;
+                      }
+                    }
+                    if (rp < line.length - 1) {
+                      tmpY = mix(line[rp], line[rp + 1], minX).y;
+                      if (tmpY < minY || tmpY > maxY){
+                        // console.log(tmpY);
+                        return false;
+                      }
+                    }
+                    return true;
+                  })
           );
           query.cache = result;
         }
@@ -1494,6 +1579,15 @@ export default {
           );
           query.cache = result;
         }
+      } else if(query.type === 'attr') {
+        const { ind, val } = query.info;
+        console.log(unobserve.aggregatedData, unobserve.data);
+        const result = new Array(unobserve.result.length).fill(0).map((_, i) => i).filter(i => {
+          const exampleInd = unobserve.aggregatedData[i].ref[0];
+          const targetVal = unobserve.data[exampleInd][ind];
+          return targetVal === val;
+        })
+        query.cache = new Set(result);
       }
     },
 
@@ -1550,6 +1644,7 @@ export default {
     },
 
     renderBoxes(type = 'all') {
+      console.log(unobserve.querys);
       console.time('init canvas');
       this.initCanvas(unobserve.mouseLayerContext);
       console.timeEnd('init canvas');

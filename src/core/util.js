@@ -795,7 +795,7 @@ export class VolRTree {
 }
 
 
-function mix(point1, point2, x) {
+export function mix(point1, point2, x) {
   const r = Math.max(Math.min((x - point1.x) /(point2.x - point1.x), 1.0), 0.0), l = 1 - r;
   return {x: point1.x * l + point2.x * r, y:point1.y *l + point2.y *r};
 }
