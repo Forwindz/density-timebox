@@ -19,8 +19,3 @@ const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
 const gpuInfo = gl
   .getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
   .toLowerCase();
-if (gpuInfo.includes("intel")) {
-  alert(
-    "Your GPU memory may not big enough to run the program properly, but you can have a try."
-  );
-}

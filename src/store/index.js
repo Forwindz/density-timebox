@@ -1,5 +1,9 @@
 export default {
   data: [],
   aggregatedData: [],
-  headers: []
+  headers: [],
+  interResult: [],
+  unionResult: [],
+  querys: [],
+  repIds: [],
 };

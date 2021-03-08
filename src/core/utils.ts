@@ -54,7 +54,7 @@ export function float(i: number) {
   return `${Math.floor(i)}.0`;
 }
 
-export function exportCanvas(canvas: HTMLCanvasElement[], upsideDown: boolean) {
+export function exportCanvas(canvas: HTMLCanvasElement[], upsideDown: boolean, opacityConfig: null | []) {
   const exportCanvas = document.createElement("canvas");
   exportCanvas.width = 1000;
   exportCanvas.height = 500;
@@ -62,7 +62,11 @@ export function exportCanvas(canvas: HTMLCanvasElement[], upsideDown: boolean) {
   if (upsideDown) {
     context.scale(1, -1);
   }
-  for (let cvs of canvas) {
+  console.log(opacityConfig);
+
+  for (let id in canvas) {
+    const cvs = canvas[id];
+    context.globalAlpha = opacityConfig ? opacityConfig[id] : 1;
     context.drawImage(cvs, 0, upsideDown ? -cvs.height : 0);
   }
   const exportBtn = document.createElement("a");

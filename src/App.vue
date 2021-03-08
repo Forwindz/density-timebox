@@ -175,6 +175,7 @@
                   :timeName="config.timeName"
                   :valueName="config.valueName"
                   :filter="config.filter"
+                  :layers="layers"
                   @filterChange="handleFilterChange(i, $event)"
                 />
               </template>
@@ -221,27 +222,27 @@ export default {
       filters: [],
       layers: [
         {
-          id: 'rep',
+          id: 'rep_layer',
           name: 'representative line',
           opacity: 1,
         },
         {
-          id: 'sDensity',
+          id: 'selectionCanvas',
           name: 'selected density',
           opacity: 0,
         },
         {
-          id: 'sLine',
+          id: 'selectionLayer',
           name: 'selected line',
-          opacity: 1,
+          opacity: 0.4,
         },
         {
-          id: 'density',
+          id: 'canvas',
           name: 'density',
           opacity: 1,
         },
         {
-          id: 'raw',
+          id: 'raw_lines',
           name: 'raw line',
           opacity: 0,
         },
