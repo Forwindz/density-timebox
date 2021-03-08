@@ -82,7 +82,7 @@
                   <Poptip
                     :width="200"
                     style="flex-grow:1"
-                    trigger="hover"
+                    trigger="click"
                     :title="'Layer: ' + layer.name"
                   >
                     <p style="width:170px;padding-left: 12px">

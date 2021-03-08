@@ -247,6 +247,7 @@
         border
         :columns="tableColumns"
         :data="tableData"
+        :on-current-change="hoveringQuery"
     >
       <template slot-scope="{ row, index }" slot="name">
         <p
@@ -531,6 +532,7 @@ export default {
       this.renderBoxes('mouseLayer');
     },
     hoveringQuery(index) {
+      console.log(index);
       if (index >= unobserve.querys.length)
         return;
       this.hovering(unobserve.querys[index]);
@@ -556,12 +558,12 @@ export default {
     },
     deleteQuery(query) {
       let flag = false;
-      if (this.selectedQuery === query.name) {
+      if (this.selectedQuery === query) {
         flag = true;
       }
       unobserve.querys.splice(query, 1);
       if (flag)
-        this.selectedQuery = unobserve.querys[0];
+        this.selectedQuery = '$int';
       this.cnt ++;
       this.renderBoxes();
       this.renderDensity();
@@ -2209,20 +2211,20 @@ export default {
       if (!ids || !ids.length)
         return {};
       // ids = new Array(unobserve.result.length).fill(0).map((_,i) => i);
-      const minX = d3.min(ids, id => unobserve.result[id][0].x);
-      const maxX = d3.max(ids, id => unobserve.result[id][unobserve.result[id].length - 1].x);
-      const minY = d3.min(ids, id => d3.min(unobserve.result[id], d => d.y));
+      const minX = d3.min(ids, id => this.xScale.invert(unobserve.result[id][0].x));
+      const maxX = d3.max(ids, id => this.xScale.invert(unobserve.result[id][unobserve.result[id].length - 1].x));
+      const minY = d3.min(ids, id => d3.min(unobserve.result[id], d => this.yScaleC.invert(d.y)));
       const maxY = d3.max(ids, id => d3.max(unobserve.result[id], d => this.yScaleC.invert(d.y)));
       const means = ids.map(id => d3.mean(unobserve.result[id], d => this.yScaleC.invert(d.y)));
       const mean = d3.mean(means);
-      const variance = means.length > 1 ? d3.variance(means) : 0;
+      const variance = means.length > 1 ? d3.variance(means) : d3.variance(unobserve.result[ids[0]], d => this.yScaleC.invert(d.y));
 
 
       return {
         minT: moment(this.xScale.invert(minX)).format('YYYY-M-D'),
         maxT: moment(this.xScale.invert(maxX)).format('YYYY-M-D'),
-        minV: this.yScaleC.invert(minY).toFixed(2),
-        maxV: this.yScaleC.invert(maxY).toFixed(2),
+        minV: minY.toFixed(2),
+        maxV: maxY.toFixed(2),
         count: ids.length,
         mean: mean.toFixed(2),
         var: variance.toFixed(2),
