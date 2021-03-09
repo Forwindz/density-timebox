@@ -121,8 +121,15 @@
             <Radio label="attr">Attr</Radio>
           </RadioGroup>
         </div>
+        <div>
+          <span>Switch brush query method: </span>
+          <RadioGroup v-model="brushMethod" type="button" size="small">
+            <Radio label="tree">KD Tree</Radio>
+            <Radio label="seq">Sequential</Radio>
+          </RadioGroup>
+        </div>
         <div v-if="filterMode === 'attr'" style="margin-left: 2em;">
-          <Form>
+          <Form onsubmit="#">
             <FormItem label="Attribute Column">
               <Select v-model="attributeColumn" placeholder="Choose a column for attribute filtering">
                 <Option v-for="header in headers" :value="header.key" :key="header.title">{{header.title}}</Option>
@@ -243,12 +250,13 @@
       </div>
     </div>
     <Table
-        :row-class-name="hightlightRow"
+        :row-class-name="calClassName"
         border
         :columns="tableColumns"
         :data="tableData"
         :on-current-change="hoveringQuery"
         id="informationTable"
+        style="margin-top: 30px"
     >
       <template slot-scope="{ row, index }" slot="name">
         <p
@@ -325,6 +333,7 @@ export default {
       canvasContext: null,
       rawLineContext: null,
       filterMode: 'brush',
+      brushMethod: 'tree',
       rawMode: 'rep',
       repCount: 3,
       diverse: 0.15,
@@ -332,6 +341,7 @@ export default {
       mouseDown: false,
       listener: null,
       hoverListener: null,
+      hoveringInd : null,
       coord: [0, 0, 0, 0, 0],
       boxes: [],
       maxDensity: null,
@@ -536,7 +546,7 @@ export default {
       console.log(index);
       if (index >= unobserve.querys.length)
         return;
-      this.hovering(unobserve.querys[index]);
+      this.hovering(index);
     },
 
     addAttrQuery() {
@@ -1128,6 +1138,11 @@ export default {
     hightlightRow(row) {
       return row.query === this.selectedQuery ? 'selected-table-row' : '';
     },
+    calClassName(row) {
+      let ret = this.hightlightRow(row) + ' ' + (row.query === this.hoveringInd ? 'ivu-table-row-hover' : '');
+      console.log('this is class name', ret, row);
+      return ret;
+    },
     calcLineDistance(aid, bid) {
       if (aid == bid) return 0;
       if (aid > bid) {
@@ -1326,7 +1341,9 @@ export default {
     },
 
 
-    hovering(query, onBorder) {
+    hovering(index, onBorder) {
+      const query = unobserve.querys[index];
+      this.hoveringInd = index;
       if (this.mark !== query) {
         this.renderBoxes('mouseLayer');
       }
@@ -1340,7 +1357,9 @@ export default {
     },
 
     findBox(point) {
-      function hovering(query, onBorder) {
+      function hovering(index, onBorder) {
+        const query = unobserve.querys[index];
+        this.hoveringInd = index;
         if (this.mark !== query) {
           this.renderBoxes('mouseLayer');
         }
@@ -1378,13 +1397,13 @@ export default {
               minY <= point[1] &&
               point[1] <= maxY
           ) {
-            hovering.call(this, query, onBorder);
+            hovering.call(this, i, onBorder);
             return { instance: query, onBorder, i };
           }
         } else if (query.type === "knn" || query.type === "rnn") {
           let dis = dist2(point, query.start);
           if (sqr(query.n) > dis) {
-            hovering.call(this, query);
+            hovering.call(this, i);
             return { instance: query, i };
           }
         } else if (query.type === "ang") {
@@ -1400,7 +1419,7 @@ export default {
                       Math.abs(getAngle2(start, point) - getAngle2(start, end)) <=
                       (query.n / 180) * Math.PI))
           ) {
-            hovering.call(this, query, onBorder);
+            hovering.call(this, i, onBorder);
             return { instance: query, i, onBorder };
           }
         }
@@ -1409,6 +1428,7 @@ export default {
         this.mark = false;
         document.getElementById("canvas").style.cursor = "default";
         this.renderBoxes('mouseLayer');
+        this.hoveringInd = null;
       }
     },
 
@@ -1462,8 +1482,7 @@ export default {
               minY= Math.min(query.start[1],query.end[1]),
               maxY= Math.max(query.start[1],query.end[1]);
 
-          let seq = false;
-          if (seq) {
+          if (this.brushMethod === 'seq') {
 
             // console.log(query);
             let result = [];
@@ -1632,14 +1651,16 @@ export default {
           query.cache = result;
         }
       } else if(query.type === 'attr') {
-        const { ind, val } = query.info;
-        console.log(unobserve.aggregatedData, unobserve.data);
-        const result = new Array(unobserve.result.length).fill(0).map((_, i) => i).filter(i => {
-          const exampleInd = unobserve.aggregatedData[i].ref[0];
-          const targetVal = unobserve.data[exampleInd][ind];
-          return targetVal === val;
-        })
-        query.cache = new Set(result);
+        if (!query.cache) {
+          const { ind, val } = query.info;
+          console.log(unobserve.aggregatedData, unobserve.data);
+          const result = new Array(unobserve.result.length).fill(0).map((_, i) => i).filter(i => {
+            const exampleInd = unobserve.aggregatedData[i].ref[0];
+            const targetVal = unobserve.data[exampleInd][ind];
+            return targetVal === val;
+          })
+          query.cache = new Set(result);
+        }
       }
     },
 
@@ -2753,7 +2774,7 @@ export default {
       let ele = null;
       if (e.path.length >= 18)
         ele = e.path[e.path.length - 18];
-      if (!ele && !this.mark || !(ele.tagName.toLowerCase() === 'tr' && ele.parentNode.tagName.toLowerCase() === 'tbody' )) {
+      if (!ele || !(ele.tagName.toLowerCase() === 'tr' && ele.parentNode.tagName.toLowerCase() === 'tbody' )) {
         this.renderBoxes('mouseLayer');
       }
       else {
