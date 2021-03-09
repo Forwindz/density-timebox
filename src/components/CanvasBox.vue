@@ -1378,9 +1378,7 @@ export default {
               minY <= point[1] &&
               point[1] <= maxY
           ) {
-            console.time('call function');
             hovering.call(this, query, onBorder);
-            console.timeEnd('call function');
             return { instance: query, onBorder, i };
           }
         } else if (query.type === "knn" || query.type === "rnn") {
@@ -1463,87 +1461,137 @@ export default {
               maxX= Math.max(query.start[0],query.end[0]),
               minY= Math.min(query.start[1],query.end[1]),
               maxY= Math.max(query.start[1],query.end[1]);
-          console.log(minX, maxX, minY, maxY);
-          console.log(query);
-          const result = new Set(
-              this.tree
-                  .brush(
-                      [
-                        Math.min(query.start[0], query.end[0]),
-                        Math.min(query.start[1], query.end[1]),
-                      ],
-                      [
-                        Math.max(query.start[0], query.end[0]),
-                        Math.max(query.start[1], query.end[1]),
-                      ]
-                  )
-                  .filter(({ raw }) =>
-                      lineRectCollide(
-                          {
-                            x1: raw[0],
-                            x2: raw[1],
-                            y1: raw[2],
-                            y2: raw[3],
-                          },
-                          {
-                            x: Math.min(query.start[0], query.end[0]),
-                            y: Math.min(query.start[1], query.end[1]),
-                            width: Math.abs(query.start[0] - query.end[0]),
-                            height: Math.abs(query.start[1] - query.end[1]),
-                          }
-                      )
-                  )
-                  .map(({ raw }) => raw[5])
-                  .filter(id => {
-                    // return true;
-                    const line = unobserve.result[id];
-                    let l = 0, r = line.length - 1, lp = 0, rp = r, mid, tmpY;
-                    while( l <= r) {
-                      mid = (l + r ) >> 1;
-                      if (line[mid].x >= minX) {
-                        lp = mid;
-                        r = mid - 1;
-                      }
-                      else
-                        l = mid + 1;
-                    }
 
-                    l = 0;
-                    r = line.length -1;
-                    while( l <= r) {
-                      mid = (l + r) >> 1;
-                      if (line[mid].x <= maxX) {
-                        rp = mid;
-                        l = mid + 1;
-                      } else {
-                        r = mid -1;
+          let seq = false;
+          if (seq) {
+
+            // console.log(query);
+            let result = [];
+            // let info = [];
+            for (let id in unobserve.result) {
+              const line = unobserve.result[id];
+
+              let st = 0, ed = line.length -1, flag = true;
+              if (line[ed].x < minX || line[st].x > maxX)
+                continue;
+              while (st < line.length - 1 && line[st].x < minX)
+                st++;
+              while( ed > 0 && line[ed].x > maxX)
+                ed--;
+
+              for (let i = st;flag && i <= ed; i++) {
+                if (line[i].y < minY || line[i].y > maxY) {
+                  flag = false;
+                  // info.push({ind: id, pos: i, ...line[i]});
+                }
+              }
+              if (st !== 0) {
+                let y = mix(line[st-1], line[st], minX).y;
+                if ( y < minY || y > maxY) {
+                  // info.push({ind:id, pos: 'left', calY: y, lp: line[st-1], rp: line[st]});
+                  flag = false;
+                }
+              }
+              if (ed !== line.length - 1) {
+                let y = mix(line[ed], line[ed+1], maxX).y;
+                if ( y < minY || y > maxY) {
+                  // info.push({ind:id, pos: 'right', calY: y, lp: line[ed], rp: line[ed+1]});
+                  flag = false;
+                }
+              }
+              if (flag)
+                result.push(id);
+            }
+            // console.log('information');
+            // console.log(info);
+            // console.log('result', result);
+            result = new Set(result);
+            query.cache = result;
+          }
+
+          else {
+
+            const result = new Set(
+                this.tree
+                    .brush(
+                        [
+                          Math.min(query.start[0], query.end[0]),
+                          Math.min(query.start[1], query.end[1]),
+                        ],
+                        [
+                          Math.max(query.start[0], query.end[0]),
+                          Math.max(query.start[1], query.end[1]),
+                        ]
+                    )
+                    .filter(({ raw }) =>
+                        lineRectCollide(
+                            {
+                              x1: raw[0],
+                              x2: raw[1],
+                              y1: raw[2],
+                              y2: raw[3],
+                            },
+                            {
+                              x: Math.min(query.start[0], query.end[0]),
+                              y: Math.min(query.start[1], query.end[1]),
+                              width: Math.abs(query.start[0] - query.end[0]),
+                              height: Math.abs(query.start[1] - query.end[1]),
+                            }
+                        )
+                    )
+                    .map(({ raw }) => raw[5])
+                    .filter(id => {
+                      // return true;
+                      const line = unobserve.result[id];
+                      let l = 0, r = line.length - 1, lp = 0, rp = r, mid, tmpY;
+                      while( l <= r) {
+                        mid = (l + r ) >> 1;
+                        if (line[mid].x >= minX) {
+                          lp = mid;
+                          r = mid - 1;
+                        }
+                        else
+                          l = mid + 1;
                       }
-                    }
-                    // console.log(lp, rp);
-                    for (let i = lp; i <=rp; i++) {
-                      if (line[i].y < minY  || line[i].y > maxY){
-                        // console.log(line[i]);
-                        return false;
+
+                      l = 0;
+                      r = line.length -1;
+                      while( l <= r) {
+                        mid = (l + r) >> 1;
+                        if (line[mid].x <= maxX) {
+                          rp = mid;
+                          l = mid + 1;
+                        } else {
+                          r = mid -1;
+                        }
                       }
-                    }
-                    if (lp) {
-                      tmpY = mix(line[lp-1], line[lp], minX).y;
-                      if (tmpY < minY || tmpY > maxY) {
-                        // console.log(tmpY);
-                        return false;
+                      // console.log(lp, rp);
+                      for (let i = lp; i <=rp; i++) {
+                        if (line[i].y < minY  || line[i].y > maxY){
+                          // console.log(line[i]);
+                          return false;
+                        }
                       }
-                    }
-                    if (rp < line.length - 1) {
-                      tmpY = mix(line[rp], line[rp + 1], minX).y;
-                      if (tmpY < minY || tmpY > maxY){
-                        // console.log(tmpY);
-                        return false;
+                      if (lp) {
+                        tmpY = mix(line[lp-1], line[lp], minX).y;
+                        if (tmpY < minY || tmpY > maxY) {
+                          // console.log(tmpY);
+                          return false;
+                        }
                       }
-                    }
-                    return true;
-                  })
-          );
-          query.cache = result;
+                      if (rp < line.length - 1) {
+                        tmpY = mix(line[rp], line[rp + 1], minX).y;
+                        if (tmpY < minY || tmpY > maxY){
+                          // console.log(tmpY);
+                          return false;
+                        }
+                      }
+                      return true;
+                    })
+            );
+
+            query.cache = result;
+          }
         }
       } else if (query.type === "ang") {
         const endX = Math.max(query.start[0] + 1, query.end[0]);
@@ -1648,10 +1696,7 @@ export default {
     },
 
     renderBoxes(type = 'all') {
-      console.log(unobserve.querys);
-      console.time('init canvas');
       this.initCanvas(unobserve.mouseLayerContext);
-      console.timeEnd('init canvas');
 
 
       let tmpQueries = [...unobserve.querys];
@@ -1659,7 +1704,9 @@ export default {
         tmpQueries.push(this.preview);
         // drawLine([...preview.cache]);
       }
+      console.time('update brush');
       tmpQueries.forEach(this.renderBox);
+      console.timeEnd('update brush');
 
       if (type === 'mouseLayer')
         return;
@@ -1680,8 +1727,6 @@ export default {
       // if (!tmpQueries.length) {
       //   result1 = new Array(unobserve.result.length).fill(0).map((_,i) => i);
       // }
-      console.time('draw Line');
-      console.timeEnd('draw Line');
       this.renderResult([...result1], [...result2]);
       this.drawLine(this.getSelectedIds());
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
@@ -2263,13 +2308,10 @@ export default {
     },
     drawLine(ids) {
       // Selected Part =====================
-      console.time('drawLine: slice');
       if (this.preview) {
         ids = ids.slice(0, 5);
       }
-      console.timeEnd('drawLine: slice');
       if (!this.preview) {
-        console.time('drawLine: selected part');
         for (let id of ids) {
           const line = unobserve.result[id];
           unobserve.selectionLayerContext.strokeStyle = `rgb(${this.getColor(id).join(
@@ -2282,12 +2324,10 @@ export default {
           }
           unobserve.selectionLayerContext.stroke();
         }
-        console.timeEnd('drawLine: selected part');
       }
 
       // REP PART =====================
 
-      console.time('drawLine: rep part');
       if (this.preview) {
         ids = [...this.preview.cache];
       }
@@ -2421,7 +2461,6 @@ export default {
       //               }</span>`
       //       )
       //       .join(", ");
-      console.timeEnd('drawLine: rep part');
     },
     calcLineWeight(id) {
 
