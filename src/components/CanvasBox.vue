@@ -248,6 +248,7 @@
         :columns="tableColumns"
         :data="tableData"
         :on-current-change="hoveringQuery"
+        id="informationTable"
     >
       <template slot-scope="{ row, index }" slot="name">
         <p
@@ -548,6 +549,7 @@ export default {
       })
       // console.log(unobserve.querys);
       this.renderBoxes();
+      this.cnt++;
     },
 
 
@@ -2211,8 +2213,8 @@ export default {
       if (!ids || !ids.length)
         return {};
       // ids = new Array(unobserve.result.length).fill(0).map((_,i) => i);
-      const minX = d3.min(ids, id => this.xScale.invert(unobserve.result[id][0].x));
-      const maxX = d3.max(ids, id => this.xScale.invert(unobserve.result[id][unobserve.result[id].length - 1].x));
+      const minX = d3.min(ids, id => unobserve.result[id][0].x);
+      const maxX = d3.max(ids, id => unobserve.result[id][unobserve.result[id].length - 1].x);
       const minY = d3.min(ids, id => d3.min(unobserve.result[id], d => this.yScaleC.invert(d.y)));
       const maxY = d3.max(ids, id => d3.max(unobserve.result[id], d => this.yScaleC.invert(d.y)));
       const means = ids.map(id => d3.mean(unobserve.result[id], d => this.yScaleC.invert(d.y)));
@@ -2705,6 +2707,37 @@ export default {
     this.colormapIndexCache = 1;
     this.renderColorMap();
     // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
+
+    const table = document.querySelector('#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border');
+    const tableId = document.getElementById('informationTable');
+    tableId.addEventListener('mousemove', (e) => {
+      let ele = null;
+      if (e.path.length >= 18)
+        ele = e.path[e.path.length - 18];
+      if (!ele && !this.mark || !(ele.tagName.toLowerCase() === 'tr' && ele.parentNode.tagName.toLowerCase() === 'tbody' )) {
+        this.renderBoxes('mouseLayer');
+      }
+      else {
+        let ind;
+        const children = ele.parentNode.children;
+        for (let i = 0; i < children.length; i++) {
+          const e = children[i];
+          if (e === ele) {
+            ind = i;
+            break;
+          }
+        }
+        if (ind >= unobserve.querys.length) {
+          this.renderBoxes('mouseLayer');
+          return;
+        }
+        this.hoveringQuery(ind);
+      }
+    });
+
+    tableId.addEventListener('mouseleave', () => {
+      this.renderBoxes('mouseLayer');
+    })
   },
   beforeDestroy() {
     if (this.contextHandler) {
