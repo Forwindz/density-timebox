@@ -949,7 +949,10 @@ function average(data) {
 
 
 export function calculateCurvature(points) {
-  const result = [];
+  if (points.length < 3)
+    return 0;
+
+  let cnt = 0, curSum = 0;
   for (let i = 1; i < points.length - 1; i++) {
     const step1 = points[i].x - points[i - 1].x,
       step2 = points[i + 1].x - points[i].x,
@@ -963,16 +966,17 @@ export function calculateCurvature(points) {
     }
     const f1 = (nxtPoint.y - lstPoint.y) / step;
     const f2 = (lstPoint.y - 2 * points[i].y + nxtPoint.y) / (step * step);
-    result.push({
-      x: points[i].x,
-      y: Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5),
-    });
+    const c = Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5);
+    curSum += c*c;
+    cnt ++;
   }
-  return result;
+  return curSum / cnt;
+  // return result;
 }
 
 
 export function calculateDifference(line1, line2) {
+  return Math.abs(line1 - line2);
   // if (!line1.length || !line2.length)
   //   return 0;
   let cnt = 0,

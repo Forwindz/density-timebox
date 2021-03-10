@@ -6,4 +6,5 @@ export default {
   unionResult: [],
   querys: [],
   repIds: [],
+  weightCache: {},
 };

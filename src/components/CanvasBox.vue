@@ -15,7 +15,8 @@
           @wheel="canvasWheel"
           @contextmenu="mouseContextmenu"
       ></canvas>
-      <canvas id="selectionCanvas" width="1000" height="500" style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;">
+      <canvas id="selectionCanvas" width="1000" height="500"
+              style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;">
       </canvas>
       <canvas
           id="selectionLayer"
@@ -29,9 +30,11 @@
           pointer-events: none;
         "
       ></canvas>
-      <canvas id="rep_layer" width="1000" height="500" style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;">
+      <canvas id="rep_layer" width="1000" height="500"
+              style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;">
       </canvas>
-      <canvas id="raw_lines" width="1000" height="500" style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;">
+      <canvas id="raw_lines" width="1000" height="500"
+              style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;">
       </canvas>
       <canvas
           id="mouseLayer"
@@ -125,14 +128,15 @@
           <span>Switch brush query method: </span>
           <RadioGroup v-model="brushMethod" type="button" size="small">
             <Radio label="tree">KD Tree</Radio>
-            <Radio label="seq">Sequential</Radio>
+            <Radio label="seq">Seq</Radio>
+            <Radio label="new">Inc</Radio>
           </RadioGroup>
         </div>
         <div v-if="filterMode === 'attr'" style="margin-left: 2em;">
           <Form onsubmit="#">
             <FormItem label="Attribute Column">
               <Select v-model="attributeColumn" placeholder="Choose a column for attribute filtering">
-                <Option v-for="header in headers" :value="header.key" :key="header.title">{{header.title}}</Option>
+                <Option v-for="header in headers" :value="header.key" :key="header.title">{{ header.title }}</Option>
               </Select>
             </FormItem>
             <FormItem label="Value">
@@ -140,8 +144,8 @@
             </FormItem>
             <Button type="info" style="float: right" @click="addAttrQuery">add attribute query</Button>
           </Form>
-<!--          <span>Column Name</span>-->
-<!--          <span>Attribute Value</span>-->
+          <!--          <span>Column Name</span>-->
+          <!--          <span>Attribute Value</span>-->
         </div>
         <div>
           <span>Representative line config: </span>
@@ -156,49 +160,49 @@
           <div style="display:flex;align-items:center">
             <span style="margin-right:8px">Rep-line count</span>
             <Slider
-              v-model="repCount"
-              :min="1"
-              :max="20"
-              :step="1"
-              show-tip="never"
-              style="flex-grow:1"
+                v-model="repCount"
+                :min="2"
+                :max="20"
+                :step="2"
+                show-tip="never"
+                style="flex-grow:1"
             />
-            <span style="margin-left:8px">{{repCount}}</span>
+            <span style="margin-left:8px">{{ repCount }}</span>
           </div>
           <div style="display:flex;align-items:center">
             <span style="margin-right:8px">Weight</span>
             <Slider
                 v-model="diverse"
-                :min="0"
-                :max="1"
-                :step="0.001"
+                :min="0.1"
+                :max="20"
+                :step="0.1"
                 show-tip="never"
                 style="flex-grow:1"
             />
             <span style="margin-left:8px">Diverse</span>
           </div>
         </div>
-<!--        <div v-if="rawMode != 'null'">-->
-<!--          <div v-for="i in [0, 1, 2]" :key="i">-->
-<!--            <span-->
-<!--            ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker-->
-<!--            ></span>-->
-<!--            <Poptip-->
-<!--                trigger="hover"-->
-<!--                placement="bottom-end"-->
-<!--                :width="800"-->
-<!--                title="Data preview"-->
-<!--                @on-popper-show="previewIndex = rawLines[i]"-->
-<!--            >-->
-<!--              <span style="margin-left:12px" v-if="i < rawLineNames.length">{{-->
-<!--                  rawLineNames[i]-->
-<!--                }}</span>-->
-<!--              <div slot="content">-->
-<!--                <Table :columns="headers" :data="previewData" />-->
-<!--              </div>-->
-<!--            </Poptip>-->
-<!--          </div>-->
-<!--        </div>-->
+        <!--        <div v-if="rawMode != 'null'">-->
+        <!--          <div v-for="i in [0, 1, 2]" :key="i">-->
+        <!--            <span-->
+        <!--            ><ColorPicker v-model="colorMap[i]" recommend alpha></ColorPicker-->
+        <!--            ></span>-->
+        <!--            <Poptip-->
+        <!--                trigger="hover"-->
+        <!--                placement="bottom-end"-->
+        <!--                :width="800"-->
+        <!--                title="Data preview"-->
+        <!--                @on-popper-show="previewIndex = rawLines[i]"-->
+        <!--            >-->
+        <!--              <span style="margin-left:12px" v-if="i < rawLineNames.length">{{-->
+        <!--                  rawLineNames[i]-->
+        <!--                }}</span>-->
+        <!--              <div slot="content">-->
+        <!--                <Table :columns="headers" :data="previewData" />-->
+        <!--              </div>-->
+        <!--            </Poptip>-->
+        <!--          </div>-->
+        <!--        </div>-->
         <div>
           <div class="select-colormap">
             <Select id="colormap" placeholder="Choose colormap" v-model="colormapIndexCache">
@@ -227,25 +231,27 @@
           </div>
           <span>1</span>
           <span class="color-map" id="color-map"></span>
-          <InputNumber :min="1" v-model="maxDensity" :active-change="false"  style="width: 50px"/>
+          <InputNumber :min="1" v-model="maxDensity" :active-change="false" style="width: 50px"/>
         </div>
         <div>
           <span>Reverse y-axis:</span>
-          <iSwitch style="margin-left:12px" v-model="upsideDown" />
+          <iSwitch style="margin-left:12px" v-model="upsideDown"/>
         </div>
         <div>
           <span>Show value of cursor:</span>
-          <iSwitch style="margin-left:12px" v-model="showCursorValue" />
+          <iSwitch style="margin-left:12px" v-model="showCursorValue"/>
         </div>
         <div>
           <span>Normalize density:</span>
-          <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
+          <iSwitch style="margin-left:12px" v-model="normalizeDensity"/>
         </div>
         <Button icon="md-cloud-download" type="primary" @click="exportFig"
-        >export figure</Button
+        >export figure
+        </Button
         >
         <Button icon="ios-apps" type="primary" @click="showRepData"
-        >view selected data</Button
+        >view selected data
+        </Button
         >
       </div>
     </div>
@@ -266,7 +272,8 @@
           {{ row.name }}
         </p>
         <div v-else
-        >{{ row.name }}</div>
+        >{{ row.name }}
+        </div>
       </template>
       <template slot-scope="{ row, index }" slot="op">
         <Button
@@ -275,14 +282,17 @@
             size="small"
             style="margin-right: 5px"
             @click="selectedQuery = row.query"
-        >Show</Button
+        >Show
+        </Button
         >
         <Button type="error" size="small" v-if="index < tableData.length - 2" @click="deleteQuery(index)"
-        >Delete</Button
+        >Delete
+        </Button
         >
       </template>
     </Table>
-    <Button type="error" size="small" style="float: right; margin: 20px" @click="deleteAllQuery"> Delete all Querys</Button>
+    <Button type="error" size="small" style="float: right; margin: 20px" @click="deleteAllQuery"> Delete all Querys
+    </Button>
     <Modal v-model="repModal"
            width="1000"
            :closable="false"
@@ -305,13 +315,25 @@
 </template>
 
 <script>
-import { binsx, binsy } from '../core/constants';
-import { exportCanvas } from '../core/utils';
-import { bin } from 'vega-statistics';
+import {binsx, binsy} from '../core/constants';
+import {exportCanvas} from '../core/utils';
+import {bin} from 'vega-statistics';
 import unobserve from '../store';
 import render from '../core';
 import * as d3 from 'd3';
-import {lineRectCollide, sqr, dist2, getAngle2, eq, updatePoint, movePoint, calculateDifference, calculateCurvature, mix} from "@/core/util";
+import {
+  lineRectCollide,
+  sqr,
+  dist2,
+  getAngle2,
+  eq,
+  updatePoint,
+  movePoint,
+  calculateDifference,
+  calculateCurvature,
+  mix,
+  lineSegmentsCollide
+} from "@/core/util";
 import KDTree from '../core/kdtree'
 import seedrandom from 'seedrandom';
 import moment from "moment";
@@ -335,13 +357,13 @@ export default {
       filterMode: 'brush',
       brushMethod: 'tree',
       rawMode: 'rep',
-      repCount: 3,
-      diverse: 0.15,
+      repCount: 4,
+      diverse: 5,
       cursor: 'crosshair',
       mouseDown: false,
       listener: null,
       hoverListener: null,
-      hoveringInd : null,
+      hoveringInd: null,
       coord: [0, 0, 0, 0, 0],
       boxes: [],
       maxDensity: null,
@@ -354,32 +376,31 @@ export default {
       previewIndex: -1,
       selectedQuery: '$int',
       tableColumns: [
-        { title: 'Query', align: 'center', slot: 'name' },
-        { title: 'Min start time', align: 'center', key: 'minT' },
-        { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: 'Count', align: 'center', key: 'count' },
-        { title: 'Min value', align: 'center', key: 'minV' },
-        { title: 'Max value', align: 'center', key: 'maxV' },
-        { title: 'Mean value', align: 'center', key: 'mean' },
-        { title: 'Variance', align: 'center', key: 'var' },
-        { title: 'Operations', align: 'center', slot: 'op' },
+        {title: 'Query', align: 'center', slot: 'name'},
+        {title: 'Min start time', align: 'center', key: 'minT'},
+        {title: 'Max start time', align: 'center', key: 'maxT'},
+        {title: 'Count', align: 'center', key: 'count'},
+        {title: 'Min value', align: 'center', key: 'minV'},
+        {title: 'Max value', align: 'center', key: 'maxV'},
+        {title: 'Mean value', align: 'center', key: 'mean'},
+        {title: 'Variance', align: 'center', key: 'var'},
+        {title: 'Operations', align: 'center', slot: 'op'},
       ],
       repColumns: [
-        { title: 'Index Num.', align: 'center', key: 'name' },
-        { title: 'Min start time', align: 'center', key: 'minT' },
-        { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: 'Count', align: 'center', key: 'count' },
-        { title: 'Min value', align: 'center', key: 'minV' },
-        { title: 'Max value', align: 'center', key: 'maxV' },
-        { title: 'Mean value', align: 'center', key: 'mean' },
+        {title: 'Index Num.', align: 'center', key: 'name'},
+        {title: 'Min start time', align: 'center', key: 'minT'},
+        {title: 'Max start time', align: 'center', key: 'maxT'},
+        {title: 'Count', align: 'center', key: 'count'},
+        {title: 'Min value', align: 'center', key: 'minV'},
+        {title: 'Max value', align: 'center', key: 'maxV'},
+        {title: 'Mean value', align: 'center', key: 'mean'},
       ],
       colormapIndexCache: 1,
-      initDensityCache : null,
-      initDensityBufferCache : null,
+      initDensityCache: null,
+      initDensityBufferCache: null,
       initDensityMaxCache: 0,
       currentDensityMax: 0,
       currentDensity: null,
-      weightCache: {},
       distanceCache: {},
       colorCache: {},
       querys: [],
@@ -473,7 +494,7 @@ export default {
         this.rearrangeLayer(value);
         for (let i in value) {
           const layer = value[i];
-          if(layer.id === 'selectionCanvas') {
+          if (layer.id === 'selectionCanvas') {
             if (!this.renderSelectedDensity && layer.opacity > 0)
               this.renderDensity();
             this.renderSelectedDensity = layer.opacity > 0;
@@ -576,7 +597,7 @@ export default {
       unobserve.querys.splice(query, 1);
       if (flag)
         this.selectedQuery = '$int';
-      this.cnt ++;
+      this.cnt++;
       this.renderBoxes();
       this.renderDensity();
     },
@@ -633,7 +654,7 @@ export default {
       // renderQuerys();
 
       this.renderBoxes();
-      this.cnt ++;
+      this.cnt++;
     },
 
     canvasWheel(e) {
@@ -655,7 +676,12 @@ export default {
           console.log(query.n);
         }
         // renderQuerys();
-        this.renderBoxes();
+        clearTimeout(unobserve.async);
+        unobserve.async = setTimeout(() => {
+          this.renderBoxes();
+        }, 10);
+        // this.renderBoxes();
+        this.cnt++;
       }
     },
 
@@ -695,6 +721,10 @@ export default {
       }
       this.preview.cache = null;
       console.time('renderBoxes');
+      clearTimeout(unobserve.async);
+      unobserve.async = setTimeout(() => {
+        this.renderBoxes();
+      }, 10);
       this.renderBoxes();
       console.timeEnd('renderBoxes');
     },
@@ -1398,13 +1428,13 @@ export default {
               point[1] <= maxY
           ) {
             hovering.call(this, i, onBorder);
-            return { instance: query, onBorder, i };
+            return {instance: query, onBorder, i};
           }
         } else if (query.type === "knn" || query.type === "rnn") {
           let dis = dist2(point, query.start);
           if (sqr(query.n) > dis) {
             hovering.call(this, i);
-            return { instance: query, i };
+            return {instance: query, i};
           }
         } else if (query.type === "ang") {
           const endX = Math.max(query.start[0] + 1, query.end[0]);
@@ -1420,7 +1450,7 @@ export default {
                       (query.n / 180) * Math.PI))
           ) {
             hovering.call(this, i, onBorder);
-            return { instance: query, i, onBorder };
+            return {instance: query, i, onBorder};
           }
         }
       }
@@ -1444,7 +1474,7 @@ export default {
           while (result.size < query.n) {
             base += query.n - result.size;
             result = new Set(
-                this.tree.knn(query.start, base).map(({ raw }) => raw[5])
+                this.tree.knn(query.start, base).map(({raw}) => raw[5])
             );
           }
           query.cache = result;
@@ -1456,7 +1486,7 @@ export default {
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-              this.tree.rnn(query.start, query.n).map(({ raw }) => raw[5])
+              this.tree.rnn(query.start, query.n).map(({raw}) => raw[5])
           );
           query.cache = result;
         }
@@ -1478,9 +1508,9 @@ export default {
         // }
         if (!query.cache) {
           const minX = Math.min(query.start[0], query.end[0]),
-              maxX= Math.max(query.start[0],query.end[0]),
-              minY= Math.min(query.start[1],query.end[1]),
-              maxY= Math.max(query.start[1],query.end[1]);
+              maxX = Math.max(query.start[0], query.end[0]),
+              minY = Math.min(query.start[1], query.end[1]),
+              maxY = Math.max(query.start[1], query.end[1]);
 
           if (this.brushMethod === 'seq') {
 
@@ -1490,30 +1520,30 @@ export default {
             for (let id in unobserve.result) {
               const line = unobserve.result[id];
 
-              let st = 0, ed = line.length -1, flag = true;
+              let st = 0, ed = line.length - 1, flag = true;
               if (line[ed].x < minX || line[st].x > maxX)
                 continue;
               while (st < line.length - 1 && line[st].x < minX)
                 st++;
-              while( ed > 0 && line[ed].x > maxX)
+              while (ed > 0 && line[ed].x > maxX)
                 ed--;
 
-              for (let i = st;flag && i <= ed; i++) {
+              for (let i = st; flag && i <= ed; i++) {
                 if (line[i].y < minY || line[i].y > maxY) {
                   flag = false;
                   // info.push({ind: id, pos: i, ...line[i]});
                 }
               }
               if (st !== 0) {
-                let y = mix(line[st-1], line[st], minX).y;
-                if ( y < minY || y > maxY) {
+                let y = mix(line[st - 1], line[st], minX).y;
+                if (y < minY || y > maxY) {
                   // info.push({ind:id, pos: 'left', calY: y, lp: line[st-1], rp: line[st]});
                   flag = false;
                 }
               }
               if (ed !== line.length - 1) {
-                let y = mix(line[ed], line[ed+1], maxX).y;
-                if ( y < minY || y > maxY) {
+                let y = mix(line[ed], line[ed + 1], maxX).y;
+                if (y < minY || y > maxY) {
                   // info.push({ind:id, pos: 'right', calY: y, lp: line[ed], rp: line[ed+1]});
                   flag = false;
                 }
@@ -1526,9 +1556,7 @@ export default {
             // console.log('result', result);
             result = new Set(result);
             query.cache = result;
-          }
-
-          else {
+          } else if (this.brushMethod === 'tree') {
 
             const result = new Set(
                 this.tree
@@ -1542,7 +1570,7 @@ export default {
                           Math.max(query.start[1], query.end[1]),
                         ]
                     )
-                    .filter(({ raw }) =>
+                    .filter(({raw}) =>
                         lineRectCollide(
                             {
                               x1: raw[0],
@@ -1558,41 +1586,40 @@ export default {
                             }
                         )
                     )
-                    .map(({ raw }) => raw[5])
+                    .map(({raw}) => raw[5])
                     .filter(id => {
                       // return true;
                       const line = unobserve.result[id];
                       let l = 0, r = line.length - 1, lp = 0, rp = r, mid, tmpY;
-                      while( l <= r) {
-                        mid = (l + r ) >> 1;
+                      while (l <= r) {
+                        mid = (l + r) >> 1;
                         if (line[mid].x >= minX) {
                           lp = mid;
                           r = mid - 1;
-                        }
-                        else
+                        } else
                           l = mid + 1;
                       }
 
                       l = 0;
-                      r = line.length -1;
-                      while( l <= r) {
+                      r = line.length - 1;
+                      while (l <= r) {
                         mid = (l + r) >> 1;
                         if (line[mid].x <= maxX) {
                           rp = mid;
                           l = mid + 1;
                         } else {
-                          r = mid -1;
+                          r = mid - 1;
                         }
                       }
                       // console.log(lp, rp);
-                      for (let i = lp; i <=rp; i++) {
-                        if (line[i].y < minY  || line[i].y > maxY){
+                      for (let i = lp; i <= rp; i++) {
+                        if (line[i].y < minY || line[i].y > maxY) {
                           // console.log(line[i]);
                           return false;
                         }
                       }
                       if (lp) {
-                        tmpY = mix(line[lp-1], line[lp], minX).y;
+                        tmpY = mix(line[lp - 1], line[lp], minX).y;
                         if (tmpY < minY || tmpY > maxY) {
                           // console.log(tmpY);
                           return false;
@@ -1600,7 +1627,7 @@ export default {
                       }
                       if (rp < line.length - 1) {
                         tmpY = mix(line[rp], line[rp + 1], minX).y;
-                        if (tmpY < minY || tmpY > maxY){
+                        if (tmpY < minY || tmpY > maxY) {
                           // console.log(tmpY);
                           return false;
                         }
@@ -1610,1200 +1637,1368 @@ export default {
             );
 
             query.cache = result;
-          }
-        }
-      } else if (query.type === "ang") {
-        const endX = Math.max(query.start[0] + 1, query.end[0]);
-        const slopeBase =
-            (query.end[1] - query.start[1]) / (endX - query.start[0]);
-        const angBase = Math.atan(slopeBase);
-        const angMax = Math.min(
-            (1 / 2) * Math.PI - 0.0001,
-            angBase + (query.n / 180) * Math.PI
-        );
-        const angMin = Math.max(
-            -(1 / 2) * Math.PI + 0.0001,
-            angBase - (query.n / 180) * Math.PI
-        );
-        const slopeMax = Math.tan(angMax);
-        const slopeMin = Math.tan(angMin);
-        const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
-        const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
-        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
-        unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
-        unobserve.mouseLayerContext.lineTo(endX, endYMin);
-        unobserve.mouseLayerContext.lineTo(endX, endYMax);
-        unobserve.mouseLayerContext.closePath();
-        unobserve.mouseLayerContext.fill();
-        unobserve.mouseLayerContext.lineWidth = 1;
-        unobserve.mouseLayerContext.strokeStyle = "black";
-        unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
-        unobserve.mouseLayerContext.lineTo(endX, query.end[1]);
-        unobserve.mouseLayerContext.stroke();
-        if (!query.cache) {
-          const result = new Set(
-              this.tree
-                  .angular([query.start[0], slopeMin], [endX, slopeMax])
-                  .map(({ raw }) => raw[5])
-          );
-          query.cache = result;
-        }
-      } else if(query.type === 'attr') {
-        if (!query.cache) {
-          const { ind, val } = query.info;
-          console.log(unobserve.aggregatedData, unobserve.data);
-          const result = new Array(unobserve.result.length).fill(0).map((_, i) => i).filter(i => {
-            const exampleInd = unobserve.aggregatedData[i].ref[0];
-            const targetVal = unobserve.data[exampleInd][ind];
-            return targetVal === val;
-          })
-          query.cache = new Set(result);
-        }
-      }
-    },
+          } else {
+            const yyds = this.tree
+                .brush(
+                    [
+                      Math.min(query.start[0], query.end[0]),
+                      Math.min(query.start[1], query.end[1]),
+                    ],
+                    [
+                      Math.max(query.start[0], query.end[0]),
+                      Math.max(query.start[1], query.end[1]),
+                    ]
+                );
 
-    hoverBox(query) {
-      unobserve.mouseLayerContext.lineWidth = 2;
-      if (query.type === "knn") {
-        unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
-        unobserve.mouseLayerContext.strokeStyle = "red";
-        unobserve.mouseLayerContext.stroke();
-      } else if (query.type === "rnn") {
-        unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(...query.start, query.n, 0, 2 * Math.PI);
-        unobserve.mouseLayerContext.strokeStyle = "red";
-        unobserve.mouseLayerContext.stroke();
-      } else if (query.type === "brush") {
-        unobserve.mouseLayerContext.strokeStyle = "red";
-        unobserve.mouseLayerContext.strokeRect(
-            ...query.start.map((v, i) => Math.min(v, query.end[i])),
-            ...query.end.map((v, i) => Math.abs(v - query.start[i]))
-        );
-      } else if (query.type === "ang") {
-        const endX = Math.max(query.start[0] + 1, query.end[0]);
-        const slopeBase =
-            (query.end[1] - query.start[1]) / (endX - query.start[0]);
-        const angBase = Math.atan(slopeBase);
-        const angMax = Math.min(
-            (1 / 2) * Math.PI - 0.0001,
-            angBase + (query.n / 180) * Math.PI
-        );
-        const angMin = Math.max(
-            -(1 / 2) * Math.PI + 0.0001,
-            angBase - (query.n / 180) * Math.PI
-        );
-        const slopeMax = Math.tan(angMax);
-        const slopeMin = Math.tan(angMin);
-        const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
-        const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
-        unobserve.mouseLayerContext.strokeStyle = "red";
-        unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
-        unobserve.mouseLayerContext.lineTo(endX, endYMin);
-        unobserve.mouseLayerContext.lineTo(endX, endYMax);
-        unobserve.mouseLayerContext.closePath();
-        unobserve.mouseLayerContext.stroke();
-      }
-    },
-
-    initCanvas(context) {
-      context.fillStyle = 'black';
-      context.globalAlpha = 1;
-      context.fillRect(0, 0, 1000, 500);
-      context.clearRect(0, 0, 1000, 500);
-    },
-
-    renderBoxes(type = 'all') {
-      this.initCanvas(unobserve.mouseLayerContext);
-
-
-      let tmpQueries = [...unobserve.querys];
-      if (this.preview && !this.modify) {
-        tmpQueries.push(this.preview);
-        // drawLine([...preview.cache]);
-      }
-      console.time('update brush');
-      tmpQueries.forEach(this.renderBox);
-      console.timeEnd('update brush');
-
-      if (type === 'mouseLayer')
-        return;
-
-      this.initCanvas(unobserve.selectionLayerContext);
-      this.initCanvas(unobserve.repLayerContext);
-
-      let result1 = [], result2 = [];
-
-      result1 = tmpQueries.reduce(
-          (p, v) => new Set(   [...p].filter((x) => v.cache.has(x))),
-          (tmpQueries[0] || { cache: new Set() }).cache
-      );
-      result2 = tmpQueries.reduce(
-          (p, v) => new Set( [...p, ...v.cache]),
-          (tmpQueries[0] || { cache: new Set() }).cache
-      );
-      // if (!tmpQueries.length) {
-      //   result1 = new Array(unobserve.result.length).fill(0).map((_,i) => i);
-      // }
-      this.renderResult([...result1], [...result2]);
-      this.drawLine(this.getSelectedIds());
-      // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
-
-      console.log('render boxes ended ==== \n\n');
-    },
-
-    getSelectedIds() {
-      return typeof this.selectedQuery === 'number' ? [...unobserve.querys[this.selectedQuery].cache] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult;
-    },
-
-
-    renderAxisHelper(e) {
-      const x = e.offsetX;
-      const y = !this.upsideDown ? 500 - e.offsetY : e.offsetY;
-      const oriX = this.xScale.invert(x);
-      const oriY = this.yScale.invert(500 - y);
-
-      const date = moment(oriX).format("YYYY-MM-DD");
-
-      // console.log('---------------------------------', this.upsideDown ? 0 : 500);
-      const upsideDown = this.upsideDown;
-      if (this.showCursorValue) {
-        this.cursorHelper.selectAll("line").each(function (_, i) {
-          d3.select(this)
-              .attr("x1", i === 0 ? 0 : x)
-              .attr("y1", i === 0 ? 500 - y : upsideDown? 0 : 500)
-              .attr("x2", x)
-              .attr("y2", 500 - y);
-        });
-
-        this.cursorHelper.selectAll("text").each(function (_, i) {
-          d3.select(this)
-              .attr("x", i === 0 ? 0 : x - (x > 930 ? 70 : 0))
-              .attr("y", i === 0 ? 500 - y + (y > 480 ? 12 : 0) : upsideDown ? 12 : 500)
-              .text(i === 0 ? oriY.toFixed(2) : date);
-        });
-      } else {
-        this.cursorHelper
-            .selectAll("line")
-            .attr("x1", 0)
-            .attr("x2", 0)
-            .attr("y1", 0)
-            .attr("y2", 0);
-
-        this.cursorHelper.selectAll("text").text("");
-      }
-    },
-
-    getColorMap() {
-      const colormaps = [
-        [
-          [253, 231, 37],
-          [188, 223, 39],
-          [122, 209, 81],
-          [67, 191, 113],
-          [34, 168, 132],
-          [33, 145, 141],
-          [42, 120, 142],
-          [53, 96, 141],
-          [65, 68, 135],
-          [72, 37, 117],
-          [68, 1, 84],
-        ],
-        [
-          [252, 253, 191],
-          [254, 206, 145],
-          [254, 159, 109],
-          [247, 111, 92],
-          [222, 73, 104],
-          [182, 55, 122],
-          [140, 41, 129],
-          [101, 26, 128],
-          [59, 15, 112],
-          [21, 14, 55],
-          [0, 0, 4],
-        ],
-        [
-          [252, 255, 164],
-          [246, 214, 69],
-          [252, 165, 10],
-          [243, 119, 26],
-          [221, 81, 58],
-          [187, 55, 85],
-          [147, 38, 103],
-          [107, 23, 110],
-          [66, 10, 104],
-          [23, 12, 59],
-          [0, 0, 4],
-        ],
-        [
-          [240, 249, 33],
-          [252, 206, 37],
-          [252, 166, 54],
-          [242, 131, 76],
-          [225, 100, 98],
-          [203, 71, 121],
-          [177, 42, 144],
-          [144, 13, 164],
-          [106, 0, 168],
-          [66, 3, 157],
-          [13, 8, 135],
-        ],
-        [
-          [253, 234, 69],
-          [234, 209, 86],
-          [202, 186, 106],
-          [173, 164, 118],
-          [148, 143, 120],
-          [127, 124, 117],
-          [105, 105, 112],
-          [77, 86, 109],
-          [43, 68, 110],
-          [10, 50, 106],
-          [0, 32, 81],
-        ],
-        [
-          [144, 12, 0],
-          [186, 34, 8],
-          [246, 95, 24],
-          [255, 164, 35],
-          [222, 221, 50],
-          [149, 251, 81],
-          [77, 248, 132],
-          [39, 215, 196],
-          [47, 157, 245],
-          [74, 88, 221],
-          [35, 23, 27],
-        ],
-        [
-          [213, 239, 237],
-          [193, 232, 224],
-          [167, 221, 209],
-          [139, 210, 190],
-          [112, 198, 169],
-          [88, 186, 145],
-          [68, 173, 119],
-          [49, 156, 93],
-          [32, 137, 70],
-          [14, 119, 54],
-          [3, 100, 41],
-        ],
-        [
-          [204, 221, 236],
-          [186, 208, 228],
-          [168, 194, 221],
-          [154, 176, 212],
-          [145, 156, 201],
-          [141, 133, 190],
-          [139, 109, 178],
-          [138, 85, 166],
-          [135, 60, 153],
-          [130, 34, 135],
-          [115, 15, 113],
-        ],
-        [
-          [244, 209, 102],
-          [213, 202, 96],
-          [182, 195, 92],
-          [152, 187, 89],
-          [124, 178, 87],
-          [96, 166, 86],
-          [75, 156, 83],
-          [63, 143, 79],
-          [51, 131, 74],
-          [37, 119, 64],
-          [20, 108, 54],
-        ],
-        [
-          [244, 209, 102],
-          [248, 190, 92],
-          [248, 170, 76],
-          [245, 152, 59],
-          [243, 133, 42],
-          [239, 112, 27],
-          [226, 98, 31],
-          [214, 83, 34],
-          [197, 73, 35],
-          [177, 66, 35],
-          [158, 58, 38],
-        ],
-        [
-          [244, 209, 102],
-          [246, 190, 89],
-          [249, 170, 81],
-          [252, 150, 78],
-          [246, 131, 75],
-          [238, 115, 74],
-          [229, 98, 73],
-          [219, 82, 71],
-          [207, 66, 68],
-          [196, 49, 65],
-          [183, 29, 62],
-        ],
-        [
-          [211, 238, 206],
-          [197, 232, 195],
-          [177, 225, 187],
-          [155, 216, 187],
-          [130, 206, 194],
-          [105, 194, 202],
-          [81, 178, 205],
-          [60, 159, 199],
-          [40, 138, 189],
-          [22, 117, 177],
-          [11, 96, 161],
-        ],
-        [
-          [253, 220, 175],
-          [253, 207, 155],
-          [253, 193, 138],
-          [253, 173, 119],
-          [251, 149, 98],
-          [246, 125, 83],
-          [238, 101, 69],
-          [226, 73, 50],
-          [211, 45, 30],
-          [191, 19, 13],
-          [167, 4, 3],
-        ],
-        [
-          [219, 216, 234],
-          [200, 206, 228],
-          [176, 195, 222],
-          [147, 183, 216],
-          [114, 172, 209],
-          [84, 159, 200],
-          [56, 146, 187],
-          [28, 136, 163],
-          [9, 127, 135],
-          [2, 115, 107],
-          [1, 99, 83],
-        ],
-        [
-          [219, 218, 235],
-          [200, 206, 228],
-          [177, 195, 222],
-          [151, 183, 216],
-          [123, 172, 209],
-          [91, 159, 201],
-          [58, 144, 192],
-          [30, 127, 183],
-          [11, 112, 171],
-          [5, 97, 153],
-          [4, 82, 129],
-        ],
-        [
-          [220, 201, 226],
-          [211, 179, 215],
-          [206, 158, 204],
-          [209, 134, 192],
-          [218, 107, 178],
-          [225, 77, 160],
-          [226, 49, 137],
-          [217, 30, 111],
-          [198, 17, 89],
-          [171, 7, 73],
-          [143, 2, 58],
-        ],
-        [
-          [252, 207, 204],
-          [252, 190, 192],
-          [250, 169, 184],
-          [249, 143, 175],
-          [245, 113, 165],
-          [236, 83, 157],
-          [219, 54, 149],
-          [196, 27, 138],
-          [169, 8, 128],
-          [141, 1, 121],
-          [112, 1, 116],
-        ],
-        [
-          [239, 249, 189],
-          [219, 241, 180],
-          [189, 229, 181],
-          [148, 213, 185],
-          [105, 197, 190],
-          [69, 180, 194],
-          [44, 158, 192],
-          [33, 130, 184],
-          [33, 99, 170],
-          [35, 71, 156],
-          [28, 49, 133],
-        ],
-        [
-          [228, 244, 172],
-          [209, 236, 160],
-          [185, 226, 148],
-          [158, 214, 136],
-          [128, 201, 124],
-          [98, 187, 110],
-          [71, 170, 94],
-          [50, 151, 80],
-          [32, 131, 68],
-          [14, 114, 59],
-          [3, 96, 52],
-        ],
-        [
-          [254, 234, 161],
-          [254, 221, 132],
-          [254, 204, 99],
-          [254, 183, 70],
-          [252, 160, 49],
-          [246, 137, 33],
-          [235, 114, 21],
-          [219, 94, 11],
-          [197, 76, 5],
-          [171, 61, 3],
-          [143, 50, 4],
-        ],
-        [
-          [254, 224, 135],
-          [254, 209, 111],
-          [254, 189, 89],
-          [254, 168, 73],
-          [253, 144, 62],
-          [252, 115, 53],
-          [249, 82, 43],
-          [238, 52, 35],
-          [222, 27, 32],
-          [202, 11, 34],
-          [175, 2, 37],
-        ],
-      ];
-      return colormaps[this.colormapIndexCache];
-    },
-
-    renderColorMap() {
-      // document.getElementById("colorMax").innerText = currentDensityMax;
-      document.getElementById(
-          "color-map"
-      ).style.background = `linear-gradient(to right, ${this.getColorMap()
-          .map(
-              (color, i, arr) =>
-                  `rgb(${color.join(", ")}) ${(
-                      (i / (arr.length - 1)) *
-                      100
-                  ).toFixed(0)}%`
-          )
-          .join(", ")})`;
-    },
-
-    rgb(i) {
-      const colormap = this.getColorMap();
-      const base = Math.floor(i * 10);
-      if (i <= 0) return colormap[0];
-      if (i >= 1) return colormap[10];
-      if (colormap[base] === undefined)
-        console.log(colormap, base, i);
-      return colormap[base].map(
-          (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
-      );
-    },
-
-    renderAllDensity() {
-      let ids;
-      ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
-      let initFlag = true;
-      const bgContext = document.getElementById("canvas").getContext("2d");
-
-      console.time("temp canvas");
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = 1000;
-      tempCanvas.height = 500;
-      const tempContext = tempCanvas.getContext("2d");
-      tempContext.globalCompositeOperation = "lighter";
-      tempContext.strokeStyle = "#010101";
-      for (let id of ids) {
-        const line = unobserve.result[id];
-        tempContext.beginPath();
-        tempContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          tempContext.lineTo(point.x, point.y);
-        }
-        tempContext.stroke();
-      }
-
-      const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
-      if (initFlag) {
-        this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
-      }
-      console.timeEnd("temp canvas");
-      console.time("render");
-      bgContext.fillStyle = "black";
-      bgContext.globalAlpha = 1;
-      bgContext.fillRect(0, 0, 1000, 500);
-      bgContext.clearRect(0, 0, 1000, 500);
-      const maxWeight = this.maxDensity || tempImageData.data.reduce((p, v, i) =>
-          i % 4 === 3 ? p : Math.max(p, v)
-      );
-      this.maxDensity = maxWeight;
-      for (let i = 0; i < 1000; i++) {
-        for (let j = 0; j < 500; j++) {
-          const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
-          const color = this.rgb(ratio);
-          tempImageData.data.set(color, (j * 1000 + i) * 4);
-          tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
-        }
-      }
-      bgContext.putImageData(tempImageData, 0, 0);
-      console.timeEnd("render");
-      if (initFlag) {
-        this.initDensityMaxCache = maxWeight;
-        this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
-      }
-      this.currentDensityMax = maxWeight;
-      this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
-      // renderColorMap();
-    },
-
-    renderDensity() {
-      let ids = this.getSelectedIds();
-      let initFlag = false;
-      let renderFlag = false;
-      for (let i in this.layers) {
-        const layer = this.layers[i];
-        if (layer.name === 'selected density' && layer.opacity > 0) {
-          renderFlag = true;
-        }
-      }
-      if (!renderFlag)
-        return;
-      const bgContext = document.getElementById("selectionCanvas").getContext("2d");
-      console.time("temp canvas");
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = 1000;
-      tempCanvas.height = 500;
-      const tempContext = tempCanvas.getContext("2d");
-      tempContext.globalCompositeOperation = "lighter";
-      tempContext.strokeStyle = "#010101";
-      for (let id of ids) {
-        const line = unobserve.result[id];
-        tempContext.beginPath();
-        tempContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          tempContext.lineTo(point.x, point.y);
-        }
-        tempContext.stroke();
-      }
-
-      const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
-      if (initFlag) {
-        this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
-      }
-      console.timeEnd("temp canvas");
-      console.time("render");
-      bgContext.fillStyle = "black";
-      bgContext.globalAlpha = 1;
-      bgContext.fillRect(0, 0, 1000, 500);
-      bgContext.clearRect(0, 0, 1000, 500);
-      const maxWeight = Math.max(tempImageData.data.reduce((p, v, i) =>
-          i % 4 === 3 ? p : Math.max(p, v)
-      ), 1.0);
-      for (let i = 0; i < 1000; i++) {
-        for (let j = 0; j < 500; j++) {
-          const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
-          if (isNaN(ratio))
-            console.log(maxWeight, tempImageData);
-          const color = this.rgb(ratio);
-          tempImageData.data.set(color, (j * 1000 + i) * 4);
-          tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
-        }
-      }
-      bgContext.putImageData(tempImageData, 0, 0);
-      console.timeEnd("render");
-      if (initFlag) {
-        this.initDensityMaxCache = maxWeight;
-        this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
-      }
-      this.currentDensityMax = maxWeight;
-      this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
-      // renderColorMap();
-    },
-
-    rearrangeLayer(options = [
-      {
-        name: 'raw_lines',
-        opacity: 0,
-        zIndex: 0,
-      },
-      {
-        name: 'canvas',
-        opacity: 1,
-        zIndex: 1,
-      },
-      {
-        name: 'selectionCanvas',
-        opacity: 0,
-        zIndex: 2,
-      },
-      {
-        name: 'selectionLayer',
-        opacity: 0.4,
-        zIndex: 3,
-      },
-      {
-        name: 'rep_layer',
-        opacity: 1,
-        zIndex: 4
-      }
-    ]) {
-      for (let ind in options) {
-        const option = options[ind];
-        let ele = document.getElementById(option.id);
-        ele.style.opacity = option.opacity;
-        ele.style.zIndex = `${6 - ind}`;
-      }
-    },
-
-    setReverseY(flag = false) {
-      console.log('before set', this.yScale.range());
-      this.yScale.range(this.upsideDown ?  [0, 500] : [500, 0]);
-      console.log('after set', this.yScale.range());
-
-      const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
-      const canvasList = ['canvas', 'selectionCanvas', 'selectionLayer', 'rep_layer', 'raw_lines', 'mouseLayer'];
-      for (let id of canvasList) {
-        document.getElementById(id).style.transform = scaleY;
-      }
-
-      this.svg.select('#xaxis').remove();
-      this.svg.select('#yaxis').remove();
-      // svg.append("g").attr("transform", "translate(30,500)").call(xAxis);
-      this.svg.append("g").attr('id', 'yaxis').attr("transform", "translate(30,20)").call(unobserve.yAxis);
-      this.svg.append("g").attr('id', 'xaxis').attr("transform", `translate(30,${this.upsideDown ? 20 : 520})`).call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
-    },
-    getStaticInformation(ids) {
-      if (!ids || !ids.length)
-        return {};
-      // ids = new Array(unobserve.result.length).fill(0).map((_,i) => i);
-      const minX = d3.min(ids, id => unobserve.result[id][0].x);
-      const maxX = d3.max(ids, id => unobserve.result[id][unobserve.result[id].length - 1].x);
-      const minY = d3.min(ids, id => d3.min(unobserve.result[id], d => this.yScaleC.invert(d.y)));
-      const maxY = d3.max(ids, id => d3.max(unobserve.result[id], d => this.yScaleC.invert(d.y)));
-      const means = ids.map(id => d3.mean(unobserve.result[id], d => this.yScaleC.invert(d.y)));
-      const mean = d3.mean(means);
-      const variance = means.length > 1 ? d3.variance(means) : d3.variance(unobserve.result[ids[0]], d => this.yScaleC.invert(d.y));
-
-
-      return {
-        minT: moment(this.xScale.invert(minX)).format('YYYY-M-D'),
-        maxT: moment(this.xScale.invert(maxX)).format('YYYY-M-D'),
-        minV: minY.toFixed(2),
-        maxV: maxY.toFixed(2),
-        count: ids.length,
-        mean: mean.toFixed(2),
-        var: variance.toFixed(2),
-      }
-    },
-
-
-
-    getColor(id) {
-      if (this.colorCache[id]) return this.colorCache[id];
-      function luminance(r, g, b) {
-        var a = [r, g, b].map(function (v) {
-          v /= 255;
-          return v <= 0.03928
-              ? v / 12.92
-              : Math.pow((v + 0.055) / 1.055, 2.4);
-        });
-        return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
-      }
-      function contrast(rgb1, rgb2) {
-        var lum1 = luminance(rgb1[0], rgb1[1], rgb1[2]);
-        var lum2 = luminance(rgb2[0], rgb2[1], rgb2[2]);
-        var brightest = Math.max(lum1, lum2);
-        var darkest = Math.min(lum1, lum2);
-        return (brightest + 0.05) / (darkest + 0.05);
-      }
-      const r = seedrandom(id);
-      let res = new Array(3).fill(0).map(() => Math.floor(r() * 255));
-      while (contrast(res, [255, 255, 255]) < 3) {
-        res = new Array(3).fill(0).map(() => Math.floor(r() * 255));
-      }
-      this.colorCache[id] = res;
-      return res;
-    },
-    drawLine(ids) {
-      // Selected Part =====================
-      if (this.preview) {
-        ids = ids.slice(0, 5);
-      }
-      if (!this.preview) {
-        for (let id of ids) {
-          const line = unobserve.result[id];
-          unobserve.selectionLayerContext.strokeStyle = `rgb(${this.getColor(id).join(
-              ","
-          )})`;
-          unobserve.selectionLayerContext.beginPath();
-          unobserve.selectionLayerContext.moveTo(line[0].x, line[0].y);
-          for (let point of line) {
-            unobserve.selectionLayerContext.lineTo(point.x, point.y);
-          }
-          unobserve.selectionLayerContext.stroke();
-        }
-      }
-
-      // REP PART =====================
-
-      if (this.preview) {
-        ids = [...this.preview.cache];
-      }
-      else if (!unobserve.querys.length) {
-        ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
-      }
-      // console.log('lllllllllllllllllegth', ids.length);
-
-      // const lineCount = document.getElementById("rep_count").value;
-      const lineCount = this.repCount;
-      const lineWeights = ids
-          .map((id) => ({
-            id,
-            w: this.calcLineWeight(id),
-            cur: calculateCurvature(
-                unobserve.result[id].filter((point) =>
-                    unobserve.querys.length <= 0 && !this.preview
-                        ? true
-                        : (this.preview ? [this.preview] : unobserve.querys).find((query) => {
-                          if (query.type === "knn") {
-                            return true; // TODO: only line in knn
-                          } else if (query.type === "rnn") {
-                            return (
-                                Math.sqrt(
-                                    Math.pow(point.x - query.start[0], 2) +
-                                    Math.pow(point.y - query.start[1], 2)
-                                ) <= query.n
-                            );
-                          } else if (query.type === "brush") {
-                            const startX = Math.min(query.start[0], query.end[0]);
-                            const startY = Math.min(query.start[1], query.end[1]);
-                            const endX = Math.max(query.start[0], query.end[0]);
-                            const endY = Math.max(query.start[1], query.end[1]);
-                            return (
-                                point.x >= startX &&
-                                point.y >= startY &&
-                                point.x <= endX &&
-                                point.y <= endY
-                            );
-                          } else if (query.type === "ang") {
-                            const startX = Math.min(query.start[0], query.end[0]);
-                            const endX = Math.max(query.start[0], query.end[0]);
-                            return point.x >= startX && point.x <= endX;
-                          }
-                        })
+            const result = new Set(yyds.filter(({raw}) =>
+                lineRectCollide(
+                    {
+                      x1: raw[0],
+                      x2: raw[1],
+                      y1: raw[2],
+                      y2: raw[3],
+                    },
+                    {
+                      x: Math.min(query.start[0], query.end[0]),
+                      y: Math.min(query.start[1], query.end[1]),
+                      width: Math.abs(query.start[0] - query.end[0]),
+                      height: Math.abs(query.start[1] - query.end[1]),
+                    }
                 )
-            ),
-          }))
-          .sort((a, b) => b.w - a.w);
-      const topIds = lineWeights
-          .reduce((p, v) => {
-            // if (document.getElementById("show-all-clusters").checked) {
-            //   p.push(v);
-            //   return p;
-            // }
-            if (
-                p.length >= lineCount ||
-                p.find(
-                    (a) =>
-                        calculateDifference(a.cur, v.cur) <
-                        this.diverse
-                )
-            ) {
-              return p;
-            }
-            p.push(v);
-            return p;
-          }, [])
-          // .slice(0, lineCount)
-          .map((x) => x.id);
-      // const topIds = lineWeights
-      //   .reduce((p, v) => {
-      //     if (
-      //       p.length >= lineCount ||
-      //       p.find((a) => calcLineDistance(a.id, v.id) < 40)
-      //     ) {
-      //       return p;
-      //     }
-      //     p.push(v);
-      //     return p;
-      //   }, [])
-      //   // .slice(0, lineCount)
-      //   .map((x) => x.id);
-      const repColorMap = [
-        [31, 119, 180],
-        [44, 160, 44],
-        [148, 103, 189],
-        [140, 86, 75],
-        [227, 119, 194],
-        [127, 127, 127],
-        [188, 189, 34],
-        [23, 190, 207],
-      ];
-      unobserve.repIds = topIds;
-      for (let i in topIds) {
-        unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(topIds[i]).join(
-            ","
-        )})`;
+            )
+                .map(({raw}) => raw[5]))
 
-        // if (document.getElementById("show-all-clusters").checked) {
-        //   for (let id of topIds[i]) {
-        //     const line = result[id];
-        //     selectionLayerContext.beginPath();
-        //     selectionLayerContext.moveTo(line[0].x, line[0].y);
-        //     for (let point of line) {
-        //       selectionLayerContext.lineTo(point.x, point.y);
-        //     }
-        //     selectionLayerContext.stroke();
-        //   }
-        // } else {
-        const line = unobserve.result[topIds[i]];
-        unobserve.repLayerContext.beginPath();
-        unobserve.repLayerContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          unobserve.repLayerContext.lineTo(point.x, point.y);
-        }
-        unobserve.repLayerContext.stroke();
-        // }
-      }
-      // if (!topIds.length) {
-      //   document.getElementById("rep_res").innerHTML = "(empty)";
-      // } else {
-      //   document.getElementById("rep_res").innerHTML = topIds
-      //       .map((id, i) =>
-      //           document.getElementById("show-all-clusters").checked
-      //               ? `<span style="color:rgba(31, 119, 180, ${
-      //                   1 - (i / topIds.length) * 0.7
-      //               })">${id instanceof Array ? id.join(", ") : id}</span>`
-      //               : `<span style="color:rgb(${repColorMap[i % 8].join(",")})">${
-      //                   id instanceof Array ? id.join(", ") : id
-      //               }</span>`
-      //       )
-      //       .join(", ");
-    },
-    calcLineWeight(id) {
+            yyds.filter(({raw}) =>
+                lineSegmentsCollide({x: raw[0], y: raw[2]}, {x: raw[1], y: raw[3]}, {
+                  x: Math.min(query.start[0], query.end[0]),
+                  y: Math.min(query.start[1], query.end[1]) - 1,
+                }, {
+                  x: Math.max(query.start[0], query.end[0]),
+                  y: Math.min(query.start[1], query.end[1]) - 1,
+                })
+                  ||
+                lineSegmentsCollide({x: raw[0], y: raw[2]}, {x: raw[1], y: raw[3]}, {
+                  x: Math.min(query.start[0], query.end[0]),
+                  y: Math.max(query.start[1], query.end[1]) + 1,
+                }, {
+                  x: Math.max(query.start[0], query.end[0]),
+                  y: Math.max(query.start[1], query.end[1]) + 1,
+                })
+            )
+                .forEach(({raw}) => result.delete(raw[5]));
+    // this.tree
+    //     .brush(
+    //         [
+    //           Math.min(query.start[0], query.end[0]),
+    // Math.max(query.start[1], query.end[1]),
+    // ],
+    // [
+    //   Math.max(query.start[0], query.end[0]),
+    //   Math.max(query.start[1], query.end[1]) + 1,
+    // ]
+    // )
+    // .filter(({raw}) =>
+    //     lineRectCollide(
+    //         {
+    //           x1: raw[0],
+    //           x2: raw[1],
+    //           y1: raw[2],
+    //           y2: raw[3],
+    //         },
+    //         {
+    //           x: Math.min(query.start[0], query.end[0]),
+    //           y: Math.min(query.start[1], query.end[1]),
+    //           width: Math.abs(query.start[0] - query.end[0]),
+    //           height: Math.abs(query.start[1] - query.end[1]),
+    //         }
+    //     )
+    // )
+    // .forEach(({raw}) => result1.delete(raw[5]));
+    query.cache = result;
 
-      let weight = 0;
-      let passedPixels = 0;
-      let lineLen = 0;
-      const hasBrush = unobserve.querys.find((q) => q.type === "brush");
-      const brushes = unobserve.querys
-          .filter((q) => q.type === "brush")
-          .map((b) => [
-            Math.min(b.start[0], b.end[0]),
-            Math.max(b.start[0], b.end[0]),
-            Math.min(b.start[1], b.end[1]),
-            Math.max(b.start[1], b.end[1]),
-          ]);
-      if (this.weightCache[id] !== undefined && !hasBrush) return this.weightCache[id];
+  }
+}
+} else if (query.type === "ang") {
+  const endX = Math.max(query.start[0] + 1, query.end[0]);
+  const minX = query.start[0],
+      maxX = endX;
+  const slopeBase =
+      (query.end[1] - query.start[1]) / (endX - query.start[0]);
+  const angBase = Math.atan(slopeBase);
+  const angMax = Math.min(
+      (1 / 2) * Math.PI - 0.0001,
+      angBase + (query.n / 180) * Math.PI
+  );
+  const angMin = Math.max(
+      -(1 / 2) * Math.PI + 0.0001,
+      angBase - (query.n / 180) * Math.PI
+  );
+  const slopeMax = Math.tan(angMax);
+  const slopeMin = Math.tan(angMin);
+  const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
+  const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
+  unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
+  unobserve.mouseLayerContext.beginPath();
+  unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
+  unobserve.mouseLayerContext.lineTo(endX, endYMin);
+  unobserve.mouseLayerContext.lineTo(endX, endYMax);
+  unobserve.mouseLayerContext.closePath();
+  unobserve.mouseLayerContext.fill();
+  unobserve.mouseLayerContext.lineWidth = 1;
+  unobserve.mouseLayerContext.strokeStyle = "black";
+  unobserve.mouseLayerContext.beginPath();
+  unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
+  unobserve.mouseLayerContext.lineTo(endX, query.end[1]);
+  unobserve.mouseLayerContext.stroke();
+  if (!query.cache) {
+    const result = new Set(
+        this.tree
+            .angular([query.start[0], slopeMin], [endX, slopeMax])
+            .map(({raw}) => raw[5])
+            .filter(id => {
+              // return true;
+              const line = unobserve.result[id];
+              let l = 0, r = line.length - 1, lp = 0, rp = r, mid, ang;
+              if (line[l].x > maxX || line[r].x < minX)
+                return false;
+              while (l <= r) {
+                mid = (l + r) >> 1;
+                if (line[mid].x >= minX) {
+                  lp = mid;
+                  r = mid - 1;
+                } else
+                  l = mid + 1;
+              }
+
+              l = 0;
+              r = line.length - 1;
+              while (l <= r) {
+                mid = (l + r) >> 1;
+                if (line[mid].x <= maxX) {
+                  rp = mid;
+                  l = mid + 1;
+                } else {
+                  r = mid - 1;
+                }
+              }
+              // console.log(lp, rp);
+              for (let i = lp; i < rp; i++) {
+                ang = Math.atan((line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x));
+                if (ang < angMin || ang > angMax) {
+                  // console.log(line[i]);
+                  return false;
+                }
+              }
+              if (lp) {
+                ang = Math.atan((line[lp + 1].y - line[lp].y) / (line[lp + 1].x - line[lp].x));
+                if (ang < angMin || ang > angMax) {
+                  // console.log(tmpY);
+                  return false;
+                }
+              }
+              if (rp < line.length - 1) {
+                ang = Math.atan((line[rp + 1].y - line[rp].y) / (line[rp + 1].x - line[rp].x));
+                if (ang < angMin || ang > angMax) {
+                  // console.log(tmpY);
+                  return false;
+                }
+              }
+              return true;
+            })
+    );
+    query.cache = result;
+  }
+} else if (query.type === 'attr') {
+  if (!query.cache) {
+    const {ind, val} = query.info;
+    console.log(unobserve.aggregatedData, unobserve.data);
+    const result = new Array(unobserve.result.length).fill(0).map((_, i) => i).filter(i => {
+      const exampleInd = unobserve.aggregatedData[i].ref[0];
+      const targetVal = unobserve.data[exampleInd][ind];
+      return targetVal === val;
+    })
+    query.cache = new Set(result);
+  }
+}
+},
+
+hoverBox(query) {
+  unobserve.mouseLayerContext.lineWidth = 2;
+  if (query.type === "knn") {
+    unobserve.mouseLayerContext.beginPath();
+    unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
+    unobserve.mouseLayerContext.strokeStyle = "red";
+    unobserve.mouseLayerContext.stroke();
+  } else if (query.type === "rnn") {
+    unobserve.mouseLayerContext.beginPath();
+    unobserve.mouseLayerContext.arc(...query.start, query.n, 0, 2 * Math.PI);
+    unobserve.mouseLayerContext.strokeStyle = "red";
+    unobserve.mouseLayerContext.stroke();
+  } else if (query.type === "brush") {
+    unobserve.mouseLayerContext.strokeStyle = "red";
+    unobserve.mouseLayerContext.strokeRect(
+        ...query.start.map((v, i) => Math.min(v, query.end[i])),
+        ...query.end.map((v, i) => Math.abs(v - query.start[i]))
+    );
+  } else if (query.type === "ang") {
+    const endX = Math.max(query.start[0] + 1, query.end[0]);
+    const slopeBase =
+        (query.end[1] - query.start[1]) / (endX - query.start[0]);
+    const angBase = Math.atan(slopeBase);
+    const angMax = Math.min(
+        (1 / 2) * Math.PI - 0.0001,
+        angBase + (query.n / 180) * Math.PI
+    );
+    const angMin = Math.max(
+        -(1 / 2) * Math.PI + 0.0001,
+        angBase - (query.n / 180) * Math.PI
+    );
+    const slopeMax = Math.tan(angMax);
+    const slopeMin = Math.tan(angMin);
+    const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
+    const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
+    unobserve.mouseLayerContext.strokeStyle = "red";
+    unobserve.mouseLayerContext.beginPath();
+    unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
+    unobserve.mouseLayerContext.lineTo(endX, endYMin);
+    unobserve.mouseLayerContext.lineTo(endX, endYMax);
+    unobserve.mouseLayerContext.closePath();
+    unobserve.mouseLayerContext.stroke();
+  }
+},
+
+initCanvas(context) {
+  context.fillStyle = 'black';
+  context.globalAlpha = 1;
+  context.fillRect(0, 0, 1000, 500);
+  context.clearRect(0, 0, 1000, 500);
+},
+
+renderBoxes(type = 'all') {
+  this.initCanvas(unobserve.mouseLayerContext);
+
+
+  let tmpQueries = [...unobserve.querys];
+  if (this.preview && !this.modify) {
+    tmpQueries.push(this.preview);
+    // drawLine([...preview.cache]);
+  }
+  console.time('update brush');
+  tmpQueries.forEach(this.renderBox);
+  console.timeEnd('update brush');
+
+  if (type === 'mouseLayer')
+    return;
+
+  this.initCanvas(unobserve.selectionLayerContext);
+  this.initCanvas(unobserve.repLayerContext);
+
+  let result1 = [], result2 = [];
+
+  result1 = tmpQueries.reduce(
+      (p, v) => new Set([...p].filter((x) => v.cache.has(x))),
+      (tmpQueries[0] || {cache: new Set()}).cache
+  );
+  result2 = tmpQueries.reduce(
+      (p, v) => new Set([...p, ...v.cache]),
+      (tmpQueries[0] || {cache: new Set()}).cache
+  );
+  // if (!tmpQueries.length) {
+  //   result1 = new Array(unobserve.result.length).fill(0).map((_,i) => i);
+  // }
+  this.renderResult([...result1], [...result2]);
+  this.drawLine(this.getSelectedIds());
+  // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
+
+  console.log('render boxes ended ==== \n\n');
+},
+
+getSelectedIds() {
+  return typeof this.selectedQuery === 'number' ? [...unobserve.querys[this.selectedQuery].cache] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult;
+},
+
+
+renderAxisHelper(e) {
+  const x = e.offsetX;
+  const y = !this.upsideDown ? 500 - e.offsetY : e.offsetY;
+  const oriX = this.xScale.invert(x);
+  const oriY = this.yScale.invert(500 - y);
+
+  const date = moment(oriX).format("YYYY-MM-DD");
+
+  // console.log('---------------------------------', this.upsideDown ? 0 : 500);
+  const upsideDown = this.upsideDown;
+  if (this.showCursorValue) {
+    this.cursorHelper.selectAll("line").each(function (_, i) {
+      d3.select(this)
+          .attr("x1", i === 0 ? 0 : x)
+          .attr("y1", i === 0 ? 500 - y : upsideDown ? 0 : 500)
+          .attr("x2", x)
+          .attr("y2", 500 - y);
+    });
+
+    this.cursorHelper.selectAll("text").each(function (_, i) {
+      d3.select(this)
+          .attr("x", i === 0 ? 0 : x - (x > 930 ? 70 : 0))
+          .attr("y", i === 0 ? 500 - y + (y > 480 ? 12 : 0) : upsideDown ? 12 : 500)
+          .text(i === 0 ? oriY.toFixed(2) : date);
+    });
+  } else {
+    this.cursorHelper
+        .selectAll("line")
+        .attr("x1", 0)
+        .attr("x2", 0)
+        .attr("y1", 0)
+        .attr("y2", 0);
+
+    this.cursorHelper.selectAll("text").text("");
+  }
+},
+
+getColorMap() {
+  const colormaps = [
+    [
+      [253, 231, 37],
+      [188, 223, 39],
+      [122, 209, 81],
+      [67, 191, 113],
+      [34, 168, 132],
+      [33, 145, 141],
+      [42, 120, 142],
+      [53, 96, 141],
+      [65, 68, 135],
+      [72, 37, 117],
+      [68, 1, 84],
+    ],
+    [
+      [252, 253, 191],
+      [254, 206, 145],
+      [254, 159, 109],
+      [247, 111, 92],
+      [222, 73, 104],
+      [182, 55, 122],
+      [140, 41, 129],
+      [101, 26, 128],
+      [59, 15, 112],
+      [21, 14, 55],
+      [0, 0, 4],
+    ],
+    [
+      [252, 255, 164],
+      [246, 214, 69],
+      [252, 165, 10],
+      [243, 119, 26],
+      [221, 81, 58],
+      [187, 55, 85],
+      [147, 38, 103],
+      [107, 23, 110],
+      [66, 10, 104],
+      [23, 12, 59],
+      [0, 0, 4],
+    ],
+    [
+      [240, 249, 33],
+      [252, 206, 37],
+      [252, 166, 54],
+      [242, 131, 76],
+      [225, 100, 98],
+      [203, 71, 121],
+      [177, 42, 144],
+      [144, 13, 164],
+      [106, 0, 168],
+      [66, 3, 157],
+      [13, 8, 135],
+    ],
+    [
+      [253, 234, 69],
+      [234, 209, 86],
+      [202, 186, 106],
+      [173, 164, 118],
+      [148, 143, 120],
+      [127, 124, 117],
+      [105, 105, 112],
+      [77, 86, 109],
+      [43, 68, 110],
+      [10, 50, 106],
+      [0, 32, 81],
+    ],
+    [
+      [144, 12, 0],
+      [186, 34, 8],
+      [246, 95, 24],
+      [255, 164, 35],
+      [222, 221, 50],
+      [149, 251, 81],
+      [77, 248, 132],
+      [39, 215, 196],
+      [47, 157, 245],
+      [74, 88, 221],
+      [35, 23, 27],
+    ],
+    [
+      [213, 239, 237],
+      [193, 232, 224],
+      [167, 221, 209],
+      [139, 210, 190],
+      [112, 198, 169],
+      [88, 186, 145],
+      [68, 173, 119],
+      [49, 156, 93],
+      [32, 137, 70],
+      [14, 119, 54],
+      [3, 100, 41],
+    ],
+    [
+      [204, 221, 236],
+      [186, 208, 228],
+      [168, 194, 221],
+      [154, 176, 212],
+      [145, 156, 201],
+      [141, 133, 190],
+      [139, 109, 178],
+      [138, 85, 166],
+      [135, 60, 153],
+      [130, 34, 135],
+      [115, 15, 113],
+    ],
+    [
+      [244, 209, 102],
+      [213, 202, 96],
+      [182, 195, 92],
+      [152, 187, 89],
+      [124, 178, 87],
+      [96, 166, 86],
+      [75, 156, 83],
+      [63, 143, 79],
+      [51, 131, 74],
+      [37, 119, 64],
+      [20, 108, 54],
+    ],
+    [
+      [244, 209, 102],
+      [248, 190, 92],
+      [248, 170, 76],
+      [245, 152, 59],
+      [243, 133, 42],
+      [239, 112, 27],
+      [226, 98, 31],
+      [214, 83, 34],
+      [197, 73, 35],
+      [177, 66, 35],
+      [158, 58, 38],
+    ],
+    [
+      [244, 209, 102],
+      [246, 190, 89],
+      [249, 170, 81],
+      [252, 150, 78],
+      [246, 131, 75],
+      [238, 115, 74],
+      [229, 98, 73],
+      [219, 82, 71],
+      [207, 66, 68],
+      [196, 49, 65],
+      [183, 29, 62],
+    ],
+    [
+      [211, 238, 206],
+      [197, 232, 195],
+      [177, 225, 187],
+      [155, 216, 187],
+      [130, 206, 194],
+      [105, 194, 202],
+      [81, 178, 205],
+      [60, 159, 199],
+      [40, 138, 189],
+      [22, 117, 177],
+      [11, 96, 161],
+    ],
+    [
+      [253, 220, 175],
+      [253, 207, 155],
+      [253, 193, 138],
+      [253, 173, 119],
+      [251, 149, 98],
+      [246, 125, 83],
+      [238, 101, 69],
+      [226, 73, 50],
+      [211, 45, 30],
+      [191, 19, 13],
+      [167, 4, 3],
+    ],
+    [
+      [219, 216, 234],
+      [200, 206, 228],
+      [176, 195, 222],
+      [147, 183, 216],
+      [114, 172, 209],
+      [84, 159, 200],
+      [56, 146, 187],
+      [28, 136, 163],
+      [9, 127, 135],
+      [2, 115, 107],
+      [1, 99, 83],
+    ],
+    [
+      [219, 218, 235],
+      [200, 206, 228],
+      [177, 195, 222],
+      [151, 183, 216],
+      [123, 172, 209],
+      [91, 159, 201],
+      [58, 144, 192],
+      [30, 127, 183],
+      [11, 112, 171],
+      [5, 97, 153],
+      [4, 82, 129],
+    ],
+    [
+      [220, 201, 226],
+      [211, 179, 215],
+      [206, 158, 204],
+      [209, 134, 192],
+      [218, 107, 178],
+      [225, 77, 160],
+      [226, 49, 137],
+      [217, 30, 111],
+      [198, 17, 89],
+      [171, 7, 73],
+      [143, 2, 58],
+    ],
+    [
+      [252, 207, 204],
+      [252, 190, 192],
+      [250, 169, 184],
+      [249, 143, 175],
+      [245, 113, 165],
+      [236, 83, 157],
+      [219, 54, 149],
+      [196, 27, 138],
+      [169, 8, 128],
+      [141, 1, 121],
+      [112, 1, 116],
+    ],
+    [
+      [239, 249, 189],
+      [219, 241, 180],
+      [189, 229, 181],
+      [148, 213, 185],
+      [105, 197, 190],
+      [69, 180, 194],
+      [44, 158, 192],
+      [33, 130, 184],
+      [33, 99, 170],
+      [35, 71, 156],
+      [28, 49, 133],
+    ],
+    [
+      [228, 244, 172],
+      [209, 236, 160],
+      [185, 226, 148],
+      [158, 214, 136],
+      [128, 201, 124],
+      [98, 187, 110],
+      [71, 170, 94],
+      [50, 151, 80],
+      [32, 131, 68],
+      [14, 114, 59],
+      [3, 96, 52],
+    ],
+    [
+      [254, 234, 161],
+      [254, 221, 132],
+      [254, 204, 99],
+      [254, 183, 70],
+      [252, 160, 49],
+      [246, 137, 33],
+      [235, 114, 21],
+      [219, 94, 11],
+      [197, 76, 5],
+      [171, 61, 3],
+      [143, 50, 4],
+    ],
+    [
+      [254, 224, 135],
+      [254, 209, 111],
+      [254, 189, 89],
+      [254, 168, 73],
+      [253, 144, 62],
+      [252, 115, 53],
+      [249, 82, 43],
+      [238, 52, 35],
+      [222, 27, 32],
+      [202, 11, 34],
+      [175, 2, 37],
+    ],
+  ];
+  return colormaps[this.colormapIndexCache];
+},
+
+renderColorMap() {
+  // document.getElementById("colorMax").innerText = currentDensityMax;
+  document.getElementById(
+      "color-map"
+  ).style.background = `linear-gradient(to right, ${this.getColorMap()
+      .map(
+          (color, i, arr) =>
+              `rgb(${color.join(", ")}) ${(
+                  (i / (arr.length - 1)) *
+                  100
+              ).toFixed(0)}%`
+      )
+      .join(", ")})`;
+},
+
+rgb(i) {
+  const colormap = this.getColorMap();
+  const base = Math.floor(i * 10);
+  if (i <= 0) return colormap[0];
+  if (i >= 1) return colormap[10];
+  if (colormap[base] === undefined)
+    console.log(colormap, base, i);
+  return colormap[base].map(
+      (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
+  );
+},
+
+renderAllDensity() {
+  let ids;
+  ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
+  let initFlag = true;
+  const bgContext = document.getElementById("canvas").getContext("2d");
+
+  console.time("temp canvas");
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = 1000;
+  tempCanvas.height = 500;
+  const tempContext = tempCanvas.getContext("2d");
+  tempContext.globalCompositeOperation = "lighter";
+  tempContext.strokeStyle = "#010101";
+  for (let id of ids) {
+    const line = unobserve.result[id];
+    tempContext.beginPath();
+    tempContext.moveTo(line[0].x, line[0].y);
+    for (let point of line) {
+      tempContext.lineTo(point.x, point.y);
+    }
+    tempContext.stroke();
+  }
+
+  const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
+  if (initFlag) {
+    this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
+  }
+  console.timeEnd("temp canvas");
+  console.time("render");
+  bgContext.fillStyle = "black";
+  bgContext.globalAlpha = 1;
+  bgContext.fillRect(0, 0, 1000, 500);
+  bgContext.clearRect(0, 0, 1000, 500);
+  const maxWeight = this.maxDensity || tempImageData.data.reduce((p, v, i) =>
+      i % 4 === 3 ? p : Math.max(p, v)
+  );
+  this.maxDensity = maxWeight;
+  for (let i = 0; i < 1000; i++) {
+    for (let j = 0; j < 500; j++) {
+      const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
+      const color = this.rgb(ratio);
+      tempImageData.data.set(color, (j * 1000 + i) * 4);
+      tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+    }
+  }
+  bgContext.putImageData(tempImageData, 0, 0);
+  console.timeEnd("render");
+  if (initFlag) {
+    this.initDensityMaxCache = maxWeight;
+    this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
+  }
+  this.currentDensityMax = maxWeight;
+  this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
+  // renderColorMap();
+},
+
+renderDensity() {
+  let ids = this.getSelectedIds();
+  let initFlag = false;
+  let renderFlag = false;
+  for (let i in this.layers) {
+    const layer = this.layers[i];
+    if (layer.name === 'selected density' && layer.opacity > 0) {
+      renderFlag = true;
+    }
+  }
+  if (!renderFlag)
+    return;
+  const bgContext = document.getElementById("selectionCanvas").getContext("2d");
+  console.time("temp canvas");
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = 1000;
+  tempCanvas.height = 500;
+  const tempContext = tempCanvas.getContext("2d");
+  tempContext.globalCompositeOperation = "lighter";
+  tempContext.strokeStyle = "#010101";
+  for (let id of ids) {
+    const line = unobserve.result[id];
+    tempContext.beginPath();
+    tempContext.moveTo(line[0].x, line[0].y);
+    for (let point of line) {
+      tempContext.lineTo(point.x, point.y);
+    }
+    tempContext.stroke();
+  }
+
+  const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
+  if (initFlag) {
+    this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
+  }
+  console.timeEnd("temp canvas");
+  console.time("render");
+  bgContext.fillStyle = "black";
+  bgContext.globalAlpha = 1;
+  bgContext.fillRect(0, 0, 1000, 500);
+  bgContext.clearRect(0, 0, 1000, 500);
+  const maxWeight = Math.max(tempImageData.data.reduce((p, v, i) =>
+      i % 4 === 3 ? p : Math.max(p, v)
+  ), 1.0);
+  for (let i = 0; i < 1000; i++) {
+    for (let j = 0; j < 500; j++) {
+      const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
+      if (isNaN(ratio))
+        console.log(maxWeight, tempImageData);
+      const color = this.rgb(ratio);
+      tempImageData.data.set(color, (j * 1000 + i) * 4);
+      tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+    }
+  }
+  bgContext.putImageData(tempImageData, 0, 0);
+  console.timeEnd("render");
+  if (initFlag) {
+    this.initDensityMaxCache = maxWeight;
+    this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
+  }
+  this.currentDensityMax = maxWeight;
+  this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
+  // renderColorMap();
+},
+
+rearrangeLayer(options = [
+  {
+    name: 'raw_lines',
+    opacity: 0,
+    zIndex: 0,
+  },
+  {
+    name: 'canvas',
+    opacity: 1,
+    zIndex: 1,
+  },
+  {
+    name: 'selectionCanvas',
+    opacity: 0,
+    zIndex: 2,
+  },
+  {
+    name: 'selectionLayer',
+    opacity: 0.4,
+    zIndex: 3,
+  },
+  {
+    name: 'rep_layer',
+    opacity: 1,
+    zIndex: 4
+  }
+]) {
+  for (let ind in options) {
+    const option = options[ind];
+    let ele = document.getElementById(option.id);
+    ele.style.opacity = option.opacity;
+    ele.style.zIndex = `${6 - ind}`;
+  }
+},
+
+setReverseY(flag = false) {
+  console.log('before set', this.yScale.range());
+  this.yScale.range(this.upsideDown ? [0, 500] : [500, 0]);
+  console.log('after set', this.yScale.range());
+
+  const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
+  const canvasList = ['canvas', 'selectionCanvas', 'selectionLayer', 'rep_layer', 'raw_lines', 'mouseLayer'];
+  for (let id of canvasList) {
+    document.getElementById(id).style.transform = scaleY;
+  }
+
+  this.svg.select('#xaxis').remove();
+  this.svg.select('#yaxis').remove();
+  // svg.append("g").attr("transform", "translate(30,500)").call(xAxis);
+  this.svg.append("g").attr('id', 'yaxis').attr("transform", "translate(30,20)").call(unobserve.yAxis);
+  this.svg.append("g").attr('id', 'xaxis').attr("transform", `translate(30,${this.upsideDown ? 20 : 520})`).call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
+},
+getStaticInformation(ids) {
+  if (!ids || !ids.length)
+    return {};
+  // ids = new Array(unobserve.result.length).fill(0).map((_,i) => i);
+  const minX = d3.min(ids, id => unobserve.result[id][0].x);
+  const maxX = d3.max(ids, id => unobserve.result[id][0].x);
+  const minY = d3.min(ids, id => d3.min(unobserve.result[id], d => this.yScaleC.invert(d.y)));
+  const maxY = d3.max(ids, id => d3.max(unobserve.result[id], d => this.yScaleC.invert(d.y)));
+  const means = ids.map(id => d3.mean(unobserve.result[id], d => this.yScaleC.invert(d.y)));
+  const mean = d3.mean(means);
+  const variance = means.length > 1 ? d3.variance(means) : d3.variance(unobserve.result[ids[0]], d => this.yScaleC.invert(d.y));
+
+
+  return {
+    minT: moment(this.xScale.invert(minX)).format('YYYY-M-D'),
+    maxT: moment(this.xScale.invert(maxX)).format('YYYY-M-D'),
+    minV: minY.toFixed(2),
+    maxV: maxY.toFixed(2),
+    count: ids.length,
+    mean: mean.toFixed(2),
+    var: variance.toFixed(2),
+  }
+},
+
+
+getColor(id) {
+  if (this.colorCache[id]) return this.colorCache[id];
+
+  function luminance(r, g, b) {
+    var a = [r, g, b].map(function (v) {
+      v /= 255;
+      return v <= 0.03928
+          ? v / 12.92
+          : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+  }
+
+  function contrast(rgb1, rgb2) {
+    var lum1 = luminance(rgb1[0], rgb1[1], rgb1[2]);
+    var lum2 = luminance(rgb2[0], rgb2[1], rgb2[2]);
+    var brightest = Math.max(lum1, lum2);
+    var darkest = Math.min(lum1, lum2);
+    return (brightest + 0.05) / (darkest + 0.05);
+  }
+
+  const r = seedrandom(id);
+  let res = new Array(3).fill(0).map(() => Math.floor(r() * 255));
+  while (contrast(res, [255, 255, 255]) < 3) {
+    res = new Array(3).fill(0).map(() => Math.floor(r() * 255));
+  }
+  this.colorCache[id] = res;
+  return res;
+},
+drawLine(ids) {
+  // Selected Part =====================
+  if (this.preview) {
+    ids = ids.slice(0, 5);
+  }
+  if (!this.preview) {
+    for (let id of ids) {
       const line = unobserve.result[id];
+      unobserve.selectionLayerContext.strokeStyle = `rgb(${this.getColor(id).join(
+          ","
+      )})`;
+      unobserve.selectionLayerContext.beginPath();
+      unobserve.selectionLayerContext.moveTo(line[0].x, line[0].y);
+      for (let point of line) {
+        unobserve.selectionLayerContext.lineTo(point.x, point.y);
+      }
+      unobserve.selectionLayerContext.stroke();
+    }
+  }
 
-      for (let i = 0; i < line.length - 1; i++) {
-        let xx = Math.floor(line[i + 1].x);
-        let yy = Math.floor(line[i + 1].y);
-        let x = Math.floor(line[i].x);
-        let y = Math.floor(line[i].y);
-        // BRENSENHAM
-        let dx = Math.abs(xx - x);
-        let sx = x < xx ? 1 : -1;
-        let dy = -Math.abs(yy - y);
-        let sy = y < yy ? 1 : -1;
-        let err = dx + dy;
-        let errC; // error value
-        let end = false;
-        let x1 = x;
-        let y1 = y;
-        let px = 0;
+  // REP PART =====================
 
-        while (!end) {
-          if (
-              !hasBrush ||
+  if (this.preview) {
+    ids = [...this.preview.cache];
+  } else if (!unobserve.querys.length) {
+    ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
+  }
+  // console.log('lllllllllllllllllegth', ids.length);
+
+  // const lineCount = document.getElementById("rep_count").value;
+  const lineCount = this.repCount >> 1;
+  const lineWeights = ids
+      .map((id) => ({
+        id,
+        w: this.calcLineWeight(id),
+        cur: calculateCurvature(
+            unobserve.result[id].filter((point) =>
+                unobserve.querys.length <= 0 && !this.preview
+                    ? true
+                    : (this.preview ? [this.preview] : unobserve.querys).find((query) => {
+                      if (query.type === "knn") {
+                        return true; // TODO: only line in knn
+                      } else if (query.type === "rnn") {
+                        return (
+                            Math.sqrt(
+                                Math.pow(point.x - query.start[0], 2) +
+                                Math.pow(point.y - query.start[1], 2)
+                            ) <= query.n
+                        );
+                      } else if (query.type === "brush") {
+                        const startX = Math.min(query.start[0], query.end[0]);
+                        const startY = Math.min(query.start[1], query.end[1]);
+                        const endX = Math.max(query.start[0], query.end[0]);
+                        const endY = Math.max(query.start[1], query.end[1]);
+                        return (
+                            point.x >= startX &&
+                            point.y >= startY &&
+                            point.x <= endX &&
+                            point.y <= endY
+                        );
+                      } else if (query.type === "ang") {
+                        const startX = Math.min(query.start[0], query.end[0]);
+                        const endX = Math.max(query.start[0], query.end[0]);
+                        return point.x >= startX && point.x <= endX;
+                      }
+                    })
+            )
+        ),
+      }))
+      .sort((a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1]));
+  const topIds1 = lineWeights
+      .reduce((p, v) => {
+        // if (document.getElementById("show-all-clusters").checked) {
+        //   p.push(v);
+        //   return p;
+        // }
+        if (
+            p.length >= lineCount ||
+            v.w[1] < 1000 / 3 ||
+            p.find(
+                (a) =>
+                    calculateDifference(a.cur, v.cur) <
+                    this.diverse
+            )
+        ) {
+          return p;
+        }
+        p.push(v);
+        return p;
+      }, [])
+      // .slice(0, lineCount)
+      .map((x) => x.id);
+
+  lineWeights.sort((a, b) => a.w[0] - b.w[0]);
+  const topIds2 = lineWeights
+      .reduce((p, v) => {
+        // if (document.getElementById("show-all-clusters").checked) {
+        //   p.push(v);
+        //   return p;
+        // }
+        // console.log(v.w[1]);
+        if (
+            p.length >= lineCount ||
+            v.w[1] < 1000 / 3 ||
+            p.find(
+                (a) =>
+                    calculateDifference(a.cur, v.cur) <
+                    this.diverse
+            )
+        ) {
+          return p;
+        }
+        p.push(v);
+        return p;
+      }, [])
+      // .slice(0, lineCount)
+      .map((x) => x.id);
+  console.log(topIds1, topIds2);
+  for (let i of topIds1)
+    console.log(unobserve.result[i], this.calcLineWeight(i))
+  for (let i of topIds2)
+    console.log(unobserve.result[i], this.calcLineWeight(i))
+  const topIds = [...new Set([...topIds1, ...topIds2])];
+  // const topIds = lineWeights
+  //   .reduce((p, v) => {
+  //     if (
+  //       p.length >= lineCount ||
+  //       p.find((a) => calcLineDistance(a.id, v.id) < 40)
+  //     ) {
+  //       return p;
+  //     }
+  //     p.push(v);
+  //     return p;
+  //   }, [])
+  //   // .slice(0, lineCount)
+  //   .map((x) => x.id);
+  const repColorMap = [
+    [31, 119, 180],
+    [44, 160, 44],
+    [148, 103, 189],
+    [140, 86, 75],
+    [227, 119, 194],
+    [127, 127, 127],
+    [188, 189, 34],
+    [23, 190, 207],
+  ];
+  unobserve.repIds = topIds;
+  for (let i in topIds) {
+    unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(topIds[i]).join(
+        ","
+    )})`;
+
+    // if (document.getElementById("show-all-clusters").checked) {
+    //   for (let id of topIds[i]) {
+    //     const line = result[id];
+    //     selectionLayerContext.beginPath();
+    //     selectionLayerContext.moveTo(line[0].x, line[0].y);
+    //     for (let point of line) {
+    //       selectionLayerContext.lineTo(point.x, point.y);
+    //     }
+    //     selectionLayerContext.stroke();
+    //   }
+    // } else {
+    const line = unobserve.result[topIds[i]];
+    unobserve.repLayerContext.beginPath();
+    unobserve.repLayerContext.moveTo(line[0].x, line[0].y);
+    for (let point of line) {
+      unobserve.repLayerContext.lineTo(point.x, point.y);
+    }
+    unobserve.repLayerContext.stroke();
+    // }
+  }
+  // if (!topIds.length) {
+  //   document.getElementById("rep_res").innerHTML = "(empty)";
+  // } else {
+  //   document.getElementById("rep_res").innerHTML = topIds
+  //       .map((id, i) =>
+  //           document.getElementById("show-all-clusters").checked
+  //               ? `<span style="color:rgba(31, 119, 180, ${
+  //                   1 - (i / topIds.length) * 0.7
+  //               })">${id instanceof Array ? id.join(", ") : id}</span>`
+  //               : `<span style="color:rgb(${repColorMap[i % 8].join(",")})">${
+  //                   id instanceof Array ? id.join(", ") : id
+  //               }</span>`
+  //       )
+  //       .join(", ");
+},
+calcLineWeight(id) {
+
+  let weight = 0;
+  let passedPixels = 0;
+  let lineLen = 0;
+  const hasBrush = unobserve.querys.find((q) => q.type === "brush");
+  const brushes = unobserve.querys
+      .filter((q) => q.type === "brush")
+      .map((b) => [
+        Math.min(b.start[0], b.end[0]),
+        Math.max(b.start[0], b.end[0]),
+        Math.min(b.start[1], b.end[1]),
+        Math.max(b.start[1], b.end[1]),
+      ]);
+  // if (unobserve.weightCache[id] !== undefined && !hasBrush) return unobserve.weightCache[id];
+  const line = unobserve.result[id];
+
+  for (let i = 0; i < line.length - 1; i++) {
+    let xx = Math.floor(line[i + 1].x);
+    let yy = Math.floor(line[i + 1].y);
+    let x = Math.floor(line[i].x);
+    let y = Math.floor(line[i].y);
+    // BRENSENHAM
+    let dx = Math.abs(xx - x);
+    let sx = x < xx ? 1 : -1;
+    let dy = -Math.abs(yy - y);
+    let sy = y < yy ? 1 : -1;
+    let err = dx + dy;
+    let errC; // error value
+    let end = false;
+    let x1 = x;
+    let y1 = y;
+    let px = 0;
+
+    while (!end) {
+      if (
+          (!hasBrush ||
               brushes.find(
                   (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
               )
-          ) {
-            weight += this.initDensityBufferCache.data[(y1 * 1000 + x1) * 4];
-            passedPixels++;
-            if (x1 !== px) {
-              px = x1;
-              lineLen++;
-            }
-          }
-          if (x1 === xx && y1 === yy) {
-            end = true;
-          } else {
-            errC = 2 * err;
-            if (errC >= dy) {
-              err += dy;
-              x1 += sx;
-            }
-            if (errC <= dx) {
-              err += dx;
-              y1 += sy;
-            }
-          }
+          ) &&
+          x1 >= 0 && x1 < 1000 && y1 >= 0 && y1 < 500
+      ) {
+        weight += this.initDensityBufferCache.data[(y1 * 1000 + x1) * 4];
+        passedPixels++;
+        if (x1 !== px) {
+          px = x1;
+          lineLen++;
         }
       }
-
-      weight /= passedPixels;
-      weight *= Math.sqrt(lineLen); // prefer longest line
-
-      if (!isFinite(weight) || isNaN(weight)) {
-        weight = 0.00001;
+      if (x1 === xx && y1 === yy) {
+        end = true;
+      } else {
+        errC = 2 * err;
+        if (errC >= dy) {
+          err += dy;
+          x1 += sx;
+        }
+        if (errC <= dx) {
+          err += dx;
+          y1 += sy;
+        }
       }
-
-      if (!hasBrush) {
-        this.weightCache[id] = weight;
-      }
-      return weight;
     }
-  },
-  mounted() {
-    this.headers = unobserve.headers.map((title, key) => {
-      return { title, key, minWidth: 150 };
-    });
+  }
 
-    const data = unobserve.aggregatedData;
-    console.log(data);
-    const minX = d3.min(data, line => d3.min(line[1]));
-    const maxX = d3.max(data, line => d3.max(line[1]));
-    const minY = d3.min(data, line => d3.min(line[2]));
-    const maxY = d3.max(data, line => d3.max(line[2]));
-    console.log(minX, maxX, minY, maxY);
-
-    const xScaleData = d3.scaleLinear().domain([minX, maxX]).range([0, 1000]);
-    this.xScale = d3
-        .scaleTime()
-        .domain([new Date(minX *3600 * 24 * 1000), new Date(maxX * 3600 * 24 * 1000)])
-        .range([0, 1000]);
-    this.yScale = d3.scaleLinear().domain([minY, maxY]).range([500, 0]);
-    this.yScaleC = d3.scaleLinear().domain([minY, maxY]).range([0, 500]);
-
-    let result = data.map(
-        line => {
-          let res = [];
-          line[1].forEach((d, i) => {
-            res.push({x:xScaleData(d), y: this.yScale(line[2][i])});
-          })
-          return res;
-        }
-    );
-    // let tmpResult = [];
-    // for (let i = 0; i < 10; i++) {
-    //   for (let j = 0; j < result.length; j++) {
-    //     tmpResult.push(result[j]);
-    //   }
-    // }
-    // for (let i = 0; i < 1000000; i++) {
-    //   let ret = [];
-    //   for (let j = 0; j < 11; j++) {
-    //     ret.push({x: 500/ 10 * j, y: Math.random() * 1000});
-    //   }
-    //   tmpResult.push(ret);
-    // }
-    // result = tmpResult;
-    // result = [...result, ...result, ...result.slice(0, 10000 - result.length * 2)];
-    // let sumLength = 0;
-    // sumLength = result.reduce((p, v) => p + v.length, 0);
-    console.log(result);
-    unobserve.result = result;
-    // console.log('Point count', sumLength);
-    let drawMode = "all";
-    let reverseY = false;
-    //#endregion
-
-    //#region init tree
-    // let pointer = data[1][0];
-    // let previous = [];
-    // for (let line of data.slice(1)) {
-    //   if (line[0] !== pointer) {
-    //     pointer = line[0];
-    //     result.push(previous);
-    //     previous = [];
-    //   }
-    //   const date = new Date(line[1]);
-    //   const x = (Math.floor(date / 1000 / 60 / 60 / 24) - 13179) / 4.179;
-    //   const y = parseFloat(line[2]) / 0.13902;
-    //   previous.push({ x, y });
-    // }
-
-    this.tree = new KDTree(result);
-    this.tree.buildKDTree();
-
-    // tree.render(
-    //   document.getElementById("canvas"),
-    //   [
-    //     [0, 1000],
-    //     [0, 500],
-    //   ],
-    //   [
-    //     [0, 1000],
-    //     [0, 500],
-    //   ],
-    //   [[1]]
-    // ); // GPU will be faster
-    // In order to have a high performance, we use JS fallback instead
-    this.renderAllDensity();
-    this.renderDensity();
-    //#endregion
-
-    //#region init helpers
-    unobserve.selectionLayerContext = document
-        .getElementById("selectionLayer")
-        .getContext("2d");
-    unobserve.mouseLayerContext = document
-        .getElementById("mouseLayer")
-        .getContext("2d");
-    unobserve.repLayerContext = document
-        .getElementById("rep_layer")
-        .getContext("2d");
-    unobserve.rawLinesLayerContext = document
-        .getElementById("raw_lines")
-        .getContext("2d");
-    this.svg = d3.select(document.getElementById("axisHelper"));
-    this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
-
-    const xAxis = d3.axisBottom(this.xScale);
-    const xAxisR = d3.axisTop(this.xScale);
-    const yAxis = d3.axisLeft(this.yScale);
-    unobserve.yAxis = yAxis;
-    unobserve.xAxis = xAxis;
-    unobserve.xAxisR = xAxisR;
-
-    this.svg.append("g").attr('id', 'xaxis').attr("transform", "translate(30,520)").call(xAxis);
-    // svg.append("g").attr("transform", "translate(30,0)").call(yAxis);
-    this.svg.append("g").attr('id', 'yaxis').attr("transform", "translate(30,20)").call(yAxis);
-
-    // document.getElementById("hint").style.display = "none";
-    // document.getElementById("canvas").style.visibility = "visible";
-    // document.getElementById("controller").style.display = "block";
-    //#endregion
-
-    //#region init listeners
-    // document.getElementById("dist_cal").addEventListener("change", () => {
-    //   renderBoxes();
-    // });
-    document.getElementById("canvas").addEventListener("mousedown", (e) => {
-    });
-    document.getElementById("canvas").addEventListener("mouseup", (e) => {
-    });
-
-    document.getElementById("canvas").addEventListener("wheel", (e) => {
-    });
-    document.getElementById("canvas").addEventListener("mousemove", (e) => {
-    });
-
-    document.getElementById("canvas").addEventListener("contextmenu", (e) => {
-      // e.preventDefault();
-      // if (drawMode === "all") {
-      //   document.getElementById("render_res").click();
-      // } else if (drawMode === "res") {
-      //   document.getElementById("render_all").click();
-      // }
-    });
-
-    // document.getElementById("render_all").addEventListener("click", () => {
-    //   drawMode = "all";
-    //   document.getElementById("render_all").style.background = "deepskyblue";
-    //   document.getElementById("render_res").style.background = "gainsboro";
-    //   renderDensity();
-    //   renderBoxes();
-    // });
-
-    // document.getElementById("render_res").addEventListener("click", () => {
-    //   if (document.getElementById("result").innerText === "(empty)") return;
-    //   drawMode = "res";
-    //   document.getElementById("render_res").style.background = "deepskyblue";
-    //   document.getElementById("render_all").style.background = "gainsboro";
-    //   initCanvas(selectionLayerContext);
-    //   initCanvas(mouseLayerContext);
-    //   initCanvas(repLayerContext);
-    //   renderDensity();
-    //   renderBoxes();
-    // });
-    //
-    // document.getElementById("colormap").addEventListener("change", () => {
-    //   colormapIndexCache = document.getElementById("colormap").value;
-    //   initDensityCache = null;
-    //   renderDensity();
-    // });
-
-    // document
-    //     .getElementById("line_mode")
-    //     .addEventListener("change", function () {
-    //       if (this.value !== "rep") {
-    //         document.getElementById("rep_cont").style.display = "none";
-    //       } else {
-    //         document.getElementById("rep_cont").style.display = "block";
-    //       }
-    //       renderBoxes();
-    //     });
-    //
-    // document.getElementById("rep_count").addEventListener("change", () => {
-    //   renderBoxes();
-    // });
-    //
-    // document
-    //     .getElementById("show-all-clusters")
-    //     .addEventListener("change", () => {
-    //       renderBoxes();
-    //     });
-    //#endregion
-
-    //#region init functions
+  let oldWeight = weight;
+  weight /= passedPixels;
 
 
+  if (!isFinite(weight) || isNaN(weight)) {
+    console.log(weight, passedPixels, oldWeight);
+    weight = 0.00001;
+  }
 
-    //#endregion
+  if (!hasBrush) {
+    unobserve.weightCache[id] = [weight, line[line.length - 1].x - line[0].x];
+  }
+  return [weight, line[line.length - 1].x - line[0].x];
+}
+},
+mounted() {
+  this.headers = unobserve.headers.map((title, key) => {
+    return {title, key, minWidth: 150};
+  });
 
-    // renderQuerys();
-    this.renderBoxes();
-    this.drawRawLines();
-    this.rearrangeLayer(this.layers);
-    this.cnt ++;
-    // console.log(this.layers);
-    this.colormapIndexCache = 1;
-    this.renderColorMap();
-    // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
+  const data = unobserve.aggregatedData;
+  console.log(data);
+  const minX = d3.min(data, line => d3.min(line[1]));
+  const maxX = d3.max(data, line => d3.max(line[1]));
+  const minY = d3.min(data, line => d3.min(line[2]));
+  const maxY = d3.max(data, line => d3.max(line[2]));
+  console.log(minX, maxX, minY, maxY);
 
-    const table = document.querySelector('#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border');
-    const tableId = document.getElementById('informationTable');
-    tableId.addEventListener('mousemove', (e) => {
-      let ele = null;
-      if (e.path.length >= 18)
-        ele = e.path[e.path.length - 18];
-      if (!ele || !(ele.tagName.toLowerCase() === 'tr' && ele.parentNode.tagName.toLowerCase() === 'tbody' )) {
-        this.renderBoxes('mouseLayer');
+  const xScaleData = d3.scaleLinear().domain([minX, maxX]).range([0, 1000]);
+  this.xScale = d3
+      .scaleTime()
+      .domain([new Date(minX * 3600 * 24 * 1000), new Date(maxX * 3600 * 24 * 1000)])
+      .range([0, 1000]);
+  this.yScale = d3.scaleLinear().domain([minY, maxY]).range([500, 0]);
+  this.yScaleC = d3.scaleLinear().domain([minY, maxY]).range([500, 0]);
+
+  let result = data.map(
+      line => {
+        let res = [];
+        line[1].forEach((d, i) => {
+          res.push({x: xScaleData(d), y: this.yScale(line[2][i])});
+        })
+        return res;
       }
-      else {
-        let ind;
-        const children = ele.parentNode.children;
-        for (let i = 0; i < children.length; i++) {
-          const e = children[i];
-          if (e === ele) {
-            ind = i;
-            break;
-          }
-        }
-        if (ind >= unobserve.querys.length) {
-          this.renderBoxes('mouseLayer');
-          return;
-        }
-        this.hoveringQuery(ind);
-      }
-    });
+  );
+  // let tmpResult = [];
+  // for (let i = 0; i < 10; i++) {
+  //   for (let j = 0; j < result.length; j++) {
+  //     tmpResult.push(result[j]);
+  //   }
+  // }
+  // for (let i = 0; i < 1000000; i++) {
+  //   let ret = [];
+  //   for (let j = 0; j < 11; j++) {
+  //     ret.push({x: 500/ 10 * j, y: Math.random() * 1000});
+  //   }
+  //   tmpResult.push(ret);
+  // }
+  // result = tmpResult;
+  // result = [...result, ...result, ...result.slice(0, 10000 - result.length * 2)];
+  // let sumLength = 0;
+  // sumLength = result.reduce((p, v) => p + v.length, 0);
+  console.log(result);
+  unobserve.result = result;
+  // console.log('Point count', sumLength);
+  let drawMode = "all";
+  let reverseY = false;
+  //#endregion
 
-    tableId.addEventListener('mouseleave', () => {
+  //#region init tree
+  // let pointer = data[1][0];
+  // let previous = [];
+  // for (let line of data.slice(1)) {
+  //   if (line[0] !== pointer) {
+  //     pointer = line[0];
+  //     result.push(previous);
+  //     previous = [];
+  //   }
+  //   const date = new Date(line[1]);
+  //   const x = (Math.floor(date / 1000 / 60 / 60 / 24) - 13179) / 4.179;
+  //   const y = parseFloat(line[2]) / 0.13902;
+  //   previous.push({ x, y });
+  // }
+
+  this.tree = new KDTree(result);
+  this.tree.buildKDTree();
+
+  // tree.render(
+  //   document.getElementById("canvas"),
+  //   [
+  //     [0, 1000],
+  //     [0, 500],
+  //   ],
+  //   [
+  //     [0, 1000],
+  //     [0, 500],
+  //   ],
+  //   [[1]]
+  // ); // GPU will be faster
+  // In order to have a high performance, we use JS fallback instead
+  this.renderAllDensity();
+  this.renderDensity();
+  //#endregion
+
+  //#region init helpers
+  unobserve.selectionLayerContext = document
+      .getElementById("selectionLayer")
+      .getContext("2d");
+  unobserve.mouseLayerContext = document
+      .getElementById("mouseLayer")
+      .getContext("2d");
+  unobserve.repLayerContext = document
+      .getElementById("rep_layer")
+      .getContext("2d");
+  unobserve.rawLinesLayerContext = document
+      .getElementById("raw_lines")
+      .getContext("2d");
+  this.svg = d3.select(document.getElementById("axisHelper"));
+  this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
+
+  const xAxis = d3.axisBottom(this.xScale);
+  const xAxisR = d3.axisTop(this.xScale);
+  const yAxis = d3.axisLeft(this.yScale);
+  unobserve.yAxis = yAxis;
+  unobserve.xAxis = xAxis;
+  unobserve.xAxisR = xAxisR;
+
+  this.svg.append("g").attr('id', 'xaxis').attr("transform", "translate(30,520)").call(xAxis);
+  // svg.append("g").attr("transform", "translate(30,0)").call(yAxis);
+  this.svg.append("g").attr('id', 'yaxis').attr("transform", "translate(30,20)").call(yAxis);
+
+  // document.getElementById("hint").style.display = "none";
+  // document.getElementById("canvas").style.visibility = "visible";
+  // document.getElementById("controller").style.display = "block";
+  //#endregion
+
+  //#region init listeners
+  // document.getElementById("dist_cal").addEventListener("change", () => {
+  //   renderBoxes();
+  // });
+  document.getElementById("canvas").addEventListener("mousedown", (e) => {
+  });
+  document.getElementById("canvas").addEventListener("mouseup", (e) => {
+  });
+
+  document.getElementById("canvas").addEventListener("wheel", (e) => {
+  });
+  document.getElementById("canvas").addEventListener("mousemove", (e) => {
+  });
+
+  document.getElementById("canvas").addEventListener("contextmenu", (e) => {
+    // e.preventDefault();
+    // if (drawMode === "all") {
+    //   document.getElementById("render_res").click();
+    // } else if (drawMode === "res") {
+    //   document.getElementById("render_all").click();
+    // }
+  });
+
+  // document.getElementById("render_all").addEventListener("click", () => {
+  //   drawMode = "all";
+  //   document.getElementById("render_all").style.background = "deepskyblue";
+  //   document.getElementById("render_res").style.background = "gainsboro";
+  //   renderDensity();
+  //   renderBoxes();
+  // });
+
+  // document.getElementById("render_res").addEventListener("click", () => {
+  //   if (document.getElementById("result").innerText === "(empty)") return;
+  //   drawMode = "res";
+  //   document.getElementById("render_res").style.background = "deepskyblue";
+  //   document.getElementById("render_all").style.background = "gainsboro";
+  //   initCanvas(selectionLayerContext);
+  //   initCanvas(mouseLayerContext);
+  //   initCanvas(repLayerContext);
+  //   renderDensity();
+  //   renderBoxes();
+  // });
+  //
+  // document.getElementById("colormap").addEventListener("change", () => {
+  //   colormapIndexCache = document.getElementById("colormap").value;
+  //   initDensityCache = null;
+  //   renderDensity();
+  // });
+
+  // document
+  //     .getElementById("line_mode")
+  //     .addEventListener("change", function () {
+  //       if (this.value !== "rep") {
+  //         document.getElementById("rep_cont").style.display = "none";
+  //       } else {
+  //         document.getElementById("rep_cont").style.display = "block";
+  //       }
+  //       renderBoxes();
+  //     });
+  //
+  // document.getElementById("rep_count").addEventListener("change", () => {
+  //   renderBoxes();
+  // });
+  //
+  // document
+  //     .getElementById("show-all-clusters")
+  //     .addEventListener("change", () => {
+  //       renderBoxes();
+  //     });
+  //#endregion
+
+  //#region init functions
+
+
+  //#endregion
+
+  // renderQuerys();
+  this.renderBoxes();
+  this.drawRawLines();
+  this.rearrangeLayer(this.layers);
+  this.cnt++;
+  // console.log(this.layers);
+  this.colormapIndexCache = 1;
+  this.renderColorMap();
+  // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
+
+  const table = document.querySelector('#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border');
+  const tableId = document.getElementById('informationTable');
+  tableId.addEventListener('mousemove', (e) => {
+    let ele = null;
+    if (e.path.length >= 18)
+      ele = e.path[e.path.length - 18];
+    if (!ele || !(ele.tagName.toLowerCase() === 'tr' && ele.parentNode.tagName.toLowerCase() === 'tbody')) {
+      this.hoveringInd = null;
       this.renderBoxes('mouseLayer');
-    })
-  },
-  beforeDestroy() {
-    if (this.contextHandler) {
-      this.contextHandler.destroy();
+    } else {
+      let ind;
+      const children = ele.parentNode.children;
+      for (let i = 0; i < children.length; i++) {
+        const e = children[i];
+        if (e === ele) {
+          ind = i;
+          break;
+        }
+      }
+      if (ind >= unobserve.querys.length) {
+        this.renderBoxes('mouseLayer');
+        this.hoveringInd = null;
+        return;
+      }
+      this.hoveringQuery(ind);
     }
-  },
+  });
+
+  tableId.addEventListener('mouseleave', () => {
+    this.renderBoxes('mouseLayer');
+  })
+},
+beforeDestroy() {
+  if (this.contextHandler) {
+    this.contextHandler.destroy();
+  }
+},
 };
 </script>
 
