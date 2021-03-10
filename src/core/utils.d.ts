@@ -7,5 +7,5 @@ export declare function makePair(arr: ndarray, multi?: number): any;
  * Convert integer to float for shaders.
  */
 export declare function float(i: number): string | number;
-export declare function exportCanvas(canvas: HTMLCanvasElement[], upsideDown: boolean): void;
+export declare function exportCanvas(canvas: HTMLCanvasElement[], upsideDown: boolean, opacityConfig: null | []): void;
 export declare function slope(array: any, min: any, max: any): any;

@@ -124,14 +124,14 @@
             <Radio label="attr">Attr</Radio>
           </RadioGroup>
         </div>
-        <div>
+        <!-- <div>
           <span>Switch brush query method: </span>
           <RadioGroup v-model="brushMethod" type="button" size="small">
             <Radio label="tree">KD Tree</Radio>
             <Radio label="seq">Seq</Radio>
             <Radio label="new">Inc</Radio>
           </RadioGroup>
-        </div>
+        </div> -->
         <div v-if="filterMode === 'attr'" style="margin-left: 2em;">
           <Form onsubmit="#">
             <FormItem label="Attribute Column">
