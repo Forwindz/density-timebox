@@ -71,8 +71,24 @@
               >generate chart</Button
             >
             <div style="margin-top:100px">
-              <p>Layers:</p>
-              <draggable v-model="layers">
+              <Button
+                type="primary"
+                @click="exportFig"
+                style="width:200px"
+                >export figure </Button
+              ><br /><Button
+                type="primary"
+                @click="exportFig"
+                style="margin-top:12px;width:200px"
+                >export representative lines </Button
+              ><br /><Button
+                type="primary"
+                @click="exportFig"
+                style="margin-top:12px;width:200px"
+                >export select lines
+              </Button>
+              <!-- <p>Layers:</p> -->
+              <!-- <draggable v-model="layers">
                 <div
                   v-for="layer in layers"
                   :key="layer.id"
@@ -113,7 +129,7 @@
                     @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
                   />
                 </div>
-              </draggable>
+              </draggable> -->
             </div>
           </div>
         </Card>
