@@ -71,19 +71,16 @@
               >generate chart</Button
             >
             <div style="margin-top:100px">
-              <Button
-                type="primary"
-                @click="exportFig"
-                style="width:200px"
+              <Button type="primary" @click="exportFig" style="width:200px"
                 >export figure </Button
               ><br /><Button
                 type="primary"
-                @click="exportFig"
+                @click="exportData(1)"
                 style="margin-top:12px;width:200px"
                 >export representative lines </Button
               ><br /><Button
                 type="primary"
-                @click="exportFig"
+                @click="exportData(0)"
                 style="margin-top:12px;width:200px"
                 >export select lines
               </Button>
@@ -205,27 +202,27 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable';
-import CanvasBox from './components/CanvasBox.vue';
-import { generateData, readData } from './core/data-gen';
-import unobserve from './store';
+import { exportCanvas } from "./core/utils";
+import CanvasBox from "./components/CanvasBox.vue";
+import { generateData, readData } from "./core/data-gen";
+import unobserve from "./store";
+import download from "downloadjs";
 
 function parseField(value, type) {
   switch (type) {
-    case 'string':
+    case "string":
       return 0;
-    case 'date':
+    case "date":
       return Math.floor(new Date(value) / (24 * 3600 * 1000));
-    case 'number':
+    case "number":
       return parseFloat(value);
   }
 }
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     CanvasBox,
-    draggable,
   },
   data() {
     return {
@@ -238,28 +235,28 @@ export default {
       filters: [],
       layers: [
         {
-          id: 'rep_layer',
-          name: 'representative line',
+          id: "rep_layer",
+          name: "representative line",
           opacity: 1,
         },
         {
-          id: 'selectionCanvas',
-          name: 'selected density',
+          id: "selectionCanvas",
+          name: "selected density",
           opacity: 0,
         },
         {
-          id: 'selectionLayer',
-          name: 'selected line',
+          id: "selectionLayer",
+          name: "selected line",
           opacity: 0.4,
         },
         {
-          id: 'canvas',
-          name: 'density',
+          id: "canvas",
+          name: "density",
           opacity: 1,
         },
         {
-          id: 'raw_lines',
-          name: 'raw line',
+          id: "raw_lines",
+          name: "raw line",
           opacity: 0,
         },
       ],
@@ -268,13 +265,13 @@ export default {
   methods: {
     eventHandler(type) {
       this.$Spin.show();
-      if (type.startsWith('1')) {
-        generateData(type.split('-')[1]).then((data) => {
+      if (type.startsWith("1")) {
+        generateData(type.split("-")[1]).then((data) => {
           this.$Spin.hide();
           this.preProcessData(data);
           this.generateCharts();
         });
-      } else if (type == '2') {
+      } else if (type == "2") {
         this.$refs.upload.handleClick();
         this.$Spin.hide();
       }
@@ -294,27 +291,27 @@ export default {
       unobserve.data = data.slice(1);
       if (data.length > 1) {
         this.inferTypes = data[1].map((attr) => {
-          if (attr.includes('-') || attr.includes('/')) {
+          if (attr.includes("-") || attr.includes("/")) {
             let isDate = new Date(attr).toString();
-            if (isDate.startsWith('Invalid')) {
-              return 'string';
+            if (isDate.startsWith("Invalid")) {
+              return "string";
             }
-            return 'date';
+            return "date";
           }
           if (/^\d*(\.\d*)?$/.test(attr)) {
-            return 'number';
+            return "number";
           }
-          return 'string';
+          return "string";
         });
-        this.aggregateAttr = this.inferTypes.indexOf('string');
-        this.timeAttr = this.inferTypes.indexOf('date');
+        this.aggregateAttr = this.inferTypes.indexOf("string");
+        this.timeAttr = this.inferTypes.indexOf("date");
         if (this.aggregateAttr < 0) this.aggregateAttr = 0;
         if (this.timeAttr < 0)
-          this.timeAttr = this.inferTypes.indexOf('number');
+          this.timeAttr = this.inferTypes.indexOf("number");
         if (this.timeAttr < 0) this.timeAttr = 0;
-        this.valueAttr = this.inferTypes.indexOf('number');
+        this.valueAttr = this.inferTypes.indexOf("number");
         if (this.valueAttr === this.timeAttr)
-          this.valueAttr = this.inferTypes.indexOf('number', this.timeAttr + 1);
+          this.valueAttr = this.inferTypes.indexOf("number", this.timeAttr + 1);
         if (this.valueAttr < 0) this.valueAttr = 0;
       }
     },
@@ -392,7 +389,7 @@ export default {
       this.filters.splice(index, 1, filter);
       if (!this.filters.find((f) => f)) {
         this.chartConfigs.forEach((config) => {
-          this.$set(config, 'filter', undefined);
+          this.$set(config, "filter", undefined);
         });
         return;
       }
@@ -404,8 +401,45 @@ export default {
         )
       );
       this.chartConfigs.forEach((config) => {
-        this.$set(config, 'filter', set);
+        this.$set(config, "filter", set);
       });
+    },
+    exportFig() {
+      // exportCanvas(
+      //     [this.$refs.canvas, this.$refs.canvasOverlay, this.$refs.canvasRawLine],
+      //     this.upsideDown
+      // );
+      exportCanvas(
+        unobserve.layers
+          .map((layer) => document.getElementById(layer.id))
+          .reverse(),
+        unobserve.upsideDown,
+        unobserve.layers.map((layer) => layer.opacity).reverse()
+      );
+    },
+    exportData(mode) {
+      let ids = unobserve[mode ? "repIds" : "selectedLines"];
+      if (!ids || !ids.length) return;
+      let previousName = "";
+      let previousId = -1;
+      const exportData = unobserve.data.filter((raw) => {
+        if (raw[this.aggregateAttr] !== previousName) {
+          previousId++;
+          previousName = raw[this.aggregateAttr];
+        }
+        if (ids.includes(previousId)) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+      download(
+        unobserve.headers.join(",") +
+          "\n" +
+          exportData.map((d) => d.join(",")).join("\n"),
+        "export.csv",
+        "text/csv"
+      );
     },
   },
 };
