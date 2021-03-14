@@ -197,7 +197,7 @@
             <Slider
               v-model="diverse"
               :min="0.1"
-              :max="20"
+              :max="7"
               :step="0.1"
               show-tip="never"
               style="flex-grow:1"
@@ -393,6 +393,7 @@ import { bin } from 'vega-statistics';
 import unobserve from '../store';
 import render from '../core';
 import * as d3 from 'd3';
+import expandRow from "@/components/expandRow";
 import {
   lineRectCollide,
   sqr,
@@ -417,7 +418,7 @@ export default {
     timeName: String,
     valueName: String,
     filter: Float32Array,
-    layers: Array,
+    // layers: Array,
     // headers: Array,
   },
   data() {
@@ -430,7 +431,7 @@ export default {
       brushMethod: 'tree',
       rawMode: 'rep',
       repCount: 3,
-      diverse: 5,
+      diverse: 1,
       cursor: 'crosshair',
       mouseDown: false,
       listener: null,
@@ -448,7 +449,12 @@ export default {
       previewIndex: -1,
       selectedQuery: '$int',
       tableColumns: [
-        { type: 'expand', width: 50 },
+        { type: 'expand', width: 50 , render: (h, params) => h(expandRow, {
+          props: {
+            row: params.row.reps
+          }
+          })
+        },
         { title: 'Query', align: 'center', slot: 'name' },
         // { title: 'Min start time', align: 'center', key: 'minT' },
         // { title: 'Max start time', align: 'center', key: 'maxT' },
@@ -460,13 +466,39 @@ export default {
         { title: 'Operations', align: 'center', slot: 'op', width: 250 },
       ],
       repColumns: [
-        { title: 'Index Num.', align: 'center', key: 'name' },
+        { title: 'Index num.', align: 'center', key: 'name' },
         { title: 'Min start time', align: 'center', key: 'minT' },
         { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: 'Count', align: 'center', key: 'count' },
         { title: 'Min value', align: 'center', key: 'minV' },
         { title: 'Max value', align: 'center', key: 'maxV' },
         { title: 'Mean value', align: 'center', key: 'mean' },
+      ],
+      layers: [
+        {
+          id: 'rep_layer',
+          name: 'representative line',
+          opacity: 1,
+        },
+        {
+          id: 'selectionCanvas',
+          name: 'selected density',
+          opacity: 0,
+        },
+        {
+          id: 'selectionLayer',
+          name: 'selected line',
+          opacity: 0.4,
+        },
+        {
+          id: 'canvas',
+          name: 'density',
+          opacity: 1,
+        },
+        {
+          id: 'raw_lines',
+          name: 'raw line',
+          opacity: 0,
+        },
       ],
       colormapIndexCache: 1,
       initDensityCache: null,
@@ -531,23 +563,59 @@ export default {
         attr: 'Attribute',
       };
       for (let i = 0; i < unobserve.querys.length; i++) {
+        if (!unobserve.querys[i].reps)
+          unobserve.querys[i].reps = this.calcRepLines([...unobserve.querys[i].cache]);
         res.push({
           query: i,
           name: mp[unobserve.querys[i].type],
           ...this.getStaticInformation([...unobserve.querys[i].cache]),
+          reps: unobserve.querys[i].reps.map(id => {
+            return {
+              name: id,
+              color: `rgb(${this.getColor(
+                  id
+              ).join(',')})`,
+              ...this.getStaticInformation([id]),
+            }
+          }),
         });
       }
 
+      console.log('this is unoberserve interResult');
+      console.log(unobserve.interResult);
+      unobserve.interReps = this.calcRepLines(unobserve.interResult);
       res.push({
         query: '$int',
         name: 'intersection',
         ...this.getStaticInformation(unobserve.interResult),
+        reps: unobserve.interReps.map(id =>{
+              return {
+                name: id,
+                color: `rgb(${this.getColor(
+                    id
+                ).join(',')})`,
+                ...this.getStaticInformation([id])
+              };
+        })
       });
+
+      unobserve.unionReps = this.calcRepLines(unobserve.unionResult);
       res.push({
         query: '$uni',
         name: 'union',
         ...this.getStaticInformation(unobserve.unionResult),
+        reps: unobserve.unionReps
+            .map(id =>  {
+                  return {
+                    name: id,
+                    color: `rgb(${this.getColor(
+                        id
+                    ).join(',')})`,
+                    ...this.getStaticInformation([id])
+                  }
+            }),
       });
+      console.log(res);
       return res;
     },
   },
@@ -718,13 +786,18 @@ export default {
           this.preview.end = point;
         }
         this.preview.cache = null;
+        this.preview.reps = null;
         unobserve.querys.push(this.preview);
         this.preview = null;
       }
+      console.time('render Density in mouseup');
       this.renderDensity();
+      console.timeEnd('render Density in mouseup');
       // renderQuerys();
 
+      console.time('renderBoxes in mouseup');
       this.renderBoxes();
+      console.timeEnd('renderBoxes in mouseup');
       this.cnt++;
     },
 
@@ -744,6 +817,7 @@ export default {
             query.n = Math.min(Math.max(1, query.n - sign), 180);
           else query.n = Math.max(query.n - Math.sign(e.deltaY), 0);
           query.cache = null;
+          query.reps = null;
           console.log(query.n);
         }
         // renderQuerys();
@@ -1247,7 +1321,6 @@ export default {
         this.hightlightRow(row) +
         ' ' +
         (row.query === this.hoveringInd ? 'ivu-table-row-hover' : '');
-      console.log('this is class name', ret, row);
       return ret;
     },
     calcLineDistance(aid, bid) {
@@ -1389,6 +1462,7 @@ export default {
         confInput.addEventListener('change', () => {
           query.n = parseFloat(confInput.value);
           query.cache = null;
+          query.reps = null;
           setTimeout(renderBoxes, 0);
         });
         if (
@@ -2000,21 +2074,20 @@ export default {
       this.initCanvas(unobserve.selectionLayerContext);
       this.initCanvas(unobserve.repLayerContext);
 
-      let result1 = [],
-        result2 = [];
+      if (this.preview) {
 
-      result1 = tmpQueries.reduce(
-        (p, v) => new Set([...p].filter((x) => v.cache.has(x))),
-        (tmpQueries[0] || { cache: new Set() }).cache
-      );
-      result2 = tmpQueries.reduce(
-        (p, v) => new Set([...p, ...v.cache]),
-        (tmpQueries[0] || { cache: new Set() }).cache
-      );
-      // if (!tmpQueries.length) {
-      //   result1 = new Array(unobserve.result.length).fill(0).map((_,i) => i);
-      // }
-      this.renderResult([...result1], [...result2]);
+        let result1 = [],
+            result2 = [];
+        result1 = tmpQueries.reduce(
+            (p, v) => new Set([...p].filter((x) => v.cache.has(x))),
+            (tmpQueries[0] || { cache: new Set() }).cache
+        );
+        result2 = tmpQueries.reduce(
+            (p, v) => new Set([...p, ...v.cache]),
+            (tmpQueries[0] || { cache: new Set() }).cache
+        );
+        this.renderResult([...result1], [...result2]);
+      }
       this.drawLine(this.getSelectedIds());
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
 
@@ -2627,6 +2700,101 @@ export default {
       this.colorCache[id] = res;
       return res;
     },
+
+    calcRepLines(ids) {
+      const lineCount = this.repCount;
+      const lineWeights = ids
+          .map((id) => ({
+            id,
+            w: this.calcLineWeight(id),
+            cur: calculateCurvature(
+                unobserve.result[id].filter((point) =>
+                    unobserve.querys.length <= 0 && !this.preview
+                        ? true
+                        : (this.preview ? [this.preview] : unobserve.querys).find(
+                        (query) => {
+                          if (query.type === 'knn') {
+                            return true; // TODO: only line in knn
+                          } else if (query.type === 'rnn') {
+                            return (
+                                Math.sqrt(
+                                    Math.pow(point.x - query.start[0], 2) +
+                                    Math.pow(point.y - query.start[1], 2)
+                                ) <= query.n
+                            );
+                          } else if (query.type === 'brush') {
+                            const startX = Math.min(query.start[0], query.end[0]);
+                            const startY = Math.min(query.start[1], query.end[1]);
+                            const endX = Math.max(query.start[0], query.end[0]);
+                            const endY = Math.max(query.start[1], query.end[1]);
+                            return (
+                                point.x >= startX &&
+                                point.y >= startY &&
+                                point.x <= endX &&
+                                point.y <= endY
+                            );
+                          } else if (query.type === 'ang') {
+                            const startX = Math.min(query.start[0], query.end[0]);
+                            const endX = Math.max(query.start[0], query.end[0]);
+                            return point.x >= startX && point.x <= endX;
+                          }
+                        }
+                        )
+                )
+            ),
+          }))
+          .sort(
+              (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
+          );
+      const topIds1 = lineWeights
+          .reduce((p, v) => {
+            // if (document.getElementById("show-all-clusters").checked) {
+            //   p.push(v);
+            //   return p;
+            // }
+            if (
+                p.length >= lineCount ||
+                v.w[1] < 1000 / 3 ||
+                p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
+            ) {
+              return p;
+            }
+            p.push(v);
+            return p;
+          }, [])
+          // .slice(0, lineCount)
+          .map((x) => x.id);
+
+      // lineWeights.sort((a, b) => a.w[0] - b.w[0]);
+      // const topIds2 = lineWeights
+      //   .reduce((p, v) => {
+      //     // if (document.getElementById("show-all-clusters").checked) {
+      //     //   p.push(v);
+      //     //   return p;
+      //     // }
+      //     // console.log(v.w[1]);
+      //     if (
+      //       p.length >= lineCount ||
+      //       v.w[1] < 1000 / 3 ||
+      //       p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
+      //     ) {
+      //       return p;
+      //     }
+      //     p.push(v);
+      //     return p;
+      //   }, [])
+      //   // .slice(0, lineCount)
+      //   .map((x) => x.id);
+      // console.log(topIds1, topIds2);
+      // for (let i of topIds1)
+      //   console.log(unobserve.result[i], this.calcLineWeight(i));
+      // for (let i of topIds2)
+      //   console.log(unobserve.result[i], this.calcLineWeight(i));
+      // for(let i of topIds1){
+      //   console.log(i, this.getStaticInformation([i]), this.getColor(i));
+      // }
+      return topIds1;
+    },
     drawLine(ids) {
       // Selected Part =====================
       if (this.preview) {
@@ -2701,7 +2869,7 @@ export default {
         .sort(
           (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
         );
-      const topIds1 = lineWeights
+      const topIds = lineWeights
         .reduce((p, v) => {
           // if (document.getElementById("show-all-clusters").checked) {
           //   p.push(v);
@@ -2720,7 +2888,7 @@ export default {
         // .slice(0, lineCount)
         .map((x) => x.id);
 
-      lineWeights.sort((a, b) => a.w[0] - b.w[0]);
+      // lineWeights.sort((a, b) => a.w[0] - b.w[0]);
       // const topIds2 = lineWeights
       //   .reduce((p, v) => {
       //     // if (document.getElementById("show-all-clusters").checked) {
@@ -2745,10 +2913,10 @@ export default {
       //   console.log(unobserve.result[i], this.calcLineWeight(i));
       // for (let i of topIds2)
       //   console.log(unobserve.result[i], this.calcLineWeight(i));
-      for(let i of topIds1){
-        console.log(i, this.getStaticInformation([i]), this.getColor(i));
-      }
-      const topIds = [...new Set([...topIds1])];
+      // for(let i of topIds1){
+      //   console.log(i, this.getStaticInformation([i]), this.getColor(i));
+      // }
+      // const topIds = [...new Set([...topIds1])];
       // const topIds = lineWeights
       //   .reduce((p, v) => {
       //     if (
@@ -2890,11 +3058,11 @@ export default {
 
       if (!hasBrush) {
         unobserve.weightCache[id] = [
-          weight,
+          weight * Math.sqrt(lineLen),
           line[line.length - 1].x - line[0].x,
         ];
       }
-      return [weight, line[line.length - 1].x - line[0].x];
+      return [weight * Math.sqrt(lineLen), line[line.length - 1].x - line[0].x];
     },
   },
   mounted() {
@@ -3154,6 +3322,7 @@ export default {
 
     tableId.addEventListener('mouseleave', () => {
       this.renderBoxes('mouseLayer');
+      this.hoveringInd = null;
     });
   },
   beforeDestroy() {

@@ -3,8 +3,9 @@ import App from "./App.vue";
 import iView from "view-design";
 
 import "view-design/dist/styles/iview.css";
+import locale from "view-design/dist/locale/en-US"
 
-Vue.use(iView);
+Vue.use(iView, {locale});
 
 Vue.config.productionTip = false;
 
