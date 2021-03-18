@@ -3,7 +3,7 @@
     <Layout>
       <Header>
         <Menu mode="horizontal" theme="dark" @on-select="eventHandler">
-          <h1 class="layout-logo">KDtree-based density</h1>
+          <h1 class="layout-logo">KD-Box</h1>
           <div class="layout-nav">
             <Upload
               action="/"
