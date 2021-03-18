@@ -1411,7 +1411,7 @@ export default {
       const shuffle = unobserve.result
         .slice()
         .map((line, id) => ({ line, id }));
-      shuffle.sort(() => Math.round(Math.random() * 2) - 1);
+      shuffle.sort(() => (Math.random() > 0.5 ? 1 : -1));
       for (let sid in shuffle) {
         const { line, id } = shuffle[sid];
         unobserve.rawLinesLayerContext.strokeStyle = `rgb(${this.getColor(
