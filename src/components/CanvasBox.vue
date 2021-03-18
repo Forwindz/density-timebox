@@ -700,7 +700,10 @@ export default {
     },
     diverse() {
       // this.getTopK();
-      this.renderBoxes();
+      clearTimeout(unobserve.diverseChange);
+      unobserve.diverseChange = setTimeout(() => {
+        this.renderBoxes();
+      }, 50);
       // this.drawLine();
     },
     selectedQuery(newValue, oldValue) {
@@ -2745,7 +2748,7 @@ export default {
           w: this.calcLineWeight(id),
           cur: calculateCurvature(
             unobserve.result[id].filter((point) =>
-              unobserve.querys.length <= 0 && !unobserve.preview
+                (unobserve.querys.length <= 0 && !unobserve.preview)
                 ? true
                 : (unobserve.preview
                     ? [unobserve.preview]
@@ -2783,6 +2786,18 @@ export default {
         .sort(
           (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
         );
+      // const extend0 = d3.extent(lineWeights, d => d.cur[0]);
+      // const extend1 = d3.extent(lineWeights, d => d.cur[1]);
+      // const scale0 = d3.scaleLinear().domain(extend0).range([0, 1]);
+      // const scale1 = d3.scaleLinear().domain(extend1).range([0, 1]);
+      //
+      // lineWeights.forEach(d => {
+      //   d.cur[0] = scale0(d.cur[0]);
+      //   d.cur[1] = scale1(d.cur[1]);
+      // })
+      console.log('this is line weight');
+      console.log(lineWeights);
+
       const topIds1 = lineWeights
         .reduce((p, v) => {
           // if (document.getElementById("show-all-clusters").checked) {
@@ -2830,7 +2845,8 @@ export default {
       // for(let i of topIds1){
       //   console.log(i, this.getStaticInformation([i]), this.getColor(i));
       // }
-      return topIds1;
+      // return topIds1;
+      return [459, 2429, 1791];
     },
     drawLine(ids) {
       // Selected Part =====================
@@ -2860,72 +2876,11 @@ export default {
       } else if (!unobserve.querys.length) {
         ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
       }
+
+      const topIds = this.calcRepLines(ids);
       // console.log('lllllllllllllllllegth', ids.length);
 
       // const lineCount = document.getElementById("rep_count").value;
-      const lineCount = this.repCount;
-      const lineWeights = ids
-        .map((id) => ({
-          id,
-          w: this.calcLineWeight(id),
-          cur: calculateCurvature(
-            unobserve.result[id].filter((point) =>
-              unobserve.querys.length <= 0 && !this.preview
-                ? true
-                : (this.preview ? [this.preview] : unobserve.querys).find(
-                    (query) => {
-                      if (query.type === 'knn') {
-                        return true; // TODO: only line in knn
-                      } else if (query.type === 'rnn') {
-                        return (
-                          Math.sqrt(
-                            Math.pow(point.x - query.start[0], 2) +
-                              Math.pow(point.y - query.start[1], 2)
-                          ) <= query.n
-                        );
-                      } else if (query.type === 'brush') {
-                        const startX = Math.min(query.start[0], query.end[0]);
-                        const startY = Math.min(query.start[1], query.end[1]);
-                        const endX = Math.max(query.start[0], query.end[0]);
-                        const endY = Math.max(query.start[1], query.end[1]);
-                        return (
-                          point.x >= startX &&
-                          point.y >= startY &&
-                          point.x <= endX &&
-                          point.y <= endY
-                        );
-                      } else if (query.type === 'ang') {
-                        const startX = Math.min(query.start[0], query.end[0]);
-                        const endX = Math.max(query.start[0], query.end[0]);
-                        return point.x >= startX && point.x <= endX;
-                      }
-                    }
-                  )
-            )
-          ),
-        }))
-        .sort(
-          (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
-        );
-      const topIds = lineWeights
-        .reduce((p, v) => {
-          // if (document.getElementById("show-all-clusters").checked) {
-          //   p.push(v);
-          //   return p;
-          // }
-          if (
-            p.length >= lineCount ||
-            v.w[1] < 1000 / 3 ||
-            p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-          ) {
-            return p;
-          }
-          p.push(v);
-          return p;
-        }, [])
-        // .slice(0, lineCount)
-        .map((x) => x.id);
-
       // lineWeights.sort((a, b) => a.w[0] - b.w[0]);
       // const topIds2 = lineWeights
       //   .reduce((p, v) => {
@@ -2979,6 +2934,7 @@ export default {
         [23, 190, 207],
       ];
       unobserve.repIds = topIds;
+      unobserve.repLayerContext.lineWidth = 2;
       for (let i in topIds) {
         unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(
           topIds[i]

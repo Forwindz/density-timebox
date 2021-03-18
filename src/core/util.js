@@ -952,31 +952,41 @@ export function calculateCurvature(points) {
   if (points.length < 3)
     return 0;
 
-  let cnt = 0, curSum = 0;
+  // let cnt = 0, curSum = 0, bendingEnergy = 0;
+    let result = [];
   for (let i = 1; i < points.length - 1; i++) {
     const step1 = points[i].x - points[i - 1].x,
       step2 = points[i + 1].x - points[i].x,
-      step = Math.min(step1, step2);
+      step = Math.min(step1, step2),
+        slopeR = (points[i+1].x - points[i].x) / (points[i+1].y - points[i].y),
+        slopeL = (points[i].x - points[i-1].x) / (points[i].y - points[i-1].y);
+
     let lstPoint = points[i - 1],
       nxtPoint = points[i + 1];
     if (step1 < step2) {
       nxtPoint = mix(points[i], nxtPoint, points[i].x + step1);
     } else {
-      nxtPoint = mix(points[i - 1], points[i], points[i].x - step2);
+      lstPoint = mix(points[i - 1], points[i], points[i].x - step2);
     }
     const f1 = (nxtPoint.y - lstPoint.y) / step;
     const f2 = (lstPoint.y - 2 * points[i].y + nxtPoint.y) / (step * step);
-    const c = Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5);
-    curSum += c*c;
-    cnt ++;
+    result.push({
+      x: points[i].x,
+      y: Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5),
+    })
+    // const c = Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5);
+    // curSum += c* Math.sign(slopeR - slopeL);
+    // bendingEnergy += c * c;
+    // cnt ++;
   }
-  return curSum / cnt;
-  // return result;
+  // return curSum / cnt;
+  return result;
+    // return [curSum, bendingEnergy / cnt];
 }
 
 
-export function calculateDifference(line1, line2) {
-  return Math.abs(line1 - line2);
+export function calculateDifference(line1, line2, diverse) {
+  // return Math.abs(line1[0] - line2[0]) < diverse ||  Math.abs(line1[1] - line2[1]) < diverse;
   // if (!line1.length || !line2.length)
   //   return 0;
   let cnt = 0,
@@ -1007,6 +1017,5 @@ export function calculateDifference(line1, line2) {
   }
 
   return cnt === 0 ? 0.0001 : sum / cnt;
+    // return sum / cnt;
 }
-
-
