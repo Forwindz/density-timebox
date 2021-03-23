@@ -1657,7 +1657,7 @@ export default {
           while (result.size < query.n) {
             base += query.n - result.size;
             result = new Set(
-              this.tree.knn(query.start, base).map(({ raw }) => raw[5])
+              this.tree.knn(query.start, base).map(({ id }) => id)
             );
           }
           query.cache = result;
@@ -1674,7 +1674,7 @@ export default {
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-            this.tree.rnn(query.start, query.n).map(({ raw }) => raw[5])
+            this.tree.rnn(query.start, query.n).map(({ id }) => id)
           );
           query.cache = result;
         }
@@ -1743,85 +1743,67 @@ export default {
             query.cache = result;
           } else if (this.brushMethod === 'tree') {
             const result = new Set(
-              this.tree
-                .brush(
-                  [
-                    Math.min(query.start[0], query.end[0]),
-                    Math.min(query.start[1], query.end[1]),
-                  ],
-                  [
-                    Math.max(query.start[0], query.end[0]),
-                    Math.max(query.start[1], query.end[1]),
-                  ]
-                )
-                .filter(({ raw }) =>
-                  lineRectCollide(
-                    {
-                      x1: raw[0],
-                      x2: raw[1],
-                      y1: raw[2],
-                      y2: raw[3],
-                    },
-                    {
-                      x: Math.min(query.start[0], query.end[0]),
-                      y: Math.min(query.start[1], query.end[1]),
-                      width: Math.abs(query.start[0] - query.end[0]),
-                      height: Math.abs(query.start[1] - query.end[1]),
-                    }
-                  )
-                )
-                .map(({ raw }) => raw[5])
-                .filter((id) => {
-                  // return true;
-                  const line = unobserve.result[id];
-                  let l = 0,
-                    r = line.length - 1,
-                    lp = 0,
-                    rp = r,
-                    mid,
-                    tmpY;
-                  while (l <= r) {
-                    mid = (l + r) >> 1;
-                    if (line[mid].x >= minX) {
-                      lp = mid;
-                      r = mid - 1;
-                    } else l = mid + 1;
-                  }
+              this.tree.brush(
+                [
+                  Math.min(query.start[0], query.end[0]),
+                  Math.min(query.start[1], query.end[1]),
+                ],
+                [
+                  Math.max(query.start[0], query.end[0]),
+                  Math.max(query.start[1], query.end[1]),
+                ]
+              )
+              // .filter((id) => {
+              //   // return true;
+              //   const line = unobserve.result[id];
+              //   let l = 0,
+              //     r = line.length - 1,
+              //     lp = 0,
+              //     rp = r,
+              //     mid,
+              //     tmpY;
+              //   while (l <= r) {
+              //     mid = (l + r) >> 1;
+              //     if (line[mid].x >= minX) {
+              //       lp = mid;
+              //       r = mid - 1;
+              //     } else l = mid + 1;
+              //   }
 
-                  l = 0;
-                  r = line.length - 1;
-                  while (l <= r) {
-                    mid = (l + r) >> 1;
-                    if (line[mid].x <= maxX) {
-                      rp = mid;
-                      l = mid + 1;
-                    } else {
-                      r = mid - 1;
-                    }
-                  }
-                  // console.log(lp, rp);
-                  for (let i = lp; i <= rp; i++) {
-                    if (line[i].y < minY || line[i].y > maxY) {
-                      // console.log(line[i]);
-                      return false;
-                    }
-                  }
-                  if (lp) {
-                    tmpY = mix(line[lp - 1], line[lp], minX).y;
-                    if (tmpY < minY || tmpY > maxY) {
-                      // console.log(tmpY);
-                      return false;
-                    }
-                  }
-                  if (rp < line.length - 1) {
-                    tmpY = mix(line[rp], line[rp + 1], minX).y;
-                    if (tmpY < minY || tmpY > maxY) {
-                      // console.log(tmpY);
-                      return false;
-                    }
-                  }
-                  return true;
-                })
+              //   l = 0;
+              //   r = line.length - 1;
+              //   while (l <= r) {
+              //     mid = (l + r) >> 1;
+              //     if (line[mid].x <= maxX) {
+              //       rp = mid;
+              //       l = mid + 1;
+              //     } else {
+              //       r = mid - 1;
+              //     }
+              //   }
+              //   // console.log(lp, rp);
+              //   for (let i = lp; i <= rp; i++) {
+              //     if (line[i].y < minY || line[i].y > maxY) {
+              //       // console.log(line[i]);
+              //       return false;
+              //     }
+              //   }
+              //   if (lp) {
+              //     tmpY = mix(line[lp - 1], line[lp], minX).y;
+              //     if (tmpY < minY || tmpY > maxY) {
+              //       // console.log(tmpY);
+              //       return false;
+              //     }
+              //   }
+              //   if (rp < line.length - 1) {
+              //     tmpY = mix(line[rp], line[rp + 1], minX).y;
+              //     if (tmpY < minY || tmpY > maxY) {
+              //       // console.log(tmpY);
+              //       return false;
+              //     }
+              //   }
+              //   return true;
+              // })
             );
 
             query.cache = result;
@@ -1952,70 +1934,7 @@ export default {
         unobserve.mouseLayerContext.stroke();
         if (!query.cache) {
           const result = new Set(
-            this.tree
-              .angular([query.start[0], slopeMin], [endX, slopeMax])
-              .map(({ raw }) => raw[5])
-              .filter((id) => {
-                // return true;
-                const line = unobserve.result[id];
-                let l = 0,
-                  r = line.length - 1,
-                  lp = 0,
-                  rp = r,
-                  mid,
-                  ang;
-                if (line[l].x > maxX || line[r].x < minX) return false;
-                while (l <= r) {
-                  mid = (l + r) >> 1;
-                  if (line[mid].x >= minX) {
-                    lp = mid;
-                    r = mid - 1;
-                  } else l = mid + 1;
-                }
-
-                l = 0;
-                r = line.length - 1;
-                while (l <= r) {
-                  mid = (l + r) >> 1;
-                  if (line[mid].x <= maxX) {
-                    rp = mid;
-                    l = mid + 1;
-                  } else {
-                    r = mid - 1;
-                  }
-                }
-                // console.log(lp, rp);
-                for (let i = lp; i < rp; i++) {
-                  ang = Math.atan(
-                    (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
-                  );
-                  if (ang < angMin || ang > angMax) {
-                    // console.log(line[i]);
-                    return false;
-                  }
-                }
-                if (lp) {
-                  ang = Math.atan(
-                    (line[lp + 1].y - line[lp].y) /
-                      (line[lp + 1].x - line[lp].x)
-                  );
-                  if (ang < angMin || ang > angMax) {
-                    // console.log(tmpY);
-                    return false;
-                  }
-                }
-                if (rp < line.length - 1) {
-                  ang = Math.atan(
-                    (line[rp + 1].y - line[rp].y) /
-                      (line[rp + 1].x - line[rp].x)
-                  );
-                  if (ang < angMin || ang > angMax) {
-                    // console.log(tmpY);
-                    return false;
-                  }
-                }
-                return true;
-              })
+            this.tree.angular([query.start[0], slopeMin], [endX, slopeMax])
           );
           query.cache = result;
         }
@@ -2124,7 +2043,9 @@ export default {
         );
         this.renderResult([...result1], [...result2]);
       }
+      console.time('begin calculate rep line and draw line');
       this.drawLine(this.getSelectedIds());
+      console.timeEnd('begin calculate rep line and draw line');
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
 
       console.log('render boxes ended ==== \n\n');
@@ -2482,9 +2403,67 @@ export default {
       );
     },
 
+    //#region old render method
+    // renderAllDensity() {
+    //   let ids;
+    //   ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
+    //   let initFlag = true;
+    //   const bgContext = document.getElementById('canvas').getContext('2d');
+
+    //   console.time('temp canvas');
+    //   const tempCanvas = document.createElement('canvas');
+    //   tempCanvas.width = 1000;
+    //   tempCanvas.height = 500;
+    //   const tempContext = tempCanvas.getContext('2d');
+    //   tempContext.globalCompositeOperation = 'lighter';
+    //   tempContext.strokeStyle = '#010101';
+    //   for (let id of ids) {
+    //     const line = unobserve.result[id];
+    //     tempContext.beginPath();
+    //     tempContext.moveTo(line[0].x, line[0].y);
+    //     for (let point of line) {
+    //       tempContext.lineTo(point.x, point.y);
+    //     }
+    //     tempContext.stroke();
+    //   }
+
+    //   const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
+    //   if (initFlag) {
+    //     this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
+    //   }
+    //   console.timeEnd('temp canvas');
+    //   console.time('render');
+    //   bgContext.fillStyle = 'black';
+    //   bgContext.globalAlpha = 1;
+    //   bgContext.fillRect(0, 0, 1000, 500);
+    //   bgContext.clearRect(0, 0, 1000, 500);
+    //   const maxWeight =
+    //     this.maxDensity ||
+    //     tempImageData.data.reduce((p, v, i) =>
+    //       i % 4 === 3 ? p : Math.max(p, v)
+    //     );
+    //   this.maxDensity = maxWeight;
+    //   for (let i = 0; i < 1000; i++) {
+    //     for (let j = 0; j < 500; j++) {
+    //       const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
+    //       const color = this.rgb(ratio);
+    //       tempImageData.data.set(color, (j * 1000 + i) * 4);
+    //       tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+    //     }
+    //   }
+    //   bgContext.putImageData(tempImageData, 0, 0);
+    //   console.timeEnd('render');
+    //   if (initFlag) {
+    //     this.initDensityMaxCache = maxWeight;
+    //     this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
+    //   }
+    //   this.currentDensityMax = maxWeight;
+    //   this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
+    //   // renderColorMap();
+    // },
+    //#endregion
+
     renderAllDensity() {
-      let ids;
-      ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
       let initFlag = true;
       const bgContext = document.getElementById('canvas').getContext('2d');
 
@@ -2495,13 +2474,10 @@ export default {
       const tempContext = tempCanvas.getContext('2d');
       tempContext.globalCompositeOperation = 'lighter';
       tempContext.strokeStyle = '#010101';
-      for (let id of ids) {
-        const line = unobserve.result[id];
+      for (let seg of this.tree.segs) {
         tempContext.beginPath();
-        tempContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          tempContext.lineTo(point.x, point.y);
-        }
+        tempContext.moveTo(seg[0].x, seg[0].y);
+        tempContext.lineTo(seg[1].x, seg[1].y);
         tempContext.stroke();
       }
 
@@ -3186,7 +3162,7 @@ export default {
     // }
 
     this.tree = new KDTree(result);
-    this.tree.buildKDTree();
+    // this.tree.buildKDTree();
 
     // tree.render(
     //   document.getElementById("canvas"),
