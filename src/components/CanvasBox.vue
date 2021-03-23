@@ -147,7 +147,7 @@
           </RadioGroup>
         </div> -->
         <div v-if="filterMode === 'attr'" style="margin-left: 2em;">
-          <Form onsubmit="#">
+          <Form>
             <FormItem label="Attribute Column">
               <Select
                 v-model="attributeColumn"
@@ -761,8 +761,8 @@ export default {
 
     deleteAllQuery() {
       unobserve.querys = [];
-      this.cnt++;
       this.renderBoxes();
+      this.cnt++;
     },
     deleteQuery(query) {
       let flag = false;
@@ -771,8 +771,8 @@ export default {
       }
       unobserve.querys.splice(query, 1);
       if (flag) this.selectedQuery = "$int";
-      this.cnt++;
       this.renderBoxes();
+      this.cnt++;
       this.renderDensity();
     },
 
@@ -2036,7 +2036,7 @@ export default {
       this.initCanvas(unobserve.selectionLayerContext);
       this.initCanvas(unobserve.repLayerContext);
 
-      if (this.preview) {
+      if (!this.preview) {
         let result1 = [],
           result2 = [];
         result1 = tmpQueries.reduce(
