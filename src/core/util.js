@@ -950,7 +950,8 @@ function average(data) {
 
 export function calculateCurvature(points) {
   if (points.length < 3)
-    return 0;
+      return [];
+    // return 0;
 
   // let cnt = 0, curSum = 0, bendingEnergy = 0;
     let result = [];
