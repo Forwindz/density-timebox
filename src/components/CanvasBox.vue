@@ -388,25 +388,23 @@
 
 <script>
 import draggable from "vuedraggable";
-import { binsx, binsy } from "../core/constants";
-import { exportCanvas } from "../core/utils";
-import { bin } from "vega-statistics";
+import {exportCanvas} from "../core/utils";
 import unobserve from "../store";
 import render from "../core";
 import * as d3 from "d3";
 import expandRow from "@/components/expandRow";
 import {
-  lineRectCollide,
-  sqr,
-  dist2,
-  getAngle2,
-  eq,
-  updatePoint,
-  movePoint,
-  calculateDifference,
   calculateCurvature,
-  mix,
+  calculateDifference,
+  dist2,
+  eq,
+  getAngle2,
+  lineRectCollide,
   lineSegmentsCollide,
+  mix,
+  movePoint,
+  sqr,
+  updatePoint,
 } from "@/core/util";
 import KDTree from "../core/kdtree";
 import seedrandom from "seedrandom";
@@ -2795,55 +2793,25 @@ export default {
       console.log('this is line weight');
       console.log(lineWeights);
 
-      const topIds1 = lineWeights
-        .reduce((p, v) => {
-          // if (document.getElementById("show-all-clusters").checked) {
-          //   p.push(v);
-          //   return p;
-          // }
-          if (
-            p.length >= lineCount ||
-            v.w[1] < 1000 / 3 ||
-            p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-          ) {
+      return lineWeights
+          .reduce((p, v) => {
+            // if (document.getElementById("show-all-clusters").checked) {
+            //   p.push(v);
+            //   return p;
+            // }
+            if (
+                p.length >= lineCount ||
+                v.w[1] < 1000 / 3 ||
+                p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
+            ) {
+              return p;
+            }
+            p.push(v);
             return p;
-          }
-          p.push(v);
-          return p;
-        }, [])
-        // .slice(0, lineCount)
-        .map((x) => x.id);
+          }, [])
+          // .slice(0, lineCount)
+          .map((x) => x.id);
 
-      // lineWeights.sort((a, b) => a.w[0] - b.w[0]);
-      // const topIds2 = lineWeights
-      //   .reduce((p, v) => {
-      //     // if (document.getElementById("show-all-clusters").checked) {
-      //     //   p.push(v);
-      //     //   return p;
-      //     // }
-      //     // console.log(v.w[1]);
-      //     if (
-      //       p.length >= lineCount ||
-      //       v.w[1] < 1000 / 3 ||
-      //       p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-      //     ) {
-      //       return p;
-      //     }
-      //     p.push(v);
-      //     return p;
-      //   }, [])
-      //   // .slice(0, lineCount)
-      //   .map((x) => x.id);
-      // console.log(topIds1, topIds2);
-      // for (let i of topIds1)
-      //   console.log(unobserve.result[i], this.calcLineWeight(i));
-      // for (let i of topIds2)
-      //   console.log(unobserve.result[i], this.calcLineWeight(i));
-      // for(let i of topIds1){
-      //   console.log(i, this.getStaticInformation([i]), this.getColor(i));
-      // }
-      // return topIds1;
-      return [459, 2429, 1791];
     },
     drawLine(ids) {
       // Selected Part =====================
@@ -2930,8 +2898,7 @@ export default {
         [188, 189, 34],
         [23, 190, 207],
       ];
-      unobserve.repIds = topIds;
-      unobserve.repLayerContext.lineWidth = 2;
+      // unobserve.repLayerContext.lineWidth = 1;
       for (let i in topIds) {
         unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(
           topIds[i]
