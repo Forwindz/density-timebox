@@ -3,33 +3,33 @@
     <Layout>
       <Header>
         <h1 class="layout-logo">KD-Box</h1>
-<!--        <Menu mode="horizontal" theme="dark" @on-select="eventHandler">-->
-<!--          <div class="layout-nav">-->
-<!--            <Upload-->
-<!--                action="/"-->
-<!--                v-show="false"-->
-<!--                ref="upload"-->
-<!--                :before-upload="readFileHandler"-->
-<!--            />-->
-<!--            <Submenu name="3">-->
-<!--              <template slot="title">-->
-<!--                <Icon type="ios-archive"></Icon>-->
-<!--                Example data-->
-<!--              </template>-->
-<!--              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>-->
-<!--              <MenuItem name="1-2">Airline(10.6M)</MenuItem>-->
-<!--              <MenuItem name="1-3">Weather(29.6M)</MenuItem>-->
-<!--              <MenuItem name="1-4">Reading(18.5M)</MenuItem>-->
-<!--            </Submenu>-->
-<!--            <MenuItem name="2">-->
-<!--              <Icon type="ios-cloud-upload-outline"></Icon>-->
-<!--              Load data-->
-<!--            </MenuItem>-->
-<!--          </div>-->
-<!--        </Menu>-->
+        <!--        <Menu mode="horizontal" theme="dark" @on-select="eventHandler">-->
+        <!--          <div class="layout-nav">-->
+        <!--            <Upload-->
+        <!--                action="/"-->
+        <!--                v-show="false"-->
+        <!--                ref="upload"-->
+        <!--                :before-upload="readFileHandler"-->
+        <!--            />-->
+        <!--            <Submenu name="3">-->
+        <!--              <template slot="title">-->
+        <!--                <Icon type="ios-archive"></Icon>-->
+        <!--                Example data-->
+        <!--              </template>-->
+        <!--              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>-->
+        <!--              <MenuItem name="1-2">Airline(10.6M)</MenuItem>-->
+        <!--              <MenuItem name="1-3">Weather(29.6M)</MenuItem>-->
+        <!--              <MenuItem name="1-4">Reading(18.5M)</MenuItem>-->
+        <!--            </Submenu>-->
+        <!--            <MenuItem name="2">-->
+        <!--              <Icon type="ios-cloud-upload-outline"></Icon>-->
+        <!--              Load data-->
+        <!--            </MenuItem>-->
+        <!--          </div>-->
+        <!--        </Menu>-->
       </Header>
       <Content
-          :style="{
+        :style="{
           width: '1850px',
           margin: '0 auto',
           padding: '0 50px',
@@ -39,7 +39,18 @@
       >
         <Card class="sticky-content">
           <div>
-            <Menu active-name="2" :open-names="[]" style="margin-bottom: 100px" @on-select="eventHandler">
+            <Menu
+              active-name="2"
+              :open-names="[]"
+              style="margin-bottom: 100px"
+              @on-select="eventHandler"
+            >
+              <Upload
+                action="/"
+                v-show="false"
+                ref="upload"
+                :before-upload="readFileHandler"
+              />
               <MenuItem name="2">
                 <Icon type="ios-cloud-upload-outline"></Icon>
                 Load data
@@ -56,52 +67,51 @@
               </Submenu>
             </Menu>
 
-
             <p>Line Aggregation Attribute:</p>
             <Select v-model="aggregateAttr" style="width:200px">
               <Option v-for="(attr, i) in headers" :value="i" :key="i">{{
-                  attr
-                }}</Option>
+                attr
+              }}</Option>
             </Select>
             <p>Time Attribute:</p>
             <Select v-model="timeAttr" style="width:200px">
               <template v-for="(attr, i) in headers">
                 <Option v-if="inferTypes[i] != 'string'" :value="i" :key="i">{{
-                    attr
-                  }}</Option>
+                  attr
+                }}</Option>
               </template>
             </Select>
             <p>Value Attribute:</p>
             <Select v-model="valueAttr" style="width:200px">
               <template v-for="(attr, i) in headers">
                 <Option v-if="inferTypes[i] == 'number'" :value="i" :key="i">{{
-                    attr
-                  }}</Option>
+                  attr
+                }}</Option>
               </template>
             </Select>
             <br />
             <br />
             <Button
-                @click="generateCharts"
-                type="primary"
-                style="width:200px"
-                :disabled="!headers.length"
-            >generate chart</Button
+              @click="generateCharts"
+              type="primary"
+              style="width:200px"
+              :disabled="!headers.length"
+              >generate chart</Button
             >
             <div style="margin-top:100px">
               <Button type="primary" @click="exportFig" style="width:200px"
-              >export figure </Button
+                >export figure </Button
               ><br /><Button
                 type="primary"
                 @click="exportData(1)"
                 style="margin-top:12px;width:200px"
-            >export representative lines </Button
-            ><br /><Button
+                >export representative lines </Button
+              ><br /><Button
                 type="primary"
                 @click="exportData(0)"
                 style="margin-top:12px;width:200px"
-            >export select lines
-            </Button>
+                >export select lines
+              </Button>
               <!-- <p>Layers:</p> -->
               <!-- <draggable v-model="layers">
                 <div
@@ -152,62 +162,62 @@
           <div style="min-height: 200px;color:red" v-if="!headers.length">
             Please load a dataset (.csv file) first!
             <Button
-                @click="eventHandler('1-1')"
-                type="primary"
-                icon="ios-archive"
-                style="margin:0 12px"
-            >Example Stocks(25.2M)</Button
+              @click="eventHandler('1-1')"
+              type="primary"
+              icon="ios-archive"
+              style="margin:0 12px"
+              >Example Stocks(25.2M)</Button
             ><Button
               @click="eventHandler('1-2')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-          >Example Airline(10.6M)</Button
-          ><Button
+              >Example Airline(10.6M)</Button
+            ><Button
               @click="eventHandler('1-3')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-          >Example Weather(29.6M)</Button
-          ><Button
+              >Example Weather(29.6M)</Button
+            ><Button
               @click="eventHandler('1-4')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-          >Example Reading(18.5M)</Button
-          >
+              >Example Reading(18.5M)</Button
+            >
             <Button
-                @click="eventHandler('2')"
-                type="primary"
-                icon="ios-cloud-upload-outline"
-                style="margin:0 12px"
-            >Load data</Button
+              @click="eventHandler('2')"
+              type="primary"
+              icon="ios-cloud-upload-outline"
+              style="margin:0 12px"
+              >Load data</Button
             >
           </div>
           <div v-else>
             <div
-                style="min-height: 200px;color:red"
-                v-if="!chartConfigs.length"
+              style="min-height: 200px;color:red"
+              v-if="!chartConfigs.length"
             >
               Please use a valid configuration in left panel!
             </div>
             <div v-else>
               <template v-for="(config, i) in chartConfigs">
                 <CanvasBox
-                    :key="
+                  :key="
                     config.aggregateName +
                       '#' +
                       config.timeName +
                       '#' +
                       config.valueName
                   "
-                    :timeIndex="config.timeIndex"
-                    :valueIndex="config.valueIndex"
-                    :timeName="config.timeName"
-                    :valueName="config.valueName"
-                    :filter="config.filter"
-                    :layers="layers"
-                    @filterChange="handleFilterChange(i, $event)"
+                  :timeIndex="config.timeIndex"
+                  :valueIndex="config.valueIndex"
+                  :timeName="config.timeName"
+                  :valueName="config.valueName"
+                  :filter="config.filter"
+                  :layers="layers"
+                  @filterChange="handleFilterChange(i, $event)"
                 />
               </template>
             </div>
@@ -220,25 +230,25 @@
 </template>
 
 <script>
-import { exportCanvas } from "./core/utils";
-import CanvasBox from "./components/CanvasBox.vue";
-import { generateData, readData } from "./core/data-gen";
-import unobserve from "./store";
-import download from "downloadjs";
+import { exportCanvas } from './core/utils';
+import CanvasBox from './components/CanvasBox.vue';
+import { generateData, readData } from './core/data-gen';
+import unobserve from './store';
+import download from 'downloadjs';
 
 function parseField(value, type) {
   switch (type) {
-    case "string":
+    case 'string':
       return 0;
-    case "date":
+    case 'date':
       return Math.floor(new Date(value) / (24 * 3600 * 1000));
-    case "number":
+    case 'number':
       return parseFloat(value);
   }
 }
 
 export default {
-  name: "App",
+  name: 'App',
   components: {
     CanvasBox,
   },
@@ -253,28 +263,28 @@ export default {
       filters: [],
       layers: [
         {
-          id: "rep_layer",
-          name: "representative line",
+          id: 'rep_layer',
+          name: 'representative line',
           opacity: 1,
         },
         {
-          id: "selectionCanvas",
-          name: "selected density",
+          id: 'selectionCanvas',
+          name: 'selected density',
           opacity: 0,
         },
         {
-          id: "selectionLayer",
-          name: "selected line",
+          id: 'selectionLayer',
+          name: 'selected line',
           opacity: 0.4,
         },
         {
-          id: "canvas",
-          name: "density",
+          id: 'canvas',
+          name: 'density',
           opacity: 1,
         },
         {
-          id: "raw_lines",
-          name: "raw line",
+          id: 'raw_lines',
+          name: 'raw line',
           opacity: 0,
         },
       ],
@@ -283,13 +293,13 @@ export default {
   methods: {
     eventHandler(type) {
       this.$Spin.show();
-      if (type.startsWith("1")) {
-        generateData(type.split("-")[1]).then((data) => {
+      if (type.startsWith('1')) {
+        generateData(type.split('-')[1]).then((data) => {
           this.$Spin.hide();
           this.preProcessData(data);
           this.generateCharts();
         });
-      } else if (type == "2") {
+      } else if (type == '2') {
         this.$refs.upload.handleClick();
         this.$Spin.hide();
       }
@@ -309,38 +319,38 @@ export default {
       unobserve.data = data.slice(1);
       if (data.length > 1) {
         this.inferTypes = data[1].map((attr) => {
-          if (attr.includes("-") || attr.includes("/")) {
+          if (attr.includes('-') || attr.includes('/')) {
             let isDate = new Date(attr).toString();
-            if (isDate.startsWith("Invalid")) {
-              return "string";
+            if (isDate.startsWith('Invalid')) {
+              return 'string';
             }
-            return "date";
+            return 'date';
           }
           if (/^\d*(\.\d*)?$/.test(attr)) {
-            return "number";
+            return 'number';
           }
-          return "string";
+          return 'string';
         });
-        this.aggregateAttr = this.inferTypes.indexOf("string");
-        this.timeAttr = this.inferTypes.indexOf("date");
+        this.aggregateAttr = this.inferTypes.indexOf('string');
+        this.timeAttr = this.inferTypes.indexOf('date');
         if (this.aggregateAttr < 0) this.aggregateAttr = 0;
         if (this.timeAttr < 0)
-          this.timeAttr = this.inferTypes.indexOf("number");
+          this.timeAttr = this.inferTypes.indexOf('number');
         if (this.timeAttr < 0) this.timeAttr = 0;
-        this.valueAttr = this.inferTypes.indexOf("number");
+        this.valueAttr = this.inferTypes.indexOf('number');
         if (this.valueAttr === this.timeAttr)
-          this.valueAttr = this.inferTypes.indexOf("number", this.timeAttr + 1);
+          this.valueAttr = this.inferTypes.indexOf('number', this.timeAttr + 1);
         if (this.valueAttr < 0) this.valueAttr = 0;
       }
     },
     generateCharts() {
       this.$Spin.show();
       if (
-          this.headers[this.aggregateAttr] !=
+        this.headers[this.aggregateAttr] !=
           (this.chartConfigs.length && this.chartConfigs[0].aggregateName) ||
-          !this.chartConfigs.find(
-              (config) => config.valueIndex === this.valueAttr
-          )
+        !this.chartConfigs.find(
+          (config) => config.valueIndex === this.valueAttr
+        )
       ) {
         unobserve.aggregatedData = [];
         let aggrMap = new Map();
@@ -363,23 +373,23 @@ export default {
           }
           aggrList.ref.push(i);
           aggrList[this.timeAttr].push(
-              parseField(row[this.timeAttr], infers[this.timeAttr])
+            parseField(row[this.timeAttr], infers[this.timeAttr])
           );
           aggrList[this.valueAttr].push(
-              parseField(row[this.valueAttr], infers[this.valueAttr])
+            parseField(row[this.valueAttr], infers[this.valueAttr])
           );
         });
         for (let [key, aggregated] of aggrMap.entries()) {
           unobserve.aggregatedData.push(
-              Object.entries(aggregated).reduce(
-                  (p, v) => {
-                    return {
-                      ...p,
-                      [v[0]]: new Float32Array(v[1]),
-                    };
-                  },
-                  { key }
-              )
+            Object.entries(aggregated).reduce(
+              (p, v) => {
+                return {
+                  ...p,
+                  [v[0]]: new Float32Array(v[1]),
+                };
+              },
+              { key }
+            )
           );
         }
         aggrMap.clear();
@@ -407,19 +417,19 @@ export default {
       this.filters.splice(index, 1, filter);
       if (!this.filters.find((f) => f)) {
         this.chartConfigs.forEach((config) => {
-          this.$set(config, "filter", undefined);
+          this.$set(config, 'filter', undefined);
         });
         return;
       }
       const set = new Float32Array(
-          new Set(
-              this.filters
-                  .reduce((p, v) => [...p, ...(v ? v : [])], [])
-                  .filter((x) => !this.filters.find((f) => !(f && f.includes(x))))
-          )
+        new Set(
+          this.filters
+            .reduce((p, v) => [...p, ...(v ? v : [])], [])
+            .filter((x) => !this.filters.find((f) => !(f && f.includes(x))))
+        )
       );
       this.chartConfigs.forEach((config) => {
-        this.$set(config, "filter", set);
+        this.$set(config, 'filter', set);
       });
     },
     exportFig() {
@@ -428,17 +438,17 @@ export default {
       //     this.upsideDown
       // );
       exportCanvas(
-          unobserve.layers
-              .map((layer) => document.getElementById(layer.id))
-              .reverse(),
-          unobserve.upsideDown,
-          unobserve.layers.map((layer) => layer.opacity).reverse()
+        unobserve.layers
+          .map((layer) => document.getElementById(layer.id))
+          .reverse(),
+        unobserve.upsideDown,
+        unobserve.layers.map((layer) => layer.opacity).reverse()
       );
     },
     exportData(mode) {
-      let ids = unobserve[mode ? "repIds" : "selectedLines"];
+      let ids = unobserve[mode ? 'repIds' : 'selectedLines'];
       if (!ids || !ids.length) return;
-      let previousName = "";
+      let previousName = '';
       let previousId = -1;
       const exportData = unobserve.data.filter((raw) => {
         if (raw[this.aggregateAttr] !== previousName) {
@@ -452,11 +462,11 @@ export default {
         }
       });
       download(
-          unobserve.headers.join(",") +
-          "\n" +
-          exportData.map((d) => d.join(",")).join("\n"),
-          "export.csv",
-          "text/csv"
+        unobserve.headers.join(',') +
+          '\n' +
+          exportData.map((d) => d.join(',')).join('\n'),
+        'export.csv',
+        'text/csv'
       );
     },
   },

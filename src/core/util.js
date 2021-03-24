@@ -1,7 +1,7 @@
 // import Heap from "heap";
-import Queue from "tinyqueue";
-import { RBush3D } from "rbush-3d";
-const Heap = require("heap");
+import Queue from 'tinyqueue';
+import { RBush3D } from 'rbush-3d';
+const Heap = require('heap');
 const kmeans = require('ml-kmeans').default;
 // const kmeans = require('ml-kmeans');
 
@@ -49,13 +49,13 @@ export class VolKDTree {
   }
 
   toString() {
-    return `VolKDTree (${this.#boundingBox.join(", ")}) ${
+    return `VolKDTree (${this.#boundingBox.join(', ')}) ${
       this.#children.length
         ? `${this.dividedBy} {
   ${this.#children[0].toString()}
   ${this.#children[1].toString()}
 }`
-        : ""
+        : ''
     }`;
   }
   //#endregion
@@ -128,19 +128,19 @@ export class VolKDTree {
     }
     switch (minCost) {
       case xCost[2]:
-        this.#dividedBy = "x";
+        this.#dividedBy = 'x';
         this.#children = xCost.slice(0, 2);
         break;
       case yMinCost[2]:
-        this.#dividedBy = "yMin";
+        this.#dividedBy = 'yMin';
         this.#children = yMinCost.slice(0, 2);
         break;
       case yMaxCost[2]:
-        this.#dividedBy = "yMax";
+        this.#dividedBy = 'yMax';
         this.#children = yMaxCost.slice(0, 2);
         break;
       case slopeCost[2]:
-        this.#dividedBy = "slope";
+        this.#dividedBy = 'slope';
         this.#children = slopeCost.slice(0, 2);
         break;
     }
@@ -666,8 +666,7 @@ export class VolRTree {
   }
 
   rep(lines, repNumber = 3) {
-
-    this.#repTree = {children: []};
+    this.#repTree = { children: [] };
     let stack = [[this.#treeRef.data, this.#repTree, 0]];
 
     const mp = new Map();
@@ -676,16 +675,20 @@ export class VolRTree {
     for (let i = 0; i < lines.length; i++)
       for (let j = i + 1; j < lines.length; j++) {
         const length = Math.min(lines[i].length, lines[j].length);
-        const subArr = lines[i].slice(lines[i].length - length).map((v,cnt) => (v.y - lines[j][lines[j].length - length + cnt].y));
+        const subArr = lines[i]
+          .slice(lines[i].length - length)
+          .map((v, cnt) => v.y - lines[j][lines[j].length - length + cnt].y);
         const derivation = standardDeviation(subArr);
         mp.set(i, mp.get(i) + derivation);
         mp.set(j, mp.get(j) + derivation);
       }
 
-    return Array.from(mp).sort((a, b) => a[1] - b[1]).map(d => d[0]).slice(0, 10);
+    return Array.from(mp)
+      .sort((a, b) => a[1] - b[1])
+      .map((d) => d[0])
+      .slice(0, 10);
 
-
-    while(stack.length > 0) {
+    while (stack.length > 0) {
       const [treeNode, repNode, cnt] = stack.pop();
       // console.log(treeNode);
       if (cnt === treeNode.children.length || treeNode.leaf) {
@@ -695,35 +698,45 @@ export class VolRTree {
           indexes = [];
           // console.log(indexes);
           // console.log(repNode.children);
-          repNode.children.forEach((child) => indexes = [...indexes, ...child.indexes]);
+          repNode.children.forEach(
+            (child) => (indexes = [...indexes, ...child.indexes])
+          );
           // indexes = repNode.children.indexes.slice();
         } else {
-          indexes = treeNode.children.map(({raw}) => raw[5]);
+          indexes = treeNode.children.map(({ raw }) => raw[5]);
         }
 
         indexes = Array.from(new Set(indexes));
 
-        const points = this.#generatePoints(indexes, lines, treeNode, Math.sqrt(treeNode.height) * 5);
+        const points = this.#generatePoints(
+          indexes,
+          lines,
+          treeNode,
+          Math.sqrt(treeNode.height) * 5
+        );
 
         // console.log(points, indexes.map(x => lines[x]), treeNode);
-        const result = kmeans(points, repNumber, {initialization: 'mostDistant'});
+        const result = kmeans(points, repNumber, {
+          initialization: 'mostDistant',
+        });
         // repNode.indexes = result.map(x => indexes[x]);
 
         const maxClusterMap = new Map();
         result.clusters.forEach((c, i) => {
-          if (!maxClusterMap.has(c) || mp.get(maxClusterMap.get(c)) > mp.get(indexes[i])) {
+          if (
+            !maxClusterMap.has(c) ||
+            mp.get(maxClusterMap.get(c)) > mp.get(indexes[i])
+          ) {
             maxClusterMap.set(c, indexes[i]);
           }
         });
 
         // console.log(maxClusterMap, Array.from(maxClusterMap), result, points);
-        repNode.indexes = Array.from(maxClusterMap).map(d => d[1]);
-
-
+        repNode.indexes = Array.from(maxClusterMap).map((d) => d[1]);
       } else {
-        const newNode = {children: []};
+        const newNode = { children: [] };
         repNode.children.push(newNode);
-        stack.push([treeNode, repNode, cnt+1]);
+        stack.push([treeNode, repNode, cnt + 1]);
         stack.push([treeNode.children[cnt], newNode, 0]);
       }
     }
@@ -736,39 +749,67 @@ export class VolRTree {
       endX = box.maxX,
       xStride = (endX - startX) / sampleNumber,
       xCoordinates = [];
-    for (let i = 0; i < sampleNumber +1; i++) {
+    for (let i = 0; i < sampleNumber + 1; i++) {
       xCoordinates.push(i * xStride + startX);
     }
 
-    const res = indexes.map(ind => {
+    const res = indexes.map((ind) => {
       const line = lines[ind];
-      let pos1 = -1, pos2 = -1, xPos = 1;
+      let pos1 = -1,
+        pos2 = -1,
+        xPos = 1;
       const angle = [];
-      while(xPos <= sampleNumber) {
-        while(pos1 + 1 < line.length && xCoordinates[xPos-1] > line[pos1+1].x) {
-          pos1 ++;
+      while (xPos <= sampleNumber) {
+        while (
+          pos1 + 1 < line.length &&
+          xCoordinates[xPos - 1] > line[pos1 + 1].x
+        ) {
+          pos1++;
         }
-        while(pos2 + 1 < line.length && xCoordinates[xPos] > line[pos2 + 1].x) {
-          pos2 ++;
+        while (
+          pos2 + 1 < line.length &&
+          xCoordinates[xPos] > line[pos2 + 1].x
+        ) {
+          pos2++;
         }
 
         try {
-          if (pos2 === -1 || pos1 === line.length - 1)
-            angle.push(0);
-          else if(pos1 === -1 && pos2 === line.length -1)
-            angle.push(getAngle(line[0], line[line.length-1]));
-          else if(pos1 === -1)
-            angle.push(getAngle(line[0], mix(line[pos2], line[pos2+1], xCoordinates[xPos]) ));
-          else if(pos2 === line.length - 1)
-            angle.push(getAngle(mix(line[pos1], line[pos1+1], xCoordinates[xPos-1] - 1e-5), line[line.length-1]));
+          if (pos2 === -1 || pos1 === line.length - 1) angle.push(0);
+          else if (pos1 === -1 && pos2 === line.length - 1)
+            angle.push(getAngle(line[0], line[line.length - 1]));
+          else if (pos1 === -1)
+            angle.push(
+              getAngle(
+                line[0],
+                mix(line[pos2], line[pos2 + 1], xCoordinates[xPos])
+              )
+            );
+          else if (pos2 === line.length - 1)
+            angle.push(
+              getAngle(
+                mix(line[pos1], line[pos1 + 1], xCoordinates[xPos - 1] - 1e-5),
+                line[line.length - 1]
+              )
+            );
           else
-            angle.push(getAngle(mix(line[pos1], line[pos1+1], xCoordinates[xPos-1]), mix(line[pos2], line[pos2+1], xCoordinates[xPos]) ));
-        }
-        catch (e) {
-          console.log(pos1, pos2, line, xCoordinates, xCoordinates[xPos-1], mix(line[pos1], line[pos1+1], xCoordinates[xPos-1]));
+            angle.push(
+              getAngle(
+                mix(line[pos1], line[pos1 + 1], xCoordinates[xPos - 1]),
+                mix(line[pos2], line[pos2 + 1], xCoordinates[xPos])
+              )
+            );
+        } catch (e) {
+          console.log(
+            pos1,
+            pos2,
+            line,
+            xCoordinates,
+            xCoordinates[xPos - 1],
+            mix(line[pos1], line[pos1 + 1], xCoordinates[xPos - 1])
+          );
           throw Error();
         }
-        xPos ++;
+        xPos++;
       }
       // console.log(angle, xPos, sampleNumber);
       // console.log(`This is pos1 ${pos1}, pos2: ${pos2}, line length: ${line.length}`);
@@ -794,10 +835,13 @@ export class VolRTree {
   }
 }
 
-
 export function mix(point1, point2, x) {
-  const r = Math.max(Math.min((x - point1.x) /(point2.x - point1.x), 1.0), 0.0), l = 1 - r;
-  return {x: point1.x * l + point2.x * r, y:point1.y *l + point2.y *r};
+  const r = Math.max(
+      Math.min((x - point1.x) / (point2.x - point1.x), 1.0),
+      0.0
+    ),
+    l = 1 - r;
+  return { x: point1.x * l + point2.x * r, y: point1.y * l + point2.y * r };
 }
 
 function getAngle(point1, point2) {
@@ -824,13 +868,11 @@ export function dist2(v, w) {
 }
 
 export function eq(x, y) {
-  return Math.abs(x-y) <= 1;
+  return Math.abs(x - y) <= 1;
 }
 export const updatePoint = (oldPoint, testPoint, newPoint) => {
-  if (eq(oldPoint[0], testPoint[0]))
-    oldPoint[0] = newPoint[0];
-  if (eq(oldPoint[1], testPoint[1]))
-    oldPoint[1] = newPoint[1];
+  if (eq(oldPoint[0], testPoint[0])) oldPoint[0] = newPoint[0];
+  if (eq(oldPoint[1], testPoint[1])) oldPoint[1] = newPoint[1];
 };
 
 export const movePoint = (point, offsetX, offsetY) => {
@@ -921,7 +963,6 @@ export function lineSegmentsCollide(p0, p1, p2, p3) {
   return isIntersecting;
 }
 
-
 function standardDeviation(values) {
   var avg = average(values);
 
@@ -946,21 +987,20 @@ function average(data) {
   return avg;
 }
 
-
-
 export function calculateCurvature(points) {
-  if (points.length < 3)
-      return [];
-    // return 0;
+  if (points.length < 3) return [];
+  // return 0;
 
   // let cnt = 0, curSum = 0, bendingEnergy = 0;
-    let result = [];
+  let result = [];
   for (let i = 1; i < points.length - 1; i++) {
     const step1 = points[i].x - points[i - 1].x,
       step2 = points[i + 1].x - points[i].x,
       step = Math.min(step1, step2),
-        slopeR = (points[i+1].x - points[i].x) / (points[i+1].y - points[i].y),
-        slopeL = (points[i].x - points[i-1].x) / (points[i].y - points[i-1].y);
+      slopeR =
+        (points[i + 1].x - points[i].x) / (points[i + 1].y - points[i].y),
+      slopeL =
+        (points[i].x - points[i - 1].x) / (points[i].y - points[i - 1].y);
 
     let lstPoint = points[i - 1],
       nxtPoint = points[i + 1];
@@ -974,7 +1014,7 @@ export function calculateCurvature(points) {
     result.push({
       x: points[i].x,
       y: Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5),
-    })
+    });
     // const c = Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5);
     // curSum += c* Math.sign(slopeR - slopeL);
     // bendingEnergy += c * c;
@@ -982,9 +1022,8 @@ export function calculateCurvature(points) {
   }
   // return curSum / cnt;
   return result;
-    // return [curSum, bendingEnergy / cnt];
+  // return [curSum, bendingEnergy / cnt];
 }
-
 
 export function calculateDifference(line1, line2, diverse) {
   // return Math.abs(line1[0] - line2[0]) < diverse ||  Math.abs(line1[1] - line2[1]) < diverse;
@@ -1018,5 +1057,45 @@ export function calculateDifference(line1, line2, diverse) {
   }
 
   return cnt === 0 ? 0.0001 : sum / cnt;
-    // return sum / cnt;
+  // return sum / cnt;
+}
+
+export function brensenham(ls, hashmap, slope) {
+  let xx = Math.floor(ls[1].x);
+  let yy = Math.floor(ls[1].y);
+  let x = Math.floor(ls[0].x);
+  let y = Math.floor(ls[0].y);
+  if (Math.abs(yy - y) > Math.abs(xx - x)) {
+    if (yy < y) return brensenhamHigh(xx, yy, x, y, hashmap, slope);
+    return brensenhamHigh(x, y, xx, yy, hashmap, slope);
+  } else {
+    if (xx < x) return brensenhamLow(xx, yy, x, y, hashmap, slope);
+    return brensenhamLow(x, y, xx, yy, hashmap, slope);
+  }
+}
+
+function brensenhamLow(x0, y0, x1, y1, hashmap, slope) {
+  let delta = Math.min(1, Math.abs(1 / slope));
+  if (!isFinite(delta) || isNaN(delta)) delta = 1;
+  let dx = x1 - x0;
+  let dy = y1 - y0;
+  let yi = dy < 0 ? ((dy = -dy), -1) : 1;
+  let D = 2 * dy - dx;
+  for (let x = x0, y = y0; x <= x1; ++x, D += 2 * dy) {
+    hashmap[x * 500 + y] += delta;
+    if (D > 0) (y += yi), (D -= 2 * dx);
+  }
+}
+
+function brensenhamHigh(x0, y0, x1, y1, hashmap, slope) {
+  let delta = Math.min(1, Math.abs(1 / slope));
+  if (!isFinite(delta) || isNaN(delta)) delta = 1;
+  let dx = x1 - x0;
+  let dy = y1 - y0;
+  let xi = dx < 0 ? ((dx = -dx), -1) : 1;
+  let D = 2 * dx - dy;
+  for (let x = x0, y = y0; y <= y1; ++y, D += 2 * dx) {
+    hashmap[x * 500 + y] += delta;
+    if (D > 0) (x += xi), (D -= 2 * dy);
+  }
 }
