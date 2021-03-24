@@ -2,34 +2,34 @@
   <div id="app">
     <Layout>
       <Header>
-        <Menu mode="horizontal" theme="dark" @on-select="eventHandler">
-          <h1 class="layout-logo">KD-Box</h1>
-          <div class="layout-nav">
-            <Upload
-              action="/"
-              v-show="false"
-              ref="upload"
-              :before-upload="readFileHandler"
-            />
-            <Submenu name="3">
-              <template slot="title">
-                <Icon type="ios-archive"></Icon>
-                Example data
-              </template>
-              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>
-              <MenuItem name="1-2">Airline(10.6M)</MenuItem>
-              <MenuItem name="1-3">Weather(29.6M)</MenuItem>
-              <MenuItem name="1-4">Reading(18.5M)</MenuItem>
-            </Submenu>
-            <MenuItem name="2">
-              <Icon type="ios-cloud-upload-outline"></Icon>
-              Load data
-            </MenuItem>
-          </div>
-        </Menu>
+        <h1 class="layout-logo">KD-Box</h1>
+<!--        <Menu mode="horizontal" theme="dark" @on-select="eventHandler">-->
+<!--          <div class="layout-nav">-->
+<!--            <Upload-->
+<!--                action="/"-->
+<!--                v-show="false"-->
+<!--                ref="upload"-->
+<!--                :before-upload="readFileHandler"-->
+<!--            />-->
+<!--            <Submenu name="3">-->
+<!--              <template slot="title">-->
+<!--                <Icon type="ios-archive"></Icon>-->
+<!--                Example data-->
+<!--              </template>-->
+<!--              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>-->
+<!--              <MenuItem name="1-2">Airline(10.6M)</MenuItem>-->
+<!--              <MenuItem name="1-3">Weather(29.6M)</MenuItem>-->
+<!--              <MenuItem name="1-4">Reading(18.5M)</MenuItem>-->
+<!--            </Submenu>-->
+<!--            <MenuItem name="2">-->
+<!--              <Icon type="ios-cloud-upload-outline"></Icon>-->
+<!--              Load data-->
+<!--            </MenuItem>-->
+<!--          </div>-->
+<!--        </Menu>-->
       </Header>
       <Content
-        :style="{
+          :style="{
           width: '1850px',
           margin: '0 auto',
           padding: '0 50px',
@@ -39,51 +39,70 @@
       >
         <Card class="sticky-content">
           <div>
+            <p>Load Data</p>
+            <Menu active-name="2" :open-names="[]" style="margin-bottom: 100px" @on-select="eventHandler">
+              <MenuItem name="2">
+                <Icon type="ios-cloud-upload-outline"></Icon>
+                Load data
+              </MenuItem>
+              <Submenu name="1">
+                <template slot="title">
+                  <Icon type="ios-archive" />
+                  Example Data
+                </template>
+                <MenuItem name="1-1">Stocks(25.2M)</MenuItem>
+                <MenuItem name="1-2">Airline(10.6M)</MenuItem>
+                <MenuItem name="1-3">Weather(29.6M)</MenuItem>
+                <MenuItem name="1-4">Reading(18.5M)</MenuItem>
+              </Submenu>
+            </Menu>
+
+
             <p>Line Aggregation Attribute:</p>
             <Select v-model="aggregateAttr" style="width:200px">
               <Option v-for="(attr, i) in headers" :value="i" :key="i">{{
-                attr
-              }}</Option>
+                  attr
+                }}</Option>
             </Select>
             <p>Time Attribute:</p>
             <Select v-model="timeAttr" style="width:200px">
               <template v-for="(attr, i) in headers">
                 <Option v-if="inferTypes[i] != 'string'" :value="i" :key="i">{{
-                  attr
-                }}</Option>
+                    attr
+                  }}</Option>
               </template>
             </Select>
             <p>Value Attribute:</p>
             <Select v-model="valueAttr" style="width:200px">
               <template v-for="(attr, i) in headers">
                 <Option v-if="inferTypes[i] == 'number'" :value="i" :key="i">{{
-                  attr
-                }}</Option>
+                    attr
+                  }}</Option>
               </template>
             </Select>
             <br />
             <br />
             <Button
-              @click="generateCharts"
-              type="primary"
-              style="width:200px"
-              :disabled="!headers.length"
-              >generate chart</Button
+                @click="generateCharts"
+                type="primary"
+                style="width:200px"
+                :disabled="!headers.length"
+            >generate chart</Button
             >
             <div style="margin-top:100px">
               <Button type="primary" @click="exportFig" style="width:200px"
-                >export figure </Button
+              >export figure </Button
               ><br /><Button
                 type="primary"
                 @click="exportData(1)"
                 style="margin-top:12px;width:200px"
-                >export representative lines </Button
-              ><br /><Button
+            >export representative lines </Button
+            ><br /><Button
                 type="primary"
                 @click="exportData(0)"
                 style="margin-top:12px;width:200px"
-                >export select lines
-              </Button>
+            >export select lines
+            </Button>
               <!-- <p>Layers:</p> -->
               <!-- <draggable v-model="layers">
                 <div
@@ -134,62 +153,62 @@
           <div style="min-height: 200px;color:red" v-if="!headers.length">
             Please load a dataset (.csv file) first!
             <Button
-              @click="eventHandler('1-1')"
-              type="primary"
-              icon="ios-archive"
-              style="margin:0 12px"
-              >Example Stocks(25.2M)</Button
+                @click="eventHandler('1-1')"
+                type="primary"
+                icon="ios-archive"
+                style="margin:0 12px"
+            >Example Stocks(25.2M)</Button
             ><Button
               @click="eventHandler('1-2')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Airline(10.6M)</Button
-            ><Button
+          >Example Airline(10.6M)</Button
+          ><Button
               @click="eventHandler('1-3')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Weather(29.6M)</Button
-            ><Button
+          >Example Weather(29.6M)</Button
+          ><Button
               @click="eventHandler('1-4')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Reading(18.5M)</Button
-            >
+          >Example Reading(18.5M)</Button
+          >
             <Button
-              @click="eventHandler('2')"
-              type="primary"
-              icon="ios-cloud-upload-outline"
-              style="margin:0 12px"
-              >Load data</Button
+                @click="eventHandler('2')"
+                type="primary"
+                icon="ios-cloud-upload-outline"
+                style="margin:0 12px"
+            >Load data</Button
             >
           </div>
           <div v-else>
             <div
-              style="min-height: 200px;color:red"
-              v-if="!chartConfigs.length"
+                style="min-height: 200px;color:red"
+                v-if="!chartConfigs.length"
             >
               Please use a valid configuration in left panel!
             </div>
             <div v-else>
               <template v-for="(config, i) in chartConfigs">
                 <CanvasBox
-                  :key="
+                    :key="
                     config.aggregateName +
                       '#' +
                       config.timeName +
                       '#' +
                       config.valueName
                   "
-                  :timeIndex="config.timeIndex"
-                  :valueIndex="config.valueIndex"
-                  :timeName="config.timeName"
-                  :valueName="config.valueName"
-                  :filter="config.filter"
-                  :layers="layers"
-                  @filterChange="handleFilterChange(i, $event)"
+                    :timeIndex="config.timeIndex"
+                    :valueIndex="config.valueIndex"
+                    :timeName="config.timeName"
+                    :valueName="config.valueName"
+                    :filter="config.filter"
+                    :layers="layers"
+                    @filterChange="handleFilterChange(i, $event)"
                 />
               </template>
             </div>
@@ -318,11 +337,11 @@ export default {
     generateCharts() {
       this.$Spin.show();
       if (
-        this.headers[this.aggregateAttr] !=
+          this.headers[this.aggregateAttr] !=
           (this.chartConfigs.length && this.chartConfigs[0].aggregateName) ||
-        !this.chartConfigs.find(
-          (config) => config.valueIndex === this.valueAttr
-        )
+          !this.chartConfigs.find(
+              (config) => config.valueIndex === this.valueAttr
+          )
       ) {
         unobserve.aggregatedData = [];
         let aggrMap = new Map();
@@ -345,23 +364,23 @@ export default {
           }
           aggrList.ref.push(i);
           aggrList[this.timeAttr].push(
-            parseField(row[this.timeAttr], infers[this.timeAttr])
+              parseField(row[this.timeAttr], infers[this.timeAttr])
           );
           aggrList[this.valueAttr].push(
-            parseField(row[this.valueAttr], infers[this.valueAttr])
+              parseField(row[this.valueAttr], infers[this.valueAttr])
           );
         });
         for (let [key, aggregated] of aggrMap.entries()) {
           unobserve.aggregatedData.push(
-            Object.entries(aggregated).reduce(
-              (p, v) => {
-                return {
-                  ...p,
-                  [v[0]]: new Float32Array(v[1]),
-                };
-              },
-              { key }
-            )
+              Object.entries(aggregated).reduce(
+                  (p, v) => {
+                    return {
+                      ...p,
+                      [v[0]]: new Float32Array(v[1]),
+                    };
+                  },
+                  { key }
+              )
           );
         }
         aggrMap.clear();
@@ -394,11 +413,11 @@ export default {
         return;
       }
       const set = new Float32Array(
-        new Set(
-          this.filters
-            .reduce((p, v) => [...p, ...(v ? v : [])], [])
-            .filter((x) => !this.filters.find((f) => !(f && f.includes(x))))
-        )
+          new Set(
+              this.filters
+                  .reduce((p, v) => [...p, ...(v ? v : [])], [])
+                  .filter((x) => !this.filters.find((f) => !(f && f.includes(x))))
+          )
       );
       this.chartConfigs.forEach((config) => {
         this.$set(config, "filter", set);
@@ -410,11 +429,11 @@ export default {
       //     this.upsideDown
       // );
       exportCanvas(
-        unobserve.layers
-          .map((layer) => document.getElementById(layer.id))
-          .reverse(),
-        unobserve.upsideDown,
-        unobserve.layers.map((layer) => layer.opacity).reverse()
+          unobserve.layers
+              .map((layer) => document.getElementById(layer.id))
+              .reverse(),
+          unobserve.upsideDown,
+          unobserve.layers.map((layer) => layer.opacity).reverse()
       );
     },
     exportData(mode) {
@@ -434,11 +453,11 @@ export default {
         }
       });
       download(
-        unobserve.headers.join(",") +
+          unobserve.headers.join(",") +
           "\n" +
           exportData.map((d) => d.join(",")).join("\n"),
-        "export.csv",
-        "text/csv"
+          "export.csv",
+          "text/csv"
       );
     },
   },

@@ -162,7 +162,7 @@
               </Select>
             </FormItem>
             <FormItem label="Value">
-              <Input v-model="attributeValue"></Input>
+              <AutoComplete v-model="attributeValue" :data="attributeData" @on-search="handleSearch"></AutoComplete>
             </FormItem>
             <Button type="info" style="float: right" @click="addAttrQuery"
               >add attribute query</Button
@@ -541,6 +541,7 @@ export default {
 
       attributeColumn: null,
       attributeValue: null,
+      attributeData: [],
     };
   },
   computed: {
@@ -740,6 +741,18 @@ export default {
       this.mark = false;
       this.renderBoxes("mouseLayer");
     },
+    handleSearch(value) {
+      console.log(value);
+      if (this.attributeColumn === undefined || !value.length) {
+        this.attributeData = []
+        return;
+      }
+      const name = unobserve.headers[this.attributeColumn];
+      const datas = unobserve.headerMap.get(name);
+      console.log(unobserve.headerMap);
+      console.log(name, datas, this.attributeValue);
+      this.attributeData = datas.filter(str => str.slice(0, value.length) === value);
+    },
     hoveringQuery(index) {
       console.log(index);
       if (index >= unobserve.querys.length) return;
@@ -793,6 +806,8 @@ export default {
         }
         return;
       }
+      if (this.filterMode === 'attr')
+        return;
       this.preview = {
         // type: document.getElementById("mode").value,
         type: this.filterMode,
@@ -813,7 +828,9 @@ export default {
       if (this.modify) {
         unobserve.querys[this.modify.i] = this.preview;
         this.modify = this.preview = null;
-      } else {
+      } else if(this.filterMode === 'attr') {
+        return;
+      }  else {
         const point = [e.offsetX, e.offsetY];
         if (this.preview.type === "knn" || this.preview.type === "rnn") {
           this.preview.start = point;
@@ -3046,6 +3063,24 @@ export default {
     this.headers = unobserve.headers.map((title, key) => {
       return { title, key, minWidth: 150 };
     });
+
+    console.log('This is before headerMap');
+    console.log(unobserve.headers);
+    const headerMap = new Map();
+    const sets = [];
+    unobserve.headers.forEach(() => {
+      sets.push(new Set());
+    })
+
+    unobserve.data.forEach(column => {
+      column.forEach((d, i) => {
+        sets[i].add(d);
+      })
+    })
+    unobserve.headers.forEach((d, i) => {
+      headerMap.set(d, [...sets[i]]);
+    })
+    unobserve.headerMap = headerMap;
 
     const data = unobserve.aggregatedData;
     console.log(data);

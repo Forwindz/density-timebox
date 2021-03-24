@@ -467,7 +467,7 @@ export default class CCHTree {
     return [...result].filter((x) => !removal.has(x));
   }
 
-  anglular(lo, hi) {
+  angular(lo, hi) {
     const result = new Set();
     this.#range(
       result,
@@ -479,7 +479,30 @@ export default class CCHTree {
       },
       this.root
     );
-    return [...result];
+
+    const removal = new Set();
+    this.#range(
+        removal,
+        {x: lo[0], z: hi[1], y: -Infinity},
+        {x: hi[0], z: Infinity, y: Infinity},
+        {
+          a: { x: -Infinity, y: -Infinity, z: -Infinity },
+          b: { x: Infinity, y: Infinity, z: Infinity },
+        },
+        this.root
+    )
+
+    this.#range(
+        removal,
+        {x: lo[0], z: -Infinity, y: -Infinity},
+        {x: hi[0], z: lo[1], y: Infinity},
+        {
+          a: { x: -Infinity, y: -Infinity, z: -Infinity },
+          b: { x: Infinity, y: Infinity, z: Infinity },
+        },
+        this.root
+    )
+    return [...result].filter((x) => !removal.has(x));
   }
 
   // ghost(point) {
