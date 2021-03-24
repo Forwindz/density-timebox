@@ -162,7 +162,11 @@
               </Select>
             </FormItem>
             <FormItem label="Value">
-              <AutoComplete v-model="attributeValue" :data="attributeData" @on-search="handleSearch"></AutoComplete>
+              <AutoComplete
+                v-model="attributeValue"
+                :data="attributeData"
+                @on-search="handleSearch"
+              ></AutoComplete>
             </FormItem>
             <Button type="info" style="float: right" @click="addAttrQuery"
               >add attribute query</Button
@@ -387,12 +391,12 @@
 </template>
 
 <script>
-import draggable from "vuedraggable";
-import {exportCanvas} from "../core/utils";
-import unobserve from "../store";
-import render from "../core";
-import * as d3 from "d3";
-import expandRow from "@/components/expandRow";
+import draggable from 'vuedraggable';
+import { exportCanvas } from '../core/utils';
+import unobserve from '../store';
+import render from '../core';
+import * as d3 from 'd3';
+import expandRow from '@/components/expandRow';
 import {
   calculateCurvature,
   calculateDifference,
@@ -405,10 +409,11 @@ import {
   movePoint,
   sqr,
   updatePoint,
-} from "@/core/util";
-import KDTree from "../core/kdtree";
-import seedrandom from "seedrandom";
-import moment from "moment";
+} from '@/core/util';
+import KDTree from '../core/kdtree';
+import seedrandom from 'seedrandom';
+import moment from 'moment';
+import { brensenham } from '../core/util';
 
 export default {
   props: {
@@ -429,12 +434,12 @@ export default {
       contextHandler: null,
       canvasContext: null,
       rawLineContext: null,
-      filterMode: "brush",
-      brushMethod: "tree",
-      rawMode: "rep",
+      filterMode: 'brush',
+      brushMethod: 'tree',
+      rawMode: 'rep',
       repCount: 3,
       diverse: 0.1,
-      cursor: "crosshair",
+      cursor: 'crosshair',
       mouseDown: false,
       listener: null,
       hoverListener: null,
@@ -443,16 +448,16 @@ export default {
       boxes: [],
       maxDensity: null,
       rawLines: [],
-      colorMap: ["aqua", "limegreen", "lightgreen"],
+      colorMap: ['aqua', 'limegreen', 'lightgreen'],
       upsideDown: false,
       showCursorValue: true,
       normalizeDensity: true,
       headers: [],
       previewIndex: -1,
-      selectedQuery: "$int",
+      selectedQuery: '$int',
       tableColumns: [
         {
-          type: "expand",
+          type: 'expand',
           width: 50,
           render: (h, params) =>
             h(expandRow, {
@@ -461,48 +466,48 @@ export default {
               },
             }),
         },
-        { title: "Query", align: "center", slot: "name" },
+        { title: 'Query', align: 'center', slot: 'name' },
         // { title: 'Min start time', align: 'center', key: 'minT' },
         // { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: "Count", align: "center", key: "count" },
-        { title: "Min value", align: "center", key: "minV" },
-        { title: "Max value", align: "center", key: "maxV" },
-        { title: "Mean value", align: "center", key: "mean" },
-        { title: "Variance", align: "center", key: "var" },
-        { title: "Operations", align: "center", slot: "op", width: 250 },
+        { title: 'Count', align: 'center', key: 'count' },
+        { title: 'Min value', align: 'center', key: 'minV' },
+        { title: 'Max value', align: 'center', key: 'maxV' },
+        { title: 'Mean value', align: 'center', key: 'mean' },
+        { title: 'Variance', align: 'center', key: 'var' },
+        { title: 'Operations', align: 'center', slot: 'op', width: 250 },
       ],
       repColumns: [
-        { title: "Index num.", align: "center", key: "name" },
-        { title: "Min start time", align: "center", key: "minT" },
-        { title: "Max start time", align: "center", key: "maxT" },
-        { title: "Min value", align: "center", key: "minV" },
-        { title: "Max value", align: "center", key: "maxV" },
-        { title: "Mean value", align: "center", key: "mean" },
+        { title: 'Index num.', align: 'center', key: 'name' },
+        { title: 'Min start time', align: 'center', key: 'minT' },
+        { title: 'Max start time', align: 'center', key: 'maxT' },
+        { title: 'Min value', align: 'center', key: 'minV' },
+        { title: 'Max value', align: 'center', key: 'maxV' },
+        { title: 'Mean value', align: 'center', key: 'mean' },
       ],
       layers: [
         {
-          id: "rep_layer",
-          name: "representative line",
+          id: 'rep_layer',
+          name: 'representative line',
           opacity: 1,
         },
         {
-          id: "selectionCanvas",
-          name: "selected density",
+          id: 'selectionCanvas',
+          name: 'selected density',
           opacity: 0,
         },
         {
-          id: "selectionLayer",
-          name: "selected line",
+          id: 'selectionLayer',
+          name: 'selected line',
           opacity: 0.4,
         },
         {
-          id: "canvas",
-          name: "density",
+          id: 'canvas',
+          name: 'density',
           opacity: 1,
         },
         {
-          id: "raw_lines",
-          name: "raw line",
+          id: 'raw_lines',
+          name: 'raw line',
           opacity: 0,
         },
       ],
@@ -554,7 +559,7 @@ export default {
       return [...unobserve.aggregatedData[this.previewIndex].ref]
         .slice(0, 6)
         .map((i, ii) =>
-          ii == 5 ? this.headers.map((_) => "...") : unobserve.data[i]
+          ii == 5 ? this.headers.map((_) => '...') : unobserve.data[i]
         );
     },
     tableData() {
@@ -563,11 +568,11 @@ export default {
       }
       let res = [];
       let mp = {
-        brush: "Brush",
-        ang: "Angle",
-        knn: "KNN",
-        rnn: "Radius",
-        attr: "Attribute",
+        brush: 'Brush',
+        ang: 'Angle',
+        knn: 'KNN',
+        rnn: 'Radius',
+        attr: 'Attribute',
       };
       for (let i = 0; i < unobserve.querys.length; i++) {
         if (!unobserve.querys[i].reps)
@@ -581,24 +586,24 @@ export default {
           reps: unobserve.querys[i].reps.map((id) => {
             return {
               name: id,
-              color: `rgb(${this.getColor(id).join(",")})`,
+              color: `rgb(${this.getColor(id).join(',')})`,
               ...this.getStaticInformation([id]),
             };
           }),
         });
       }
 
-      console.log("this is unoberserve interResult");
+      console.log('this is unoberserve interResult');
       console.log(unobserve.interResult);
       unobserve.interReps = this.calcRepLines(unobserve.interResult);
       res.push({
-        query: "$int",
-        name: "intersection",
+        query: '$int',
+        name: 'intersection',
         ...this.getStaticInformation(unobserve.interResult),
         reps: unobserve.interReps.map((id) => {
           return {
             name: id,
-            color: `rgb(${this.getColor(id).join(",")})`,
+            color: `rgb(${this.getColor(id).join(',')})`,
             ...this.getStaticInformation([id]),
           };
         }),
@@ -606,13 +611,13 @@ export default {
 
       unobserve.unionReps = this.calcRepLines(unobserve.unionResult);
       res.push({
-        query: "$uni",
-        name: "union",
+        query: '$uni',
+        name: 'union',
         ...this.getStaticInformation(unobserve.unionResult),
         reps: unobserve.unionReps.map((id) => {
           return {
             name: id,
-            color: `rgb(${this.getColor(id).join(",")})`,
+            color: `rgb(${this.getColor(id).join(',')})`,
             ...this.getStaticInformation([id]),
           };
         }),
@@ -639,7 +644,7 @@ export default {
         this.rearrangeLayer(value);
         for (let i in value) {
           const layer = value[i];
-          if (layer.id === "selectionCanvas") {
+          if (layer.id === 'selectionCanvas') {
             if (!this.renderSelectedDensity && layer.opacity > 0)
               this.renderDensity();
             this.renderSelectedDensity = layer.opacity > 0;
@@ -649,34 +654,34 @@ export default {
     },
     showCursorValue() {
       this.svg
-        .select("#cursorHelper")
-        .selectAll("line")
-        .attr("x1", 0)
-        .attr("y1", 0)
-        .attr("x2", 0)
-        .attr("y2", 0);
+        .select('#cursorHelper')
+        .selectAll('line')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', 0)
+        .attr('y2', 0);
       this.svg
-        .select("#cursorHelper")
-        .selectAll("text")
-        .attr("x", 0)
-        .attr("y", 0)
-        .text("");
+        .select('#cursorHelper')
+        .selectAll('text')
+        .attr('x', 0)
+        .attr('y', 0)
+        .text('');
     },
     upsideDown(value) {
       unobserve.upsideDown = value;
       this.svg
-        .select("#cursorHelper")
-        .selectAll("line")
-        .attr("x1", 0)
-        .attr("y1", 0)
-        .attr("x2", 0)
-        .attr("y2", 0);
+        .select('#cursorHelper')
+        .selectAll('line')
+        .attr('x1', 0)
+        .attr('y1', 0)
+        .attr('x2', 0)
+        .attr('y2', 0);
       this.svg
-        .select("#cursorHelper")
-        .selectAll("text")
-        .attr("x", 0)
-        .attr("y", 0)
-        .text("");
+        .select('#cursorHelper')
+        .selectAll('text')
+        .attr('x', 0)
+        .attr('y', 0)
+        .text('');
       this.setReverseY(value);
     },
     filter(value) {
@@ -733,23 +738,28 @@ export default {
         this.rawLineContext.stroke();
       }
     },
+    normalizeDensity() {
+      this.renderAllDensity(true);
+    },
   },
   methods: {
     leaveQuery(index) {
       this.mark = false;
-      this.renderBoxes("mouseLayer");
+      this.renderBoxes('mouseLayer');
     },
     handleSearch(value) {
       console.log(value);
       if (this.attributeColumn === undefined || !value.length) {
-        this.attributeData = []
+        this.attributeData = [];
         return;
       }
       const name = unobserve.headers[this.attributeColumn];
       const datas = unobserve.headerMap.get(name);
       console.log(unobserve.headerMap);
       console.log(name, datas, this.attributeValue);
-      this.attributeData = datas.filter(str => str.slice(0, value.length) === value);
+      this.attributeData = datas.filter(
+        (str) => str.slice(0, value.length) === value
+      );
     },
     hoveringQuery(index) {
       console.log(index);
@@ -759,7 +769,7 @@ export default {
 
     addAttrQuery() {
       unobserve.querys.push({
-        type: "attr",
+        type: 'attr',
         info: {
           ind: this.attributeColumn,
           val: this.attributeValue,
@@ -781,7 +791,7 @@ export default {
         flag = true;
       }
       unobserve.querys.splice(query, 1);
-      if (flag) this.selectedQuery = "$int";
+      if (flag) this.selectedQuery = '$int';
       this.renderBoxes();
       this.cnt++;
       this.renderDensity();
@@ -798,25 +808,24 @@ export default {
 
         this.modify.lastPos = startPoint;
         if (this.modify.onBorder) {
-          this.modify.type = "resize";
+          this.modify.type = 'resize';
         } else {
-          this.modify.type = "drag";
+          this.modify.type = 'drag';
         }
         return;
       }
-      if (this.filterMode === 'attr')
-        return;
+      if (this.filterMode === 'attr') return;
       this.preview = {
         // type: document.getElementById("mode").value,
         type: this.filterMode,
         start: startPoint,
       };
       unobserve.preview = this.preview;
-      if (this.preview.type === "knn") {
+      if (this.preview.type === 'knn') {
         this.preview.n = 5;
-      } else if (this.preview.type === "rnn") {
+      } else if (this.preview.type === 'rnn') {
         this.preview.n = 10;
-      } else if (this.preview.type === "ang") {
+      } else if (this.preview.type === 'ang') {
         this.preview.n = 5;
       }
     },
@@ -826,15 +835,15 @@ export default {
       if (this.modify) {
         unobserve.querys[this.modify.i] = this.preview;
         this.modify = this.preview = null;
-      } else if(this.filterMode === 'attr') {
+      } else if (this.filterMode === 'attr') {
         return;
-      }  else {
+      } else {
         const point = [e.offsetX, e.offsetY];
-        if (this.preview.type === "knn" || this.preview.type === "rnn") {
+        if (this.preview.type === 'knn' || this.preview.type === 'rnn') {
           this.preview.start = point;
         } else if (
-          this.preview.type === "brush" ||
-          this.preview.type === "ang"
+          this.preview.type === 'brush' ||
+          this.preview.type === 'ang'
         ) {
           this.preview.end = point;
         }
@@ -844,14 +853,14 @@ export default {
         this.preview = null;
       }
       unobserve.preview = this.preview;
-      console.time("render Density in mouseup");
+      console.time('render Density in mouseup');
       this.renderDensity();
-      console.timeEnd("render Density in mouseup");
+      console.timeEnd('render Density in mouseup');
       // renderQuerys();
 
-      console.time("renderBoxes in mouseup");
+      console.time('renderBoxes in mouseup');
       this.renderBoxes();
-      console.timeEnd("renderBoxes in mouseup");
+      console.timeEnd('renderBoxes in mouseup');
       this.cnt++;
     },
 
@@ -863,11 +872,11 @@ export default {
         const query = res.instance;
         const sign = Math.sign(e.deltaY);
         if (
-          query.type === "knn" ||
-          query.type === "rnn" ||
-          query.type === "ang"
+          query.type === 'knn' ||
+          query.type === 'rnn' ||
+          query.type === 'ang'
         ) {
-          if (query.type === "ang")
+          if (query.type === 'ang')
             query.n = Math.min(Math.max(1, query.n - sign), 180);
           else query.n = Math.max(query.n - Math.sign(e.deltaY), 0);
           query.cache = null;
@@ -892,11 +901,11 @@ export default {
         return;
       }
       if (this.modify) {
-        if (this.modify.type === "resize") {
-          if (this.preview.type === "brush") {
+        if (this.modify.type === 'resize') {
+          if (this.preview.type === 'brush') {
             updatePoint(this.preview.end, this.modify.lastPos, point);
             updatePoint(this.preview.start, this.modify.lastPos, point);
-          } else if (this.preview.type === "ang") {
+          } else if (this.preview.type === 'ang') {
             this.preview.end[0] = point[0];
             this.preview.end[1] += point[1] - this.modify.lastPos[1];
           }
@@ -904,7 +913,7 @@ export default {
           const offsetX = point[0] - this.modify.lastPos[0],
             offsetY = point[1] - this.modify.lastPos[1];
 
-          if (this.preview.type === "brush" || this.preview.type === "ang") {
+          if (this.preview.type === 'brush' || this.preview.type === 'ang') {
             movePoint(this.preview.end, offsetX, offsetY);
           }
           movePoint(this.preview.start, offsetX, offsetY);
@@ -912,23 +921,23 @@ export default {
 
         this.modify.lastPos = point;
       } else {
-        if (this.preview.type === "knn" || this.preview.type === "rnn") {
+        if (this.preview.type === 'knn' || this.preview.type === 'rnn') {
           this.preview.start = point;
         } else if (
-          this.preview.type === "brush" ||
-          this.preview.type === "ang"
+          this.preview.type === 'brush' ||
+          this.preview.type === 'ang'
         ) {
           this.preview.end = point;
         }
       }
       this.preview.cache = null;
-      console.time("renderBoxes");
+      console.time('renderBoxes');
       clearTimeout(unobserve.async);
       unobserve.async = setTimeout(() => {
         this.renderBoxes();
       }, 10);
       this.renderBoxes();
-      console.timeEnd("renderBoxes");
+      console.timeEnd('renderBoxes');
     },
 
     mouseContextmenu(e) {
@@ -972,17 +981,17 @@ export default {
     getTopK() {
       let kArray = [];
       if (this.hoverListener) {
-        this.$refs.canvas.removeEventListener("mousemove", this.hoverListener);
+        this.$refs.canvas.removeEventListener('mousemove', this.hoverListener);
       }
       switch (this.rawMode) {
-        case "cur":
+        case 'cur':
           this.hoverListener = this.hoverLines.bind(this);
-          this.$refs.canvas.addEventListener("mousemove", this.hoverListener);
+          this.$refs.canvas.addEventListener('mousemove', this.hoverListener);
           break;
-        case "out":
+        case 'out':
           kArray = this.contextHandler.findKTop(false);
           break;
-        case "rep":
+        case 'rep':
           kArray = this.contextHandler.findKTop(true, this.diverse);
           break;
       }
@@ -1009,7 +1018,7 @@ export default {
       this.rawLines = kArray;
     },
     resetFilter() {
-      this.$emit("filterChange", undefined);
+      this.$emit('filterChange', undefined);
       this.boxes = [];
       this.mouseDown = false;
       this.canvasContext.clearRect(0, 0, 1000, 500);
@@ -1021,7 +1030,7 @@ export default {
       let x = e.offsetX,
         y = e.offsetY,
         flag = false;
-      if (this.filterMode == "rect") {
+      if (this.filterMode == 'rect') {
         x /= 1000;
         y = 1 - y / 500;
         for (let box of this.boxes) {
@@ -1031,9 +1040,9 @@ export default {
             y < box[3]
           ) {
             if (Math.abs(x - box[0]) <= 0.002) {
-              this.mouseDown = "left";
+              this.mouseDown = 'left';
             } else {
-              this.mouseDown = "right";
+              this.mouseDown = 'right';
             }
             flag = true;
           } else if (
@@ -1042,13 +1051,13 @@ export default {
             x < box[1]
           ) {
             if (Math.abs(y - box[2]) <= 0.004) {
-              this.mouseDown = "bottom";
+              this.mouseDown = 'bottom';
             } else {
-              this.mouseDown = "top";
+              this.mouseDown = 'top';
             }
             flag = true;
           } else if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
-            this.mouseDown = "move";
+            this.mouseDown = 'move';
             flag = true;
           }
           if (flag) {
@@ -1071,7 +1080,7 @@ export default {
                 );
               }
             });
-            this.$emit("filterChange", filterResult);
+            this.$emit('filterChange', filterResult);
             break;
           }
         }
@@ -1080,13 +1089,13 @@ export default {
           Math.abs(x - this.coord[0]) <= 2 &&
           Math.abs(y - this.coord[1]) <= 2
         ) {
-          this.mouseDown = "move";
+          this.mouseDown = 'move';
           flag = true;
         } else if (
           Math.abs(x - this.coord[2]) <= 2 &&
           Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
         ) {
-          this.mouseDown = "time";
+          this.mouseDown = 'time';
           flag = true;
         } else if (
           x > this.coord[0] &&
@@ -1104,7 +1113,7 @@ export default {
                 (x - this.coord[0])) /
                 (this.coord[2] - this.coord[0])
         ) {
-          this.mouseDown = "angular";
+          this.mouseDown = 'angular';
           flag = true;
         }
       }
@@ -1114,7 +1123,7 @@ export default {
         this.coord[1] = e.offsetY;
       }
       this.listener = this.startFilter.bind(this);
-      window.addEventListener("mouseup", this.listener);
+      window.addEventListener('mouseup', this.listener);
     },
     drawBoxes() {
       for (let box of this.boxes) {
@@ -1130,26 +1139,26 @@ export default {
       let x = e.offsetX,
         y = e.offsetY;
       switch (this.mouseDown) {
-        case "move":
-          this.cursor = "grabbing";
+        case 'move':
+          this.cursor = 'grabbing';
           return;
-        case "left":
-        case "right":
-        case "time":
-          this.cursor = "ew-resize";
+        case 'left':
+        case 'right':
+        case 'time':
+          this.cursor = 'ew-resize';
           return;
-        case "top":
-        case "bottom":
-        case "angular":
-        case "range":
-          this.cursor = "ns-resize";
+        case 'top':
+        case 'bottom':
+        case 'angular':
+        case 'range':
+          this.cursor = 'ns-resize';
           return;
-        case "magnet":
+        case 'magnet':
         case true:
-          this.cursor = "crosshair";
+          this.cursor = 'crosshair';
           return;
         default:
-          if (this.filterMode == "rect") {
+          if (this.filterMode == 'rect') {
             x /= 1000;
             y = 1 - y / 500;
             for (let box of this.boxes) {
@@ -1159,7 +1168,7 @@ export default {
                 y > box[2] &&
                 y < box[3]
               ) {
-                this.cursor = "ew-resize";
+                this.cursor = 'ew-resize';
                 return;
               }
               if (
@@ -1168,11 +1177,11 @@ export default {
                 x > box[0] &&
                 x < box[1]
               ) {
-                this.cursor = "ns-resize";
+                this.cursor = 'ns-resize';
                 return;
               }
               if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
-                this.cursor = "move";
+                this.cursor = 'move';
                 return;
               }
             }
@@ -1181,7 +1190,7 @@ export default {
               Math.abs(x - this.coord[0]) <= 2 &&
               Math.abs(y - this.coord[1]) <= 2
             ) {
-              this.cursor = "move";
+              this.cursor = 'move';
               return;
             }
             if (
@@ -1189,7 +1198,7 @@ export default {
               Math.abs(y - this.coord[3]) <=
                 Math.abs(this.coord[4] - this.coord[3])
             ) {
-              this.cursor = "ew-resize";
+              this.cursor = 'ew-resize';
               return;
             }
             if (
@@ -1208,35 +1217,35 @@ export default {
                     (x - this.coord[0])) /
                     (this.coord[2] - this.coord[0])
             ) {
-              this.cursor = "ns-resize";
+              this.cursor = 'ns-resize';
               return;
             }
           }
-          this.cursor = "crosshair";
+          this.cursor = 'crosshair';
       }
     },
     moveMouse(e) {
       this.cursorShape(e);
       if (!this.mouseDown) return;
-      if (this.mouseDown == "magnet") {
+      if (this.mouseDown == 'magnet') {
         this.coord[4] = e.offsetY;
-      } else if (this.mouseDown == "move") {
+      } else if (this.mouseDown == 'move') {
         this.coord[0] += e.movementX;
         this.coord[2] += e.movementX;
         this.coord[1] += e.movementY * this.upsideDownFactor;
         this.coord[3] += e.movementY * this.upsideDownFactor;
         this.coord[4] += e.movementY * this.upsideDownFactor;
-      } else if (this.mouseDown == "left") {
+      } else if (this.mouseDown == 'left') {
         this.coord[0] = e.offsetX;
-      } else if (this.mouseDown == "right") {
+      } else if (this.mouseDown == 'right') {
         this.coord[2] = e.offsetX;
-      } else if (this.mouseDown == "bottom") {
+      } else if (this.mouseDown == 'bottom') {
         this.coord[3] = e.offsetY;
-      } else if (this.mouseDown == "top") {
+      } else if (this.mouseDown == 'top') {
         this.coord[1] = e.offsetY;
-      } else if (this.mouseDown == "time") {
+      } else if (this.mouseDown == 'time') {
         this.coord[2] = Math.max(this.coord[0] + 1, e.offsetX);
-      } else if (this.mouseDown == "angular") {
+      } else if (this.mouseDown == 'angular') {
         this.coord[3] += e.movementY * this.upsideDownFactor;
         this.coord[4] += e.movementY * this.upsideDownFactor;
       } else {
@@ -1244,9 +1253,9 @@ export default {
         this.coord[3] = e.offsetY;
       }
       this.canvasContext.clearRect(0, 0, 1000, 500);
-      if (this.filterMode == "rect") {
+      if (this.filterMode == 'rect') {
         this.canvasContext.globalAlpha = 0.3;
-        this.canvasContext.fillStyle = "black";
+        this.canvasContext.fillStyle = 'black';
         this.drawBoxes();
         this.canvasContext.fillRect(
           Math.min(this.coord[0], this.coord[2]),
@@ -1256,7 +1265,7 @@ export default {
         );
       } else {
         this.canvasContext.globalAlpha = 1;
-        this.canvasContext.strokeStyle = "black";
+        this.canvasContext.strokeStyle = 'black';
         this.canvasContext.beginPath();
         this.canvasContext.moveTo(this.coord[0], this.coord[1]);
         this.canvasContext.lineTo(this.coord[2], this.coord[3]);
@@ -1268,7 +1277,7 @@ export default {
           this.canvasContext.lineTo(this.coord[2], this.coord[3] + offset);
           this.canvasContext.stroke();
           this.canvasContext.globalAlpha = 0.3;
-          this.canvasContext.fillStyle = "black";
+          this.canvasContext.fillStyle = 'black';
           this.canvasContext.beginPath();
           this.canvasContext.moveTo(this.coord[0], this.coord[1]);
           this.canvasContext.lineTo(this.coord[2], this.coord[3] - offset);
@@ -1278,7 +1287,7 @@ export default {
       }
     },
     startFilter() {
-      if (this.filterMode == "rect") {
+      if (this.filterMode == 'rect') {
         this.mouseDown = false;
         if (this.coord[2] != 0 || this.coord[3] != 0) {
           let [left, right] = [this.coord[0], this.coord[2]]
@@ -1296,26 +1305,26 @@ export default {
           );
           if (this.filter) {
             this.$emit(
-              "filterChange",
+              'filterChange',
               this.filter.filter((x) => filterResult.includes(x))
             );
           } else {
-            this.$emit("filterChange", filterResult);
+            this.$emit('filterChange', filterResult);
           }
         }
       }
-      window.removeEventListener("mouseup", this.listener);
+      window.removeEventListener('mouseup', this.listener);
       this.listener = null;
     },
     angleConfirm() {
       if (
-        this.filterMode == "ang" &&
+        this.filterMode == 'ang' &&
         this.coord[2] &&
         this.coord[3] &&
         this.coord[0] != this.coord[2]
       ) {
         if (this.mouseDown === true) {
-          this.mouseDown = "magnet";
+          this.mouseDown = 'magnet';
           let start = [0, 0];
           let end = [0, 0];
           if (this.coord[0] < this.coord[2]) {
@@ -1336,7 +1345,7 @@ export default {
             -(this.coord[3] - offset - this.coord[1]) /
             (this.coord[2] - this.coord[0]);
           this.$emit(
-            "filterChange",
+            'filterChange',
             this.contextHandler.filterAngle(
               this.coord[0] / 1000,
               this.coord[2] / 1000,
@@ -1368,13 +1377,13 @@ export default {
       });
     },
     hightlightRow(row) {
-      return row.query === this.selectedQuery ? "selected-table-row" : "";
+      return row.query === this.selectedQuery ? 'selected-table-row' : '';
     },
     calClassName(row) {
       let ret =
         this.hightlightRow(row) +
-        " " +
-        (row.query === this.hoveringInd ? "ivu-table-row-hover" : "");
+        ' ' +
+        (row.query === this.hoveringInd ? 'ivu-table-row-hover' : '');
       return ret;
     },
     calcLineDistance(aid, bid) {
@@ -1434,7 +1443,7 @@ export default {
         const { line, id } = shuffle[sid];
         unobserve.rawLinesLayerContext.strokeStyle = `rgb(${this.getColor(
           id
-        ).join(",")})`;
+        ).join(',')})`;
         unobserve.rawLinesLayerContext.beginPath();
         unobserve.rawLinesLayerContext.moveTo(line[0].x, line[0].y);
         for (let point of line) {
@@ -1445,95 +1454,95 @@ export default {
     },
 
     renderQuerys() {
-      const ctner = document.getElementById("query_ctner");
-      ctner.innerHTML = "";
+      const ctner = document.getElementById('query_ctner');
+      ctner.innerHTML = '';
       if (!unobserve.querys.length) {
-        ctner.innerHTML = "(empty)";
+        ctner.innerHTML = '(empty)';
       }
       for (let i = 0; i < unobserve.querys.length; i++) {
         const query = unobserve.querys[i];
-        const element = document.createElement("p");
+        const element = document.createElement('p');
 
-        const icon = document.createElement("i");
-        icon.style.display = "inline-block";
+        const icon = document.createElement('i');
+        icon.style.display = 'inline-block';
         icon.style.background =
-          query.type === "knn"
-            ? "deepskyblue"
-            : query.type === "ang"
-            ? "transparent"
-            : "gray";
+          query.type === 'knn'
+            ? 'deepskyblue'
+            : query.type === 'ang'
+            ? 'transparent'
+            : 'gray';
         icon.style.borderRadius =
-          query.type === "knn" || query.type === "rnn" ? "50%" : "0";
+          query.type === 'knn' || query.type === 'rnn' ? '50%' : '0';
         icon.style.borderBottom = icon.style.borderRight =
-          query.type === "ang" ? "6px solid gray" : "";
+          query.type === 'ang' ? '6px solid gray' : '';
         icon.style.borderLeft = icon.style.borderTop =
-          query.type === "ang" ? "6px solid transparent" : "";
+          query.type === 'ang' ? '6px solid transparent' : '';
         icon.style.height = icon.style.width =
-          query.type === "ang" ? "0" : "12px";
+          query.type === 'ang' ? '0' : '12px';
 
-        const desc = document.createElement("span");
+        const desc = document.createElement('span');
         switch (query.type) {
-          case "knn":
-            desc.innerText = "KNN";
+          case 'knn':
+            desc.innerText = 'KNN';
             break;
-          case "rnn":
-            desc.innerText = "RNN";
+          case 'rnn':
+            desc.innerText = 'RNN';
             break;
-          case "brush":
-            desc.innerText = "Brush";
+          case 'brush':
+            desc.innerText = 'Brush';
             break;
-          case "ang":
-            desc.innerText = "Angular";
+          case 'ang':
+            desc.innerText = 'Angular';
             break;
         }
 
-        const conf = document.createElement("p");
+        const conf = document.createElement('p');
         switch (query.type) {
-          case "knn":
-            conf.innerText = "k=";
+          case 'knn':
+            conf.innerText = 'k=';
             break;
-          case "rnn":
-            conf.innerText = "r=";
+          case 'rnn':
+            conf.innerText = 'r=';
             break;
-          case "brush":
+          case 'brush':
             conf.innerHTML = `(${query.start
               .map((x, i) =>
                 i === 0
-                  ? moment(xScale.invert(x)).format("YYYY-M-D")
+                  ? moment(xScale.invert(x)).format('YYYY-M-D')
                   : yScale.invert(500 - x).toFixed(0)
               )
-              .join(", ")}) ~<br>(${query.end
+              .join(', ')}) ~<br>(${query.end
               .map((x, i) =>
                 i === 0
-                  ? moment(xScale.invert(x)).format("YYYY-M-D")
+                  ? moment(xScale.invert(x)).format('YYYY-M-D')
                   : yScale.invert(500 - x).toFixed(0)
               )
-              .join(", ")})`;
+              .join(', ')})`;
             break;
-          case "ang":
-            conf.innerText = "degree±";
+          case 'ang':
+            conf.innerText = 'degree±';
             break;
         }
-        const confInput = document.createElement("input");
-        confInput.type = "number";
+        const confInput = document.createElement('input');
+        confInput.type = 'number';
         confInput.value = query.n;
-        confInput.addEventListener("change", () => {
+        confInput.addEventListener('change', () => {
           query.n = parseFloat(confInput.value);
           query.cache = null;
           query.reps = null;
           setTimeout(renderBoxes, 0);
         });
         if (
-          query.type === "knn" ||
-          query.type === "rnn" ||
-          query.type === "ang"
+          query.type === 'knn' ||
+          query.type === 'rnn' ||
+          query.type === 'ang'
         ) {
           conf.append(confInput);
         }
 
-        const del = document.createElement("button");
-        del.innerText = "Delete this query";
-        del.addEventListener("click", () => {
+        const del = document.createElement('button');
+        del.innerText = 'Delete this query';
+        del.addEventListener('click', () => {
           querys.splice(i, 1);
           // setTimeout(renderQuerys, 0);
           setTimeout(renderBoxes, 0);
@@ -1541,13 +1550,13 @@ export default {
         });
 
         element.append(icon, desc, conf, del);
-        element.addEventListener("mouseenter", () => {
-          element.style.border = "1px solid red";
+        element.addEventListener('mouseenter', () => {
+          element.style.border = '1px solid red';
           hoverBox(query);
         });
 
-        element.addEventListener("mouseleave", () => {
-          element.style.border = "1px solid transparent";
+        element.addEventListener('mouseleave', () => {
+          element.style.border = '1px solid transparent';
           renderBoxes();
         });
 
@@ -1558,7 +1567,7 @@ export default {
     colorSpan(ids) {
       return ids.map((id) => {
         return `<span style="color: rgb(${this.getColor(id).join(
-          ","
+          ','
         )})">${id}</span>`;
       });
     },
@@ -1580,14 +1589,14 @@ export default {
       const query = unobserve.querys[index];
       this.hoveringInd = index;
       if (this.mark !== query) {
-        this.renderBoxes("mouseLayer");
+        this.renderBoxes('mouseLayer');
       }
       this.mark = query;
       this.hoverBox(query);
       if (onBorder) {
-        document.getElementById("canvas").style.cursor = "move";
+        document.getElementById('canvas').style.cursor = 'move';
       } else {
-        document.getElementById("canvas").style.cursor = "pointer";
+        document.getElementById('canvas').style.cursor = 'pointer';
       }
     },
 
@@ -1596,14 +1605,14 @@ export default {
         const query = unobserve.querys[index];
         this.hoveringInd = index;
         if (this.mark !== query) {
-          this.renderBoxes("mouseLayer");
+          this.renderBoxes('mouseLayer');
         }
         this.mark = query;
         this.hoverBox(query);
         if (onBorder) {
-          document.getElementById("canvas").style.cursor = "move";
+          document.getElementById('canvas').style.cursor = 'move';
         } else {
-          document.getElementById("canvas").style.cursor = "pointer";
+          document.getElementById('canvas').style.cursor = 'pointer';
         }
       }
 
@@ -1611,7 +1620,7 @@ export default {
         const query = unobserve.querys[i];
         // switch (query.type) {
         // }
-        if (query.type === "brush") {
+        if (query.type === 'brush') {
           // update rect
           let minX = Math.min(query.start[0], query.end[0]),
             maxX = Math.max(query.start[0], query.end[0]),
@@ -1635,13 +1644,13 @@ export default {
             hovering.call(this, i, onBorder);
             return { instance: query, onBorder, i };
           }
-        } else if (query.type === "knn" || query.type === "rnn") {
+        } else if (query.type === 'knn' || query.type === 'rnn') {
           let dis = dist2(point, query.start);
           if (sqr(query.n) > dis) {
             hovering.call(this, i);
             return { instance: query, i };
           }
-        } else if (query.type === "ang") {
+        } else if (query.type === 'ang') {
           const endX = Math.max(query.start[0] + 1, query.end[0]);
           const start = query.start,
             end = [endX, query.end[1]],
@@ -1661,17 +1670,17 @@ export default {
       }
       if (this.mark) {
         this.mark = false;
-        document.getElementById("canvas").style.cursor = "default";
-        this.renderBoxes("mouseLayer");
+        document.getElementById('canvas').style.cursor = 'default';
+        this.renderBoxes('mouseLayer');
         this.hoveringInd = null;
       }
     },
 
     renderBox(query) {
-      if (query.type === "knn") {
+      if (query.type === 'knn') {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
-        unobserve.mouseLayerContext.fillStyle = "deepskyblue";
+        unobserve.mouseLayerContext.fillStyle = 'deepskyblue';
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           let result = new Set();
@@ -1684,7 +1693,7 @@ export default {
           }
           query.cache = result;
         }
-      } else if (query.type === "rnn") {
+      } else if (query.type === 'rnn') {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
           ...query.start,
@@ -1692,7 +1701,7 @@ export default {
           0,
           2 * Math.PI
         );
-        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
+        unobserve.mouseLayerContext.fillStyle = 'rgba(0,0,0,0.3)';
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
@@ -1700,7 +1709,7 @@ export default {
           );
           query.cache = result;
         }
-      } else if (query.type === "brush") {
+      } else if (query.type === 'brush') {
         // if (document.getElementById("line_mode").value === "all") {
         //   unobserve.mouseLayerContext.putImageData(
         //       currentDensity,
@@ -1710,7 +1719,7 @@ export default {
         //       ...query.end.map((v, i) => Math.abs(v - query.start[i]))
         //   );
         // } else {
-        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
+        unobserve.mouseLayerContext.fillStyle = 'rgba(0,0,0,0.3)';
         unobserve.mouseLayerContext.fillRect(
           ...query.start.map((v, i) => Math.min(v, query.end[i])),
           ...query.end.map((v, i) => Math.abs(v - query.start[i]))
@@ -1722,7 +1731,7 @@ export default {
             minY = Math.min(query.start[1], query.end[1]),
             maxY = Math.max(query.start[1], query.end[1]);
 
-          if (this.brushMethod === "seq") {
+          if (this.brushMethod === 'seq') {
             // console.log(query);
             let result = [];
             // let info = [];
@@ -1763,7 +1772,7 @@ export default {
             // console.log('result', result);
             result = new Set(result);
             query.cache = result;
-          } else if (this.brushMethod === "tree") {
+          } else if (this.brushMethod === 'tree') {
             const result = new Set(
               this.tree.brush(
                 [
@@ -1922,7 +1931,7 @@ export default {
             query.cache = result;
           }
         }
-      } else if (query.type === "ang") {
+      } else if (query.type === 'ang') {
         const endX = Math.max(query.start[0] + 1, query.end[0]);
         const minX = query.start[0],
           maxX = endX;
@@ -1941,7 +1950,7 @@ export default {
         const slopeMin = Math.tan(angMin);
         const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
         const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
-        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
+        unobserve.mouseLayerContext.fillStyle = 'rgba(0,0,0,0.3)';
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
         unobserve.mouseLayerContext.lineTo(endX, endYMin);
@@ -1949,7 +1958,7 @@ export default {
         unobserve.mouseLayerContext.closePath();
         unobserve.mouseLayerContext.fill();
         unobserve.mouseLayerContext.lineWidth = 1;
-        unobserve.mouseLayerContext.strokeStyle = "black";
+        unobserve.mouseLayerContext.strokeStyle = 'black';
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
         unobserve.mouseLayerContext.lineTo(endX, query.end[1]);
@@ -1960,7 +1969,7 @@ export default {
           );
           query.cache = result;
         }
-      } else if (query.type === "attr") {
+      } else if (query.type === 'attr') {
         if (!query.cache) {
           const { ind, val } = query.info;
           console.log(unobserve.aggregatedData, unobserve.data);
@@ -1979,12 +1988,12 @@ export default {
 
     hoverBox(query) {
       unobserve.mouseLayerContext.lineWidth = 2;
-      if (query.type === "knn") {
+      if (query.type === 'knn') {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
-        unobserve.mouseLayerContext.strokeStyle = "red";
+        unobserve.mouseLayerContext.strokeStyle = 'red';
         unobserve.mouseLayerContext.stroke();
-      } else if (query.type === "rnn") {
+      } else if (query.type === 'rnn') {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
           ...query.start,
@@ -1992,15 +2001,15 @@ export default {
           0,
           2 * Math.PI
         );
-        unobserve.mouseLayerContext.strokeStyle = "red";
+        unobserve.mouseLayerContext.strokeStyle = 'red';
         unobserve.mouseLayerContext.stroke();
-      } else if (query.type === "brush") {
-        unobserve.mouseLayerContext.strokeStyle = "red";
+      } else if (query.type === 'brush') {
+        unobserve.mouseLayerContext.strokeStyle = 'red';
         unobserve.mouseLayerContext.strokeRect(
           ...query.start.map((v, i) => Math.min(v, query.end[i])),
           ...query.end.map((v, i) => Math.abs(v - query.start[i]))
         );
-      } else if (query.type === "ang") {
+      } else if (query.type === 'ang') {
         const endX = Math.max(query.start[0] + 1, query.end[0]);
         const slopeBase =
           (query.end[1] - query.start[1]) / (endX - query.start[0]);
@@ -2017,7 +2026,7 @@ export default {
         const slopeMin = Math.tan(angMin);
         const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
         const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
-        unobserve.mouseLayerContext.strokeStyle = "red";
+        unobserve.mouseLayerContext.strokeStyle = 'red';
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
         unobserve.mouseLayerContext.lineTo(endX, endYMin);
@@ -2028,13 +2037,13 @@ export default {
     },
 
     initCanvas(context) {
-      context.fillStyle = "black";
+      context.fillStyle = 'black';
       context.globalAlpha = 1;
       context.fillRect(0, 0, 1000, 500);
       context.clearRect(0, 0, 1000, 500);
     },
 
-    renderBoxes(type = "all") {
+    renderBoxes(type = 'all') {
       this.initCanvas(unobserve.mouseLayerContext);
 
       let tmpQueries = [...unobserve.querys];
@@ -2042,11 +2051,11 @@ export default {
         tmpQueries.push(this.preview);
         // drawLine([...preview.cache]);
       }
-      console.time("update brush");
+      console.time('update brush');
       tmpQueries.forEach(this.renderBox);
-      console.timeEnd("update brush");
+      console.timeEnd('update brush');
 
-      if (type === "mouseLayer") return;
+      if (type === 'mouseLayer') return;
 
       this.initCanvas(unobserve.selectionLayerContext);
       this.initCanvas(unobserve.repLayerContext);
@@ -2070,13 +2079,13 @@ export default {
       console.timeEnd('begin calculate rep line and draw line');
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
 
-      console.log("render boxes ended ==== \n\n");
+      console.log('render boxes ended ==== \n\n');
     },
 
     getSelectedIds() {
-      return typeof this.selectedQuery === "number"
+      return typeof this.selectedQuery === 'number'
         ? [...unobserve.querys[this.selectedQuery].cache]
-        : this.selectedQuery === "$int"
+        : this.selectedQuery === '$int'
         ? unobserve.interResult
         : unobserve.unionResult;
     },
@@ -2087,37 +2096,37 @@ export default {
       const oriX = this.xScale.invert(x);
       const oriY = this.yScale.invert(500 - y);
 
-      const date = moment(oriX).format("YYYY-MM-DD");
+      const date = moment(oriX).format('YYYY-MM-DD');
 
       // console.log('---------------------------------', this.upsideDown ? 0 : 500);
       const upsideDown = this.upsideDown;
       if (this.showCursorValue) {
-        this.cursorHelper.selectAll("line").each(function(_, i) {
+        this.cursorHelper.selectAll('line').each(function(_, i) {
           d3.select(this)
-            .attr("x1", i === 0 ? 0 : x)
-            .attr("y1", i === 0 ? 500 - y : upsideDown ? 0 : 500)
-            .attr("x2", x)
-            .attr("y2", 500 - y);
+            .attr('x1', i === 0 ? 0 : x)
+            .attr('y1', i === 0 ? 500 - y : upsideDown ? 0 : 500)
+            .attr('x2', x)
+            .attr('y2', 500 - y);
         });
 
-        this.cursorHelper.selectAll("text").each(function(_, i) {
+        this.cursorHelper.selectAll('text').each(function(_, i) {
           d3.select(this)
-            .attr("x", i === 0 ? 0 : x - (x > 930 ? 70 : 0))
+            .attr('x', i === 0 ? 0 : x - (x > 930 ? 70 : 0))
             .attr(
-              "y",
+              'y',
               i === 0 ? 500 - y + (y > 480 ? 12 : 0) : upsideDown ? 12 : 500
             )
             .text(i === 0 ? oriY.toFixed(2) : date);
         });
       } else {
         this.cursorHelper
-          .selectAll("line")
-          .attr("x1", 0)
-          .attr("x2", 0)
-          .attr("y1", 0)
-          .attr("y2", 0);
+          .selectAll('line')
+          .attr('x1', 0)
+          .attr('x2', 0)
+          .attr('y1', 0)
+          .attr('y2', 0);
 
-        this.cursorHelper.selectAll("text").text("");
+        this.cursorHelper.selectAll('text').text('');
       }
     },
 
@@ -2403,15 +2412,15 @@ export default {
     renderColorMap() {
       // document.getElementById("colorMax").innerText = currentDensityMax;
       document.getElementById(
-        "color-map"
+        'color-map'
       ).style.background = `linear-gradient(to right, ${this.getColorMap()
         .map(
           (color, i, arr) =>
-            `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
+            `rgb(${color.join(', ')}) ${((i / (arr.length - 1)) * 100).toFixed(
               0
             )}%`
         )
-        .join(", ")})`;
+        .join(', ')})`;
     },
 
     rgb(i) {
@@ -2485,50 +2494,40 @@ export default {
     // },
     //#endregion
 
-    renderAllDensity() {
-      let initFlag = true;
-      const bgContext = document.getElementById("canvas").getContext("2d");
+    renderAllDensity(initFlag) {
+      const bgContext = document.getElementById('canvas').getContext('2d');
 
-      console.time("temp canvas");
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = 1000;
-      tempCanvas.height = 500;
-      const tempContext = tempCanvas.getContext('2d');
-      tempContext.globalCompositeOperation = 'lighter';
-      tempContext.strokeStyle = '#010101';
+      console.time('temp canvas');
+      const tempBuffer = new Float32Array(1000 * 500);
       for (let seg of this.tree.segs) {
-        tempContext.beginPath();
-        tempContext.moveTo(seg[0].x, seg[0].y);
-        tempContext.lineTo(seg[1].x, seg[1].y);
-        tempContext.stroke();
+        brensenham(seg, tempBuffer, this.normalizeDensity ? seg[2] : 1);
       }
-
-      const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
       if (initFlag) {
-        this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
+        this.initDensityBufferCache = tempBuffer;
       }
-      console.timeEnd("temp canvas");
-      console.time("render");
-      bgContext.fillStyle = "black";
+      console.timeEnd('temp canvas');
+      console.time('render');
+      bgContext.fillStyle = 'black';
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, 1000, 500);
       bgContext.clearRect(0, 0, 1000, 500);
-      const maxWeight =
-        this.maxDensity ||
-        tempImageData.data.reduce((p, v, i) =>
-          i % 4 === 3 ? p : Math.max(p, v)
-        );
+      const tempImageBuffer = new Uint8ClampedArray(1000 * 500 * 4);
+      const tempImageData = new ImageData(tempImageBuffer, 1000, 500);
+      const maxWeight = Math.ceil(
+        (!initFlag && this.maxDensity) ||
+          tempBuffer.reduce((p, v) => Math.max(p, v))
+      );
       this.maxDensity = maxWeight;
       for (let i = 0; i < 1000; i++) {
         for (let j = 0; j < 500; j++) {
-          const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
+          const ratio = tempBuffer[i * 500 + j] / maxWeight;
           const color = this.rgb(ratio);
           tempImageData.data.set(color, (j * 1000 + i) * 4);
           tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
-      console.timeEnd("render");
+      console.timeEnd('render');
       if (initFlag) {
         this.initDensityMaxCache = maxWeight;
         this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
@@ -2544,21 +2543,21 @@ export default {
       let renderFlag = false;
       for (let i in this.layers) {
         const layer = this.layers[i];
-        if (layer.name === "selected density" && layer.opacity > 0) {
+        if (layer.name === 'selected density' && layer.opacity > 0) {
           renderFlag = true;
         }
       }
       if (!renderFlag) return;
       const bgContext = document
-        .getElementById("selectionCanvas")
-        .getContext("2d");
-      console.time("temp canvas");
-      const tempCanvas = document.createElement("canvas");
+        .getElementById('selectionCanvas')
+        .getContext('2d');
+      console.time('temp canvas');
+      const tempCanvas = document.createElement('canvas');
       tempCanvas.width = 1000;
       tempCanvas.height = 500;
-      const tempContext = tempCanvas.getContext("2d");
-      tempContext.globalCompositeOperation = "lighter";
-      tempContext.strokeStyle = "#010101";
+      const tempContext = tempCanvas.getContext('2d');
+      tempContext.globalCompositeOperation = 'lighter';
+      tempContext.strokeStyle = '#010101';
       for (let id of ids) {
         const line = unobserve.result[id];
         tempContext.beginPath();
@@ -2570,12 +2569,12 @@ export default {
       }
 
       const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
-      if (initFlag) {
-        this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
-      }
-      console.timeEnd("temp canvas");
-      console.time("render");
-      bgContext.fillStyle = "black";
+      // if (initFlag) {
+      //   this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
+      // }
+      console.timeEnd('temp canvas');
+      console.time('render');
+      bgContext.fillStyle = 'black';
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, 1000, 500);
       bgContext.clearRect(0, 0, 1000, 500);
@@ -2595,7 +2594,7 @@ export default {
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
-      console.timeEnd("render");
+      console.timeEnd('render');
       if (initFlag) {
         this.initDensityMaxCache = maxWeight;
         this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
@@ -2608,27 +2607,27 @@ export default {
     rearrangeLayer(
       options = [
         {
-          name: "raw_lines",
+          name: 'raw_lines',
           opacity: 0,
           zIndex: 0,
         },
         {
-          name: "canvas",
+          name: 'canvas',
           opacity: 1,
           zIndex: 1,
         },
         {
-          name: "selectionCanvas",
+          name: 'selectionCanvas',
           opacity: 0,
           zIndex: 2,
         },
         {
-          name: "selectionLayer",
+          name: 'selectionLayer',
           opacity: 0.4,
           zIndex: 3,
         },
         {
-          name: "rep_layer",
+          name: 'rep_layer',
           opacity: 1,
           zIndex: 4,
         },
@@ -2643,35 +2642,35 @@ export default {
     },
 
     setReverseY(flag = false) {
-      console.log("before set", this.yScale.range());
+      console.log('before set', this.yScale.range());
       this.yScale.range(this.upsideDown ? [0, 500] : [500, 0]);
-      console.log("after set", this.yScale.range());
+      console.log('after set', this.yScale.range());
 
       const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
       const canvasList = [
-        "canvas",
-        "selectionCanvas",
-        "selectionLayer",
-        "rep_layer",
-        "raw_lines",
-        "mouseLayer",
+        'canvas',
+        'selectionCanvas',
+        'selectionLayer',
+        'rep_layer',
+        'raw_lines',
+        'mouseLayer',
       ];
       for (let id of canvasList) {
         document.getElementById(id).style.transform = scaleY;
       }
 
-      this.svg.select("#xaxis").remove();
-      this.svg.select("#yaxis").remove();
+      this.svg.select('#xaxis').remove();
+      this.svg.select('#yaxis').remove();
       // svg.append("g").attr("transform", "translate(30,500)").call(xAxis);
       this.svg
-        .append("g")
-        .attr("id", "yaxis")
-        .attr("transform", "translate(30,20)")
+        .append('g')
+        .attr('id', 'yaxis')
+        .attr('transform', 'translate(30,20)')
         .call(unobserve.yAxis);
       this.svg
-        .append("g")
-        .attr("id", "xaxis")
-        .attr("transform", `translate(30,${this.upsideDown ? 20 : 520})`)
+        .append('g')
+        .attr('id', 'xaxis')
+        .attr('transform', `translate(30,${this.upsideDown ? 20 : 520})`)
         .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
     },
     getStaticInformation(ids) {
@@ -2697,8 +2696,8 @@ export default {
             );
 
       return {
-        minT: moment(this.xScale.invert(minX)).format("YYYY-M-D"),
-        maxT: moment(this.xScale.invert(maxX)).format("YYYY-M-D"),
+        minT: moment(this.xScale.invert(minX)).format('YYYY-M-D'),
+        maxT: moment(this.xScale.invert(maxX)).format('YYYY-M-D'),
         minV: minY.toFixed(2),
         maxV: maxY.toFixed(2),
         count: ids.length,
@@ -2743,22 +2742,22 @@ export default {
           w: this.calcLineWeight(id),
           cur: calculateCurvature(
             unobserve.result[id].filter((point) =>
-                (unobserve.querys.length <= 0 && !unobserve.preview)
+              unobserve.querys.length <= 0 && !unobserve.preview
                 ? true
                 : (unobserve.preview
                     ? [unobserve.preview]
                     : unobserve.querys
                   ).find((query) => {
-                    if (query.type === "knn") {
+                    if (query.type === 'knn') {
                       return true; // TODO: only line in knn
-                    } else if (query.type === "rnn") {
+                    } else if (query.type === 'rnn') {
                       return (
                         Math.sqrt(
                           Math.pow(point.x - query.start[0], 2) +
                             Math.pow(point.y - query.start[1], 2)
                         ) <= query.n
                       );
-                    } else if (query.type === "brush") {
+                    } else if (query.type === 'brush') {
                       const startX = Math.min(query.start[0], query.end[0]);
                       const startY = Math.min(query.start[1], query.end[1]);
                       const endX = Math.max(query.start[0], query.end[0]);
@@ -2769,7 +2768,7 @@ export default {
                         point.x <= endX &&
                         point.y <= endY
                       );
-                    } else if (query.type === "ang") {
+                    } else if (query.type === 'ang') {
                       const startX = Math.min(query.start[0], query.end[0]);
                       const endX = Math.max(query.start[0], query.end[0]);
                       return point.x >= startX && point.x <= endX;
@@ -2793,16 +2792,17 @@ export default {
       console.log('this is line weight');
       console.log(lineWeights);
 
-      return lineWeights
+      return (
+        lineWeights
           .reduce((p, v) => {
             // if (document.getElementById("show-all-clusters").checked) {
             //   p.push(v);
             //   return p;
             // }
             if (
-                p.length >= lineCount ||
-                v.w[1] < 1000 / 3 ||
-                p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
+              p.length >= lineCount ||
+              v.w[1] < 1000 / 3 ||
+              p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
             ) {
               return p;
             }
@@ -2810,8 +2810,8 @@ export default {
             return p;
           }, [])
           // .slice(0, lineCount)
-          .map((x) => x.id);
-
+          .map((x) => x.id)
+      );
     },
     drawLine(ids) {
       // Selected Part =====================
@@ -2823,7 +2823,7 @@ export default {
           const line = unobserve.result[id];
           unobserve.selectionLayerContext.strokeStyle = `rgb(${this.getColor(
             id
-          ).join(",")})`;
+          ).join(',')})`;
           unobserve.selectionLayerContext.beginPath();
           unobserve.selectionLayerContext.moveTo(line[0].x, line[0].y);
           for (let point of line) {
@@ -2902,7 +2902,7 @@ export default {
       for (let i in topIds) {
         unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(
           topIds[i]
-        ).join(",")})`;
+        ).join(',')})`;
 
         // if (document.getElementById("show-all-clusters").checked) {
         //   for (let id of topIds[i]) {
@@ -2943,9 +2943,9 @@ export default {
       let weight = 0;
       let passedPixels = 0;
       let lineLen = 0;
-      const hasBrush = unobserve.querys.find((q) => q.type === "brush");
+      const hasBrush = unobserve.querys.find((q) => q.type === 'brush');
       const brushes = unobserve.querys
-        .filter((q) => q.type === "brush")
+        .filter((q) => q.type === 'brush')
         .map((b) => [
           Math.min(b.start[0], b.end[0]),
           Math.max(b.start[0], b.end[0]),
@@ -2983,7 +2983,7 @@ export default {
             y1 >= 0 &&
             y1 < 500
           ) {
-            weight += this.initDensityBufferCache.data[(y1 * 1000 + x1) * 4];
+            weight += this.initDensityBufferCache[x1 * 500 + y1];
             passedPixels++;
             if (x1 !== px) {
               px = x1;
@@ -3035,16 +3035,16 @@ export default {
     const sets = [];
     unobserve.headers.forEach(() => {
       sets.push(new Set());
-    })
+    });
 
-    unobserve.data.forEach(column => {
+    unobserve.data.forEach((column) => {
       column.forEach((d, i) => {
         sets[i].add(d);
-      })
-    })
+      });
+    });
     unobserve.headers.forEach((d, i) => {
       headerMap.set(d, [...sets[i]]);
-    })
+    });
     unobserve.headerMap = headerMap;
 
     const data = unobserve.aggregatedData;
@@ -3078,7 +3078,10 @@ export default {
     let result = data.map((line) => {
       let res = [];
       line[this.timeIndex].forEach((d, i) => {
-        res.push({ x: xScaleData(d), y: this.yScale(line[this.valueIndex][i]) });
+        res.push({
+          x: xScaleData(d),
+          y: this.yScale(line[this.valueIndex][i]),
+        });
       });
       return res;
     });
@@ -3102,7 +3105,7 @@ export default {
     console.log(result);
     unobserve.result = result;
     // console.log('Point count', sumLength);
-    let drawMode = "all";
+    let drawMode = 'all';
     let reverseY = false;
     //#endregion
 
@@ -3143,19 +3146,19 @@ export default {
 
     //#region init helpers
     unobserve.selectionLayerContext = document
-      .getElementById("selectionLayer")
-      .getContext("2d");
+      .getElementById('selectionLayer')
+      .getContext('2d');
     unobserve.mouseLayerContext = document
-      .getElementById("mouseLayer")
-      .getContext("2d");
+      .getElementById('mouseLayer')
+      .getContext('2d');
     unobserve.repLayerContext = document
-      .getElementById("rep_layer")
-      .getContext("2d");
+      .getElementById('rep_layer')
+      .getContext('2d');
     unobserve.rawLinesLayerContext = document
-      .getElementById("raw_lines")
-      .getContext("2d");
-    this.svg = d3.select(document.getElementById("axisHelper"));
-    this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
+      .getElementById('raw_lines')
+      .getContext('2d');
+    this.svg = d3.select(document.getElementById('axisHelper'));
+    this.cursorHelper = d3.select(document.getElementById('cursorHelper'));
 
     const xAxis = d3.axisBottom(this.xScale);
     const xAxisR = d3.axisTop(this.xScale);
@@ -3165,15 +3168,15 @@ export default {
     unobserve.xAxisR = xAxisR;
 
     this.svg
-      .append("g")
-      .attr("id", "xaxis")
-      .attr("transform", "translate(30,520)")
+      .append('g')
+      .attr('id', 'xaxis')
+      .attr('transform', 'translate(30,520)')
       .call(xAxis);
     // svg.append("g").attr("transform", "translate(30,0)").call(yAxis);
     this.svg
-      .append("g")
-      .attr("id", "yaxis")
-      .attr("transform", "translate(30,20)")
+      .append('g')
+      .attr('id', 'yaxis')
+      .attr('transform', 'translate(30,20)')
       .call(yAxis);
 
     // document.getElementById("hint").style.display = "none";
@@ -3185,13 +3188,13 @@ export default {
     // document.getElementById("dist_cal").addEventListener("change", () => {
     //   renderBoxes();
     // });
-    document.getElementById("canvas").addEventListener("mousedown", (e) => {});
-    document.getElementById("canvas").addEventListener("mouseup", (e) => {});
+    document.getElementById('canvas').addEventListener('mousedown', (e) => {});
+    document.getElementById('canvas').addEventListener('mouseup', (e) => {});
 
-    document.getElementById("canvas").addEventListener("wheel", (e) => {});
-    document.getElementById("canvas").addEventListener("mousemove", (e) => {});
+    document.getElementById('canvas').addEventListener('wheel', (e) => {});
+    document.getElementById('canvas').addEventListener('mousemove', (e) => {});
 
-    document.getElementById("canvas").addEventListener("contextmenu", (e) => {
+    document.getElementById('canvas').addEventListener('contextmenu', (e) => {
       // e.preventDefault();
       // if (drawMode === "all") {
       //   document.getElementById("render_res").click();
@@ -3263,28 +3266,28 @@ export default {
     // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
 
     const table = document.querySelector(
-      "#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border"
+      '#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border'
     );
-    const tableId = document.getElementById("informationTable");
-    tableId.addEventListener("mousemove", (e) => {
+    const tableId = document.getElementById('informationTable');
+    tableId.addEventListener('mousemove', (e) => {
       let ele = null;
       if (e.path.length >= 18) ele = e.path[e.path.length - 18];
       if (
         !ele ||
         !(
-          ele.tagName.toLowerCase() === "tr" &&
-          ele.parentNode.tagName.toLowerCase() === "tbody"
+          ele.tagName.toLowerCase() === 'tr' &&
+          ele.parentNode.tagName.toLowerCase() === 'tbody'
         )
       ) {
         this.hoveringInd = null;
-        this.renderBoxes("mouseLayer");
+        this.renderBoxes('mouseLayer');
       } else {
         let ind;
         const children = ele.parentNode.children;
         let counter = 0;
         for (let i = 0; i < children.length; i++) {
           const e = children[i];
-          if (e.className?.includes("ivu-table-row")) {
+          if (e.className?.includes('ivu-table-row')) {
             counter++;
           }
           if (e === ele) {
@@ -3293,7 +3296,7 @@ export default {
           }
         }
         if (ind >= unobserve.querys.length) {
-          this.renderBoxes("mouseLayer");
+          this.renderBoxes('mouseLayer');
           this.hoveringInd = null;
           return;
         }
@@ -3301,8 +3304,8 @@ export default {
       }
     });
 
-    tableId.addEventListener("mouseleave", () => {
-      this.renderBoxes("mouseLayer");
+    tableId.addEventListener('mouseleave', () => {
+      this.renderBoxes('mouseLayer');
       this.hoveringInd = null;
     });
   },

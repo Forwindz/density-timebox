@@ -695,7 +695,7 @@ export default class CCHTree {
       const seg = this.segs[i];
       const lineId = seg[3];
       if (!result.has(lineId)) {
-        if (isFinite(p1.z)) {
+        if (isFinite(p1.z) || isFinite(p2.z)) {
           if (
             seg[2] >= p1.z &&
             seg[2] <= p2.z &&
