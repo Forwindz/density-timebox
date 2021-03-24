@@ -539,7 +539,7 @@ export default {
       cursorHelper: null,
       svg: null,
 
-      tree: null,
+      tr: null,
       cnt: 0,
       renderSelectedDensity: 0,
 
@@ -1452,7 +1452,7 @@ export default {
       const shuffle = new Array(unobserve.result.length)
         .fill()
         .map((_, id) => ({ id, line: [] }));
-      this.tree.segs.forEach((seg) => {
+      this.tr.ee.segs.forEach((seg) => {
         shuffle[seg[3]].line.push(seg);
       });
       shuffle.sort(() => (Math.random() > 0.5 ? 1 : -1));
@@ -1705,7 +1705,7 @@ export default {
           while (result.size < query.n) {
             base += query.n - result.size;
             result = new Set(
-              this.tree.knn(query.start, base).map(({ id }) => id)
+              this.tr.ee.knn(query.start, base).map(({ id }) => id)
             );
           }
           query.cache = result;
@@ -1722,7 +1722,7 @@ export default {
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-            this.tree.rnn(query.start, query.n).map(({ id }) => id)
+            this.tr.ee.rnn(query.start, query.n).map(({ id }) => id)
           );
           query.cache = result;
         }
@@ -1791,7 +1791,7 @@ export default {
             query.cache = result;
           } else if (this.brushMethod === "tree") {
             const result = new Set(
-              this.tree.brush(
+              this.tr.ee.brush(
                 [
                   Math.min(query.start[0], query.end[0]),
                   Math.min(query.start[1], query.end[1]),
@@ -1856,7 +1856,7 @@ export default {
 
             query.cache = result;
           } else {
-            const yyds = this.tree.brush(
+            const yyds = this.tr.ee.brush(
               [
                 Math.min(query.start[0], query.end[0]),
                 Math.min(query.start[1], query.end[1]),
@@ -1917,7 +1917,7 @@ export default {
                   )
               )
               .forEach(({ raw }) => result.delete(raw[5]));
-            // this.tree
+            // this.tr.ee
             //     .brush(
             //         [
             //           Math.min(query.start[0], query.end[0]),
@@ -1982,7 +1982,7 @@ export default {
         unobserve.mouseLayerContext.stroke();
         if (!query.cache) {
           const result = new Set(
-            this.tree.angular([query.start[0], slopeMin], [endX, slopeMax])
+            this.tr.ee.angular([query.start[0], slopeMin], [endX, slopeMax])
           );
           query.cache = result;
         }
@@ -2512,12 +2512,13 @@ export default {
 
     renderAllDensity(initFlag) {
       const bgContext = document.getElementById("canvas").getContext("2d");
-
+      console.log(this.tr.ee.segs);
       console.time("temp canvas");
       const tempBuffer = new Float32Array(1000 * 500);
-      for (let seg of this.tree.segs) {
+      for (let seg of this.tr.ee.segs) {
         brensenham(seg, tempBuffer, this.normalizeDensity ? seg[2] : 1);
       }
+      console.log(tempBuffer);
       if (initFlag) {
         this.initDensityBufferCache = tempBuffer;
       }
@@ -3111,8 +3112,9 @@ export default {
 
     // #region init tree
 
-    this.tree = new KDTree(result);
-    // this.tree.buildKDTree();
+    this.tr = {}; // Avoid tracking properties in tree
+    this.tr.ee = new KDTree(result);
+    // this.tr.ee.buildKDTree();
 
     // tree.render(
     //   document.getElementById("canvas"),
