@@ -318,6 +318,10 @@
           <span>Normalize density:</span>
           <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
         </div>
+        <div>
+          <span>Enlarge Axis Font Size:</span>
+          <iSwitch style="margin-left:12px" v-model="enlargeFont" />
+        </div>
       </div>
     </div>
     <Table
@@ -447,6 +451,7 @@ export default {
       upsideDown: false,
       showCursorValue: true,
       normalizeDensity: true,
+      enlargeFont: false,
       headers: [],
       previewIndex: -1,
       selectedQuery: "$int",
@@ -580,7 +585,7 @@ export default {
           ...this.getStaticInformation([...unobserve.querys[i].cache]),
           reps: unobserve.querys[i].reps.map((id) => {
             return {
-              name: id,
+              name: unobserve.aggregatedData[id].key,
               color: `rgb(${this.getColor(id).join(",")})`,
               ...this.getStaticInformation([id]),
             };
@@ -623,6 +628,16 @@ export default {
     },
   },
   watch: {
+    enlargeFont(newValue) {
+      if (newValue) {
+        this.svg.select('#xaxis').attr('font-size', '14px');
+        this.svg.select('#yaxis').attr('font-size', '14px');
+      }
+      else {
+        this.svg.select('#xaxis').attr('font-size', '10px');
+        this.svg.select('#yaxis').attr('font-size', '10px');
+      }
+    },
     colormapIndexCache(value) {
       console.log(value);
       this.renderColorMap();
@@ -749,7 +764,7 @@ export default {
       const datas = unobserve.headerMap.get(name);
       console.log(unobserve.headerMap);
       console.log(name, datas, this.attributeValue);
-      this.attributeData = datas.filter(str => str.slice(0, value.length) === value);
+      this.attributeData = datas.filter(str => str.slice(0, value.length) === value).slice(0, 10);
     },
     hoveringQuery(index) {
       console.log(index);
@@ -2089,7 +2104,6 @@ export default {
 
       const date = moment(oriX).format("YYYY-MM-DD");
 
-      // console.log('---------------------------------', this.upsideDown ? 0 : 500);
       const upsideDown = this.upsideDown;
       if (this.showCursorValue) {
         this.cursorHelper.selectAll("line").each(function(_, i) {
@@ -2642,12 +2656,14 @@ export default {
       }
     },
 
-    setReverseY(flag = false) {
+    setReverseY() {
       console.log("before set", this.yScale.range());
       this.yScale.range(this.upsideDown ? [0, 500] : [500, 0]);
       console.log("after set", this.yScale.range());
 
       const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
+
+      //#region reverse the every canvas
       const canvasList = [
         "canvas",
         "selectionCanvas",
@@ -2659,6 +2675,7 @@ export default {
       for (let id of canvasList) {
         document.getElementById(id).style.transform = scaleY;
       }
+      //#regionend
 
       this.svg.select("#xaxis").remove();
       this.svg.select("#yaxis").remove();
@@ -3082,44 +3099,12 @@ export default {
       });
       return res;
     });
-    // let tmpResult = [];
-    // for (let i = 0; i < 10; i++) {
-    //   for (let j = 0; j < result.length; j++) {
-    //     tmpResult.push(result[j]);
-    //   }
-    // }
-    // for (let i = 0; i < 1000000; i++) {
-    //   let ret = [];
-    //   for (let j = 0; j < 11; j++) {
-    //     ret.push({x: 500/ 10 * j, y: Math.random() * 1000});
-    //   }
-    //   tmpResult.push(ret);
-    // }
-    // result = tmpResult;
-    // result = [...result, ...result, ...result.slice(0, 10000 - result.length * 2)];
-    // let sumLength = 0;
-    // sumLength = result.reduce((p, v) => p + v.length, 0);
-    console.log(result);
     unobserve.result = result;
-    // console.log('Point count', sumLength);
     let drawMode = "all";
     let reverseY = false;
     //#endregion
 
-    //#region init tree
-    // let pointer = data[1][0];
-    // let previous = [];
-    // for (let line of data.slice(1)) {
-    //   if (line[0] !== pointer) {
-    //     pointer = line[0];
-    //     result.push(previous);
-    //     previous = [];
-    //   }
-    //   const date = new Date(line[1]);
-    //   const x = (Math.floor(date / 1000 / 60 / 60 / 24) - 13179) / 4.179;
-    //   const y = parseFloat(line[2]) / 0.13902;
-    //   previous.push({ x, y });
-    // }
+    // #region init tree
 
     this.tree = new KDTree(result);
     // this.tree.buildKDTree();
@@ -3176,76 +3161,6 @@ export default {
       .attr("transform", "translate(30,20)")
       .call(yAxis);
 
-    // document.getElementById("hint").style.display = "none";
-    // document.getElementById("canvas").style.visibility = "visible";
-    // document.getElementById("controller").style.display = "block";
-    //#endregion
-
-    //#region init listeners
-    // document.getElementById("dist_cal").addEventListener("change", () => {
-    //   renderBoxes();
-    // });
-    document.getElementById("canvas").addEventListener("mousedown", (e) => {});
-    document.getElementById("canvas").addEventListener("mouseup", (e) => {});
-
-    document.getElementById("canvas").addEventListener("wheel", (e) => {});
-    document.getElementById("canvas").addEventListener("mousemove", (e) => {});
-
-    document.getElementById("canvas").addEventListener("contextmenu", (e) => {
-      // e.preventDefault();
-      // if (drawMode === "all") {
-      //   document.getElementById("render_res").click();
-      // } else if (drawMode === "res") {
-      //   document.getElementById("render_all").click();
-      // }
-    });
-
-    // document.getElementById("render_all").addEventListener("click", () => {
-    //   drawMode = "all";
-    //   document.getElementById("render_all").style.background = "deepskyblue";
-    //   document.getElementById("render_res").style.background = "gainsboro";
-    //   renderDensity();
-    //   renderBoxes();
-    // });
-
-    // document.getElementById("render_res").addEventListener("click", () => {
-    //   if (document.getElementById("result").innerText === "(empty)") return;
-    //   drawMode = "res";
-    //   document.getElementById("render_res").style.background = "deepskyblue";
-    //   document.getElementById("render_all").style.background = "gainsboro";
-    //   initCanvas(selectionLayerContext);
-    //   initCanvas(mouseLayerContext);
-    //   initCanvas(repLayerContext);
-    //   renderDensity();
-    //   renderBoxes();
-    // });
-    //
-    // document.getElementById("colormap").addEventListener("change", () => {
-    //   colormapIndexCache = document.getElementById("colormap").value;
-    //   initDensityCache = null;
-    //   renderDensity();
-    // });
-
-    // document
-    //     .getElementById("line_mode")
-    //     .addEventListener("change", function () {
-    //       if (this.value !== "rep") {
-    //         document.getElementById("rep_cont").style.display = "none";
-    //       } else {
-    //         document.getElementById("rep_cont").style.display = "block";
-    //       }
-    //       renderBoxes();
-    //     });
-    //
-    // document.getElementById("rep_count").addEventListener("change", () => {
-    //   renderBoxes();
-    // });
-    //
-    // document
-    //     .getElementById("show-all-clusters")
-    //     .addEventListener("change", () => {
-    //       renderBoxes();
-    //     });
     //#endregion
 
     //#region init functions
@@ -3262,9 +3177,9 @@ export default {
     this.renderColorMap();
     // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
 
-    const table = document.querySelector(
-      "#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border"
-    );
+    // const table = document.querySelector(
+    //   "#app > div > div.ivu-layout-content > div:nth-child(2) > div > div > div > div > div.ivu-table-wrapper.ivu-table-wrapper-with-border > div.ivu-table.ivu-table-default.ivu-table-border"
+    // );
     const tableId = document.getElementById("informationTable");
     tableId.addEventListener("mousemove", (e) => {
       let ele = null;
