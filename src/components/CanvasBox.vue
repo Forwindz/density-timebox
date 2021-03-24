@@ -2506,7 +2506,7 @@ export default {
     // },
     //#endregion
 
-    renderAllDensity(initFlag) {
+    renderAllDensity(initFlag = true) {
       const bgContext = document.getElementById('canvas').getContext('2d');
 
       console.time('temp canvas');

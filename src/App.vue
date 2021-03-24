@@ -3,30 +3,30 @@
     <Layout>
       <Header>
         <h1 class="layout-logo">KD-Box</h1>
-        <!--        <Menu mode="horizontal" theme="dark" @on-select="eventHandler">-->
-        <!--          <div class="layout-nav">-->
-        <!--            <Upload-->
-        <!--                action="/"-->
-        <!--                v-show="false"-->
-        <!--                ref="upload"-->
-        <!--                :before-upload="readFileHandler"-->
-        <!--            />-->
-        <!--            <Submenu name="3">-->
-        <!--              <template slot="title">-->
-        <!--                <Icon type="ios-archive"></Icon>-->
-        <!--                Example data-->
-        <!--              </template>-->
-        <!--              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>-->
-        <!--              <MenuItem name="1-2">Airline(10.6M)</MenuItem>-->
-        <!--              <MenuItem name="1-3">Weather(29.6M)</MenuItem>-->
-        <!--              <MenuItem name="1-4">Reading(18.5M)</MenuItem>-->
-        <!--            </Submenu>-->
-        <!--            <MenuItem name="2">-->
-        <!--              <Icon type="ios-cloud-upload-outline"></Icon>-->
-        <!--              Load data-->
-        <!--            </MenuItem>-->
-        <!--          </div>-->
-        <!--        </Menu>-->
+                <Menu mode="horizontal" theme="dark" @on-select="eventHandler">
+                  <div class="layout-nav">
+                    <Upload
+                        action="/"
+                        v-show="false"
+                        ref="upload"
+                        :before-upload="readFileHandler"
+                    />
+                    <Submenu name="3">
+                      <template slot="title">
+                        <Icon type="ios-archive"></Icon>
+                        Example data
+                      </template>
+                      <MenuItem name="1-1">Stocks(25.2M)</MenuItem>
+                      <MenuItem name="1-2">Airline(10.6M)</MenuItem>
+                      <MenuItem name="1-3">Weather(29.6M)</MenuItem>
+                      <MenuItem name="1-4">Reading(18.5M)</MenuItem>
+                    </Submenu>
+                    <MenuItem name="2">
+                      <Icon type="ios-cloud-upload-outline"></Icon>
+                      Load data
+                    </MenuItem>
+                  </div>
+                </Menu>
       </Header>
       <Content
           :style="{
