@@ -3044,6 +3044,8 @@ export default {
     },
   },
   mounted() {
+    unobserve.querys = [];
+    unobserve.weightCache = [];
     unobserve.layers = this.layers;
     unobserve.upsideDown = this.upsideDown;
 
