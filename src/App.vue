@@ -449,6 +449,9 @@ export default {
             emitFilter: undefined,
           },
         ];
+        unobserve.aggregateName = this.headers[this.aggregateAttr];
+        unobserve.slopePixelCache = null;
+        unobserve.inferX = this.inferTypes[this.timeAttr];
       }
       this.filters = this.chartConfigs.map((_) => undefined);
       this.$Spin.hide();

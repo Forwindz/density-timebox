@@ -205,6 +205,7 @@
               :step="0.001"
               show-tip="never"
               style="flex-grow:1"
+              @on-change="cnt++"
             />
           </div>
           <div style="display:flex;align-items:center"></div>
@@ -286,22 +287,119 @@
               style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
             >
               <Icon type="md-menu" style="cursor:move" />
-              <p style="width:170px;padding-left: 12px">
-                {{ layer.name }}
-              </p>
-              <Icon
-                :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
-                :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
-                @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
-              />
-              <Slider
-                v-model="layer.opacity"
-                :min="0"
-                :max="1"
-                :step="0.01"
-                show-tip="never"
-                style="flex-grow:1; margin-left:12px;margin-right:8px"
-              />
+              <!-- <Poptip
+                v-if="layer.id == 'selectionCanvas'"
+                :width="340"
+                :offset="62"
+                trigger="click"
+              >
+                <p style="width:170px;padding-left: 12px">
+                  {{ layer.name }}
+                </p>
+                <div slot="content" style="display:flex;align-items:center">
+                  <div class="select-colormap">
+                    <span style="margin:0">Colormap:</span>
+                    <Select
+                      id="colormap"
+                      placeholder="Choose colormap"
+                      v-model="colormapOverlayIndexCache"
+                    >
+                      <Option value="0">viridis</Option>
+                      <Option value="1" selected>magma</Option>
+                      <Option value="2">inferno</Option>
+                      <Option value="3">plasma</Option>
+                      <Option value="4">cividis</Option>
+                      <Option value="5">turbo</Option>
+                      <Option value="6">bluegreen</Option>
+                      <Option value="7">bluepurple</Option>
+                      <Option value="8">goldgreen</Option>
+                      <Option value="9">goldorange</Option>
+                      <Option value="10">goldred</Option>
+                      <Option value="11">greenblue</Option>
+                      <Option value="12">orangered</Option>
+                      <Option value="13">purplebluegreen</Option>
+                      <Option value="14">purpleblue</Option>
+                      <Option value="15">purplered</Option>
+                      <Option value="16">redpurple</Option>
+                      <Option value="17">yellowgreenblue</Option>
+                      <Option value="18">yellowgreen</Option>
+                      <Option value="19">yelloworangebrown</Option>
+                      <Option value="20">yelloworangered</Option>
+                    </Select>
+                  </div>
+                  <span>1</span>
+                  <span class="color-map" id="color-map"></span>
+                  <InputNumber
+                    :min="1"
+                    v-model="maxOverlayDensity"
+                    :active-change="false"
+                    style="width: 50px"
+                  />
+                </div>
+              </Poptip> -->
+              <div style="flex-grow:1">
+                <div style="display:flex;align-items:center">
+                  <p style="width:170px;padding-left: 12px">
+                    {{ layer.name }}
+                  </p>
+                  <Icon
+                    :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
+                    :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
+                    @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
+                  />
+                  <Slider
+                    v-model="layer.opacity"
+                    :min="0"
+                    :max="1"
+                    :step="0.01"
+                    show-tip="never"
+                    style="flex-grow:1; margin-left:12px;margin-right:8px"
+                  />
+                </div>
+                <div
+                  v-if="layer.id == 'selectionCanvas'"
+                  style="display:flex;align-items:center;margin:0 12px 8px;position:relative"
+                >
+                  <div class="select-colormap">
+                    <span style="margin:0">Colormap:</span>
+                    <Select
+                      id="colormapOverlay"
+                      placeholder="Choose colormap"
+                      v-model="colormapOverlayIndexCache"
+                    >
+                      <Option value="0">viridis</Option>
+                      <Option value="1" selected>magma</Option>
+                      <Option value="2">inferno</Option>
+                      <Option value="3">plasma</Option>
+                      <Option value="4">cividis</Option>
+                      <Option value="5">turbo</Option>
+                      <Option value="6">bluegreen</Option>
+                      <Option value="7">bluepurple</Option>
+                      <Option value="8">goldgreen</Option>
+                      <Option value="9">goldorange</Option>
+                      <Option value="10">goldred</Option>
+                      <Option value="11">greenblue</Option>
+                      <Option value="12">orangered</Option>
+                      <Option value="13">purplebluegreen</Option>
+                      <Option value="14">purpleblue</Option>
+                      <Option value="15">purplered</Option>
+                      <Option value="16">redpurple</Option>
+                      <Option value="17">yellowgreenblue</Option>
+                      <Option value="18">yellowgreen</Option>
+                      <Option value="19">yelloworangebrown</Option>
+                      <Option value="20">yelloworangered</Option>
+                    </Select>
+                  </div>
+                  <span>1</span>
+                  <span class="color-map" id="color-map-overlay"></span>
+                  <InputNumber
+                    :min="1"
+                    v-model="maxOverlayDensity"
+                    :active-change="false"
+                    style="width: 50px"
+                  />
+                </div>
+              </div>
             </div>
           </draggable>
         </div>
@@ -355,13 +453,13 @@
           @click="selectedQuery = row.query"
           >Explore
         </Button>
-        <Button
+        <!-- <Button
           type="warning"
           style="margin-right: 5px"
           size="small"
           v-if="index < tableData.length - 2"
           >Invisible
-        </Button>
+        </Button> -->
         <Button
           type="error"
           size="small"
@@ -417,7 +515,10 @@ import {
 import KDTree from "../core/kdtree";
 import seedrandom from "seedrandom";
 import moment from "moment";
-import { brensenham } from "../core/util";
+import { brensenham, brensenhamArr } from "../core/util";
+
+const tempBuffer = new Float32Array(1000 * 500);
+const colorMapCache = {};
 
 export default {
   props: {
@@ -451,6 +552,7 @@ export default {
       coord: [0, 0, 0, 0, 0],
       boxes: [],
       maxDensity: null,
+      maxOverlayDensity: null,
       rawLines: [],
       colorMap: ["aqua", "limegreen", "lightgreen"],
       upsideDown: false,
@@ -474,7 +576,8 @@ export default {
         { title: "Query", align: "center", slot: "name" },
         // { title: 'Min start time', align: 'center', key: 'minT' },
         // { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: "Count", align: "center", key: "count" },
+        { title: "Line series count", align: "center", key: "count" },
+        { title: "Time points count", align: "center", key: "points" },
         { title: "Min value", align: "center", key: "minV" },
         { title: "Max value", align: "center", key: "maxV" },
         { title: "Mean value", align: "center", key: "mean" },
@@ -517,6 +620,7 @@ export default {
         },
       ],
       colormapIndexCache: 1,
+      colormapOverlayIndexCache: 1,
       initDensityCache: null,
       initDensityBufferCache: null,
       initDensityMaxCache: 0,
@@ -585,6 +689,7 @@ export default {
             ...unobserve.querys[i].cache,
           ]);
         res.push({
+          _expanded: i == this.selectedQuery,
           query: i,
           name: mp[unobserve.querys[i].type],
           ...this.getStaticInformation([...unobserve.querys[i].cache]),
@@ -602,31 +707,42 @@ export default {
       console.log(unobserve.interResult);
       unobserve.interReps = this.calcRepLines(unobserve.interResult);
       res.push({
+        _expanded: "$int" == this.selectedQuery,
         query: "$int",
-        name: "intersection",
-        ...this.getStaticInformation(unobserve.interResult),
-        reps: unobserve.interReps.map((id) => {
+        name: unobserve.querys.length ? "intersection" : "global",
+        ...this.getStaticInformation(
+          unobserve.querys.length
+            ? unobserve.interResult
+            : new Array(unobserve.aggregatedData.length).fill().map((_, i) => i)
+        ),
+        reps: (unobserve.querys.length
+          ? unobserve.interReps
+          : unobserve.globalRep
+        ).map((id) => {
           return {
-            name: id,
+            name: unobserve.aggregatedData[id].key,
             color: `rgb(${this.getColor(id).join(",")})`,
             ...this.getStaticInformation([id]),
           };
         }),
       });
 
-      unobserve.unionReps = this.calcRepLines(unobserve.unionResult);
-      res.push({
-        query: "$uni",
-        name: "union",
-        ...this.getStaticInformation(unobserve.unionResult),
-        reps: unobserve.unionReps.map((id) => {
-          return {
-            name: id,
-            color: `rgb(${this.getColor(id).join(",")})`,
-            ...this.getStaticInformation([id]),
-          };
-        }),
-      });
+      if (unobserve.querys.length) {
+        unobserve.unionReps = this.calcRepLines(unobserve.unionResult);
+        res.push({
+          _expanded: "$uni" == this.selectedQuery,
+          query: "$uni",
+          name: "union",
+          ...this.getStaticInformation(unobserve.unionResult),
+          reps: unobserve.unionReps.map((id) => {
+            return {
+              name: unobserve.aggregatedData[id].key,
+              color: `rgb(${this.getColor(id).join(",")})`,
+              ...this.getStaticInformation([id]),
+            };
+          }),
+        });
+      }
       console.log(res);
 
       return res;
@@ -645,8 +761,11 @@ export default {
     colormapIndexCache(value) {
       console.log(value);
       this.renderColorMap();
-      this.renderDensity();
       this.renderAllDensity();
+    },
+    colormapOverlayIndexCache() {
+      this.renderColorMapOverlay();
+      this.renderDensity();
     },
     repCount(value) {
       this.renderBoxes();
@@ -716,6 +835,9 @@ export default {
     maxDensity() {
       this.renderAllDensity();
     },
+    maxOverlayDensity() {
+      this.renderDensity();
+    },
     diverse() {
       // this.getTopK();
       clearTimeout(unobserve.diverseChange);
@@ -754,6 +876,7 @@ export default {
     },
     normalizeDensity() {
       this.renderAllDensity(true);
+      this.renderDensity();
     },
   },
   methods: {
@@ -867,14 +990,15 @@ export default {
         this.preview = null;
       }
       unobserve.preview = this.preview;
-      console.time("render Density in mouseup");
-      this.renderDensity();
-      console.timeEnd("render Density in mouseup");
       // renderQuerys();
 
       console.time("renderBoxes in mouseup");
       this.renderBoxes();
       console.timeEnd("renderBoxes in mouseup");
+
+      console.time("render Density in mouseup");
+      this.renderDensity();
+      console.timeEnd("render Density in mouseup");
       this.cnt++;
     },
 
@@ -1449,12 +1573,15 @@ export default {
       return distance;
     },
     drawRawLines() {
-      const shuffle = new Array(unobserve.result.length)
-        .fill()
-        .map((_, id) => ({ id, line: [] }));
-      this.tr.ee.segs.forEach((seg) => {
-        shuffle[seg[3]].line.push(seg);
-      });
+      // const shuffle = new Array(unobserve.result.length)
+      //   .fill()
+      //   .map((_, id) => ({ id, line: [] }));
+      // this.tr.ee.segs.forEach((seg) => {
+      //   shuffle[seg[3]].line.push(seg);
+      // });
+      const shuffle = unobserve.result
+        .slice()
+        .map((line, id) => ({ line, id }));
       shuffle.sort(() => (Math.random() > 0.5 ? 1 : -1));
       for (let sid in shuffle) {
         const { line, id } = shuffle[sid];
@@ -1462,9 +1589,13 @@ export default {
           id
         ).join(",")})`;
         unobserve.rawLinesLayerContext.beginPath();
-        for (let seg of line) {
-          unobserve.rawLinesLayerContext.moveTo(seg[0].x, seg[0].y);
-          unobserve.rawLinesLayerContext.lineTo(seg[1].x, seg[1].y);
+        // for (let seg of line) {
+        //   unobserve.rawLinesLayerContext.moveTo(seg[0].x, seg[0].y);
+        //   unobserve.rawLinesLayerContext.lineTo(seg[1].x, seg[1].y);
+        // }
+        unobserve.rawLinesLayerContext.moveTo(line[0].x, line[0].y);
+        for (let point of line) {
+          unobserve.rawLinesLayerContext.lineTo(point.x, point.y);
         }
         unobserve.rawLinesLayerContext.stroke();
       }
@@ -1525,13 +1656,17 @@ export default {
             conf.innerHTML = `(${query.start
               .map((x, i) =>
                 i === 0
-                  ? moment(xScale.invert(x)).format("YYYY-M-D")
+                  ? unobserve.inferX == "date"
+                    ? moment(xScale.invert(x)).format("YYYY-M-D")
+                    : xScale.invert(x).toFixed(0)
                   : yScale.invert(500 - x).toFixed(0)
               )
               .join(", ")}) ~<br>(${query.end
               .map((x, i) =>
                 i === 0
-                  ? moment(xScale.invert(x)).format("YYYY-M-D")
+                  ? unobserve.inferX == "date"
+                    ? moment(xScale.invert(x)).format("YYYY-M-D")
+                    : xScale.invert(x).toFixed(0)
                   : yScale.invert(500 - x).toFixed(0)
               )
               .join(", ")})`;
@@ -1791,67 +1926,68 @@ export default {
             query.cache = result;
           } else if (this.brushMethod === "tree") {
             const result = new Set(
-              this.tr.ee.brush(
-                [
-                  Math.min(query.start[0], query.end[0]),
-                  Math.min(query.start[1], query.end[1]),
-                ],
-                [
-                  Math.max(query.start[0], query.end[0]),
-                  Math.max(query.start[1], query.end[1]),
-                ]
-              )
-              // .filter((id) => {
-              //   // return true;
-              //   const line = unobserve.result[id];
-              //   let l = 0,
-              //     r = line.length - 1,
-              //     lp = 0,
-              //     rp = r,
-              //     mid,
-              //     tmpY;
-              //   while (l <= r) {
-              //     mid = (l + r) >> 1;
-              //     if (line[mid].x >= minX) {
-              //       lp = mid;
-              //       r = mid - 1;
-              //     } else l = mid + 1;
-              //   }
+              this.tr.ee
+                .brush(
+                  [
+                    Math.min(query.start[0], query.end[0]),
+                    Math.min(query.start[1], query.end[1]),
+                  ],
+                  [
+                    Math.max(query.start[0], query.end[0]),
+                    Math.max(query.start[1], query.end[1]),
+                  ]
+                )
+                .filter((id) => {
+                  // return true;
+                  const line = unobserve.result[id];
+                  let l = 0,
+                    r = line.length - 1,
+                    lp = 0,
+                    rp = r,
+                    mid,
+                    tmpY;
+                  while (l <= r) {
+                    mid = (l + r) >> 1;
+                    if (line[mid].x >= minX) {
+                      lp = mid;
+                      r = mid - 1;
+                    } else l = mid + 1;
+                  }
 
-              //   l = 0;
-              //   r = line.length - 1;
-              //   while (l <= r) {
-              //     mid = (l + r) >> 1;
-              //     if (line[mid].x <= maxX) {
-              //       rp = mid;
-              //       l = mid + 1;
-              //     } else {
-              //       r = mid - 1;
-              //     }
-              //   }
-              //   // console.log(lp, rp);
-              //   for (let i = lp; i <= rp; i++) {
-              //     if (line[i].y < minY || line[i].y > maxY) {
-              //       // console.log(line[i]);
-              //       return false;
-              //     }
-              //   }
-              //   if (lp) {
-              //     tmpY = mix(line[lp - 1], line[lp], minX).y;
-              //     if (tmpY < minY || tmpY > maxY) {
-              //       // console.log(tmpY);
-              //       return false;
-              //     }
-              //   }
-              //   if (rp < line.length - 1) {
-              //     tmpY = mix(line[rp], line[rp + 1], minX).y;
-              //     if (tmpY < minY || tmpY > maxY) {
-              //       // console.log(tmpY);
-              //       return false;
-              //     }
-              //   }
-              //   return true;
-              // })
+                  l = 0;
+                  r = line.length - 1;
+                  while (l <= r) {
+                    mid = (l + r) >> 1;
+                    if (line[mid].x <= maxX) {
+                      rp = mid;
+                      l = mid + 1;
+                    } else {
+                      r = mid - 1;
+                    }
+                  }
+                  // console.log(lp, rp);
+                  for (let i = lp; i <= rp; i++) {
+                    if (line[i].y < minY || line[i].y > maxY) {
+                      // console.log(line[i]);
+                      return false;
+                    }
+                  }
+                  if (lp) {
+                    tmpY = mix(line[lp - 1], line[lp], minX).y;
+                    if (tmpY < minY || tmpY > maxY) {
+                      // console.log(tmpY);
+                      return false;
+                    }
+                  }
+                  if (rp < line.length - 1) {
+                    tmpY = mix(line[rp], line[rp + 1], minX).y;
+                    if (tmpY < minY || tmpY > maxY) {
+                      // console.log(tmpY);
+                      return false;
+                    }
+                  }
+                  return true;
+                })
             );
 
             query.cache = result;
@@ -1982,7 +2118,59 @@ export default {
         unobserve.mouseLayerContext.stroke();
         if (!query.cache) {
           const result = new Set(
-            this.tr.ee.angular([query.start[0], slopeMin], [endX, slopeMax])
+            this.tr.ee
+              .angular([query.start[0], slopeMin], [endX, slopeMax])
+              .filter((id) => {
+                // return true;
+                const line = unobserve.result[id];
+                let l = 0,
+                  r = line.length - 1,
+                  lp = 0,
+                  rp = r,
+                  mid,
+                  tmpY;
+                while (l <= r) {
+                  mid = (l + r) >> 1;
+                  if (line[mid].x >= minX) {
+                    lp = mid;
+                    r = mid - 1;
+                  } else l = mid + 1;
+                }
+
+                l = 0;
+                r = line.length - 1;
+                while (l <= r) {
+                  mid = (l + r) >> 1;
+                  if (line[mid].x <= maxX) {
+                    rp = mid;
+                    l = mid + 1;
+                  } else {
+                    r = mid - 1;
+                  }
+                }
+                // console.log(lp, rp);
+                for (let i = lp; i <= rp; i++) {
+                  if (line[i].y < minY || line[i].y > maxY) {
+                    // console.log(line[i]);
+                    return false;
+                  }
+                }
+                if (lp) {
+                  tmpY = mix(line[lp - 1], line[lp], minX).y;
+                  if (tmpY < minY || tmpY > maxY) {
+                    // console.log(tmpY);
+                    return false;
+                  }
+                }
+                if (rp < line.length - 1) {
+                  tmpY = mix(line[rp], line[rp + 1], minX).y;
+                  if (tmpY < minY || tmpY > maxY) {
+                    // console.log(tmpY);
+                    return false;
+                  }
+                }
+                return true;
+              })
           );
           query.cache = result;
         }
@@ -2113,7 +2301,10 @@ export default {
       const oriX = this.xScale.invert(x);
       const oriY = this.yScale.invert(500 - y);
 
-      const date = moment(oriX).format("YYYY-MM-DD");
+      const date =
+        unobserve.inferX == "date"
+          ? moment(oriX).format("YYYY-MM-DD")
+          : oriX.toFixed(2);
 
       const upsideDown = this.upsideDown;
       if (this.showCursorValue) {
@@ -2146,7 +2337,7 @@ export default {
       }
     },
 
-    getColorMap() {
+    getColorMap(overlay = false) {
       const colormaps = [
         [
           [253, 231, 37],
@@ -2422,7 +2613,9 @@ export default {
           [175, 2, 37],
         ],
       ];
-      return colormaps[this.colormapIndexCache];
+      return colormaps[
+        overlay ? this.colormapOverlayIndexCache : this.colormapIndexCache
+      ];
     },
 
     renderColorMap() {
@@ -2439,15 +2632,40 @@ export default {
         .join(", ")})`;
     },
 
-    rgb(i) {
-      const colormap = this.getColorMap();
+    renderColorMapOverlay() {
+      // document.getElementById("colorMax").innerText = currentDensityMax;
+      document.getElementById(
+        "color-map-overlay"
+      ).style.background = `linear-gradient(to right, ${this.getColorMap(true)
+        .map(
+          (color, i, arr) =>
+            `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
+              0
+            )}%`
+        )
+        .join(", ")})`;
+    },
+
+    rgb(i, overlay = false) {
+      const ci = overlay
+        ? this.colormapOverlayIndexCache
+        : this.colormapIndexCache;
+      if (colorMapCache[ci]?.[Math.round(i * 100)]) {
+        return colorMapCache[ci][Math.round(i * 100)];
+      }
+      const colormap = this.getColorMap(overlay);
       const base = Math.floor(i * 10);
       if (i <= 0) return colormap[0];
       if (i >= 1) return colormap[10];
       if (colormap[base] === undefined) console.log(colormap, base, i);
-      return colormap[base].map(
+      const result = colormap[base].map(
         (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
       );
+      if (!colorMapCache[ci]) {
+        colorMapCache[ci] = {};
+      }
+      colorMapCache[ci][Math.round(i * 100)] = result;
+      return result;
     },
 
     //#region old render method
@@ -2512,13 +2730,34 @@ export default {
 
     renderAllDensity(initFlag) {
       const bgContext = document.getElementById("canvas").getContext("2d");
-      console.log(this.tr.ee.segs);
-      console.time("temp canvas");
-      const tempBuffer = new Float32Array(1000 * 500);
-      for (let seg of this.tr.ee.segs) {
-        brensenham(seg, tempBuffer, this.normalizeDensity ? seg[2] : 1);
+      if (!unobserve.slopePixelCache) {
+        const cache = new Array(1000)
+          .fill()
+          .map(() => new Array(500).fill().map(() => ({})));
+        for (let id in unobserve.result) {
+          const line = unobserve.result[id];
+          for (let i = 0; i < line.length - 1; i++) {
+            brensenhamArr(
+              [line[i], line[i + 1]],
+              cache,
+              id,
+              (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
+            );
+          }
+        }
+        unobserve.slopePixelCache = cache;
       }
-      console.log(tempBuffer);
+      console.time("temp canvas");
+      const tempBuffer = new Float32Array(1000 * 500).map((_, i) => {
+        const row = i % 500;
+        const col = Math.floor(i / 500);
+        const pixelCache = Object.values(unobserve.slopePixelCache[col][row]);
+        if (this.normalizeDensity) {
+          return pixelCache.reduce((p, v) => p + v, 0);
+        } else {
+          return pixelCache.length;
+        }
+      });
       if (initFlag) {
         this.initDensityBufferCache = tempBuffer;
       }
@@ -2535,12 +2774,19 @@ export default {
           tempBuffer.reduce((p, v) => Math.max(p, v))
       );
       this.maxDensity = maxWeight;
+      if (initFlag) {
+        this.maxOverlayDensity = maxWeight;
+      }
+      const colorCache = {};
       for (let i = 0; i < 1000; i++) {
         for (let j = 0; j < 500; j++) {
-          const ratio = tempBuffer[i * 500 + j] / maxWeight;
-          const color = this.rgb(ratio);
-          tempImageData.data.set(color, (j * 1000 + i) * 4);
-          tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          const ratio = Math.round((tempBuffer[i * 500 + j] / maxWeight) * 100);
+          if (!colorCache[ratio]) {
+            colorCache[ratio] = this.rgb(ratio / 100);
+          }
+          const color = colorCache[ratio];
+          tempImageBuffer.set(color, (j * 1000 + i) * 4);
+          tempImageBuffer[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
@@ -2556,6 +2802,8 @@ export default {
 
     renderDensity() {
       let ids = this.getSelectedIds();
+      const fastMapping = {};
+      ids.forEach((id) => (fastMapping[id] = 1));
       let initFlag = false;
       let renderFlag = false;
       for (let i in this.layers) {
@@ -2568,57 +2816,40 @@ export default {
       const bgContext = document
         .getElementById("selectionCanvas")
         .getContext("2d");
-      console.time("temp canvas");
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = 1000;
-      tempCanvas.height = 500;
-      const tempContext = tempCanvas.getContext("2d");
-      tempContext.globalCompositeOperation = "lighter";
-      tempContext.strokeStyle = "#010101";
-      for (let id of ids) {
-        const line = unobserve.result[id];
-        tempContext.beginPath();
-        tempContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          tempContext.lineTo(point.x, point.y);
-        }
-        tempContext.stroke();
-      }
 
-      const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
-      // if (initFlag) {
-      //   this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
-      // }
-      console.timeEnd("temp canvas");
       console.time("render");
       bgContext.fillStyle = "black";
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, 1000, 500);
       bgContext.clearRect(0, 0, 1000, 500);
-      const maxWeight = Math.max(
-        tempImageData.data.reduce((p, v, i) =>
-          i % 4 === 3 ? p : Math.max(p, v)
-        ),
-        1.0
-      );
+      const tempImageBuffer = new Uint8ClampedArray(1000 * 500 * 4);
+      const tempImageData = new ImageData(tempImageBuffer, 1000, 500);
+      const maxWeight = this.maxOverlayDensity;
       for (let i = 0; i < 1000; i++) {
         for (let j = 0; j < 500; j++) {
-          const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
-          if (isNaN(ratio)) console.log(maxWeight, tempImageData);
-          const color = this.rgb(ratio);
-          tempImageData.data.set(color, (j * 1000 + i) * 4);
-          tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          let weight = 0;
+          const pixelCache = Object.entries(unobserve.slopePixelCache[i][j]);
+          if (this.normalizeDensity) {
+            weight = pixelCache.reduce(
+              (p, v) => p + (fastMapping[v[0]] ? v[1] : 0),
+              0
+            );
+          } else {
+            weight = pixelCache.reduce(
+              (p, v) => p + (fastMapping[v[0]] ? 1 : 0),
+              0
+            );
+          }
+          const ratio = weight / maxWeight;
+          const color = this.rgb(ratio, true);
+          tempImageBuffer.set(color, (j * 1000 + i) * 4);
+          tempImageBuffer[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
       console.timeEnd("render");
-      if (initFlag) {
-        this.initDensityMaxCache = maxWeight;
-        this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
-      }
       this.currentDensityMax = maxWeight;
       this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
-      // renderColorMap();
     },
 
     rearrangeLayer(
@@ -2721,6 +2952,7 @@ export default {
         minV: minY.toFixed(2),
         maxV: maxY.toFixed(2),
         count: ids.length,
+        points: ids.reduce((p, v) => p + unobserve.result[v]?.length ?? 0, 0),
         mean: mean.toFixed(2),
         var: variance.toFixed(2),
       };
@@ -2863,6 +3095,10 @@ export default {
       }
 
       const topIds = this.calcRepLines(ids);
+
+      if (!unobserve.querys.length) {
+        unobserve.globalRep = topIds;
+      }
       // console.log('lllllllllllllllllegth', ids.length);
 
       // const lineCount = document.getElementById("rep_count").value;
@@ -3081,13 +3317,16 @@ export default {
       .scaleLinear()
       .domain([minX, maxX])
       .range([0, 1000]);
-    this.xScale = d3
-      .scaleTime()
-      .domain([
-        new Date(minX * 3600 * 24 * 1000),
-        new Date(maxX * 3600 * 24 * 1000),
-      ])
-      .range([0, 1000]);
+    this.xScale =
+      unobserve.inferX == "date"
+        ? d3
+            .scaleTime()
+            .domain([
+              new Date(minX * 3600 * 24 * 1000),
+              new Date(maxX * 3600 * 24 * 1000),
+            ])
+            .range([0, 1000])
+        : xScaleData;
     this.yScale = d3
       .scaleLinear()
       .domain([minY, maxY])
@@ -3184,6 +3423,7 @@ export default {
     // console.log(this.layers);
     this.colormapIndexCache = 1;
     this.renderColorMap();
+    this.renderColorMapOverlay();
     // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
 
     // const table = document.querySelector(
@@ -3270,6 +3510,10 @@ export default {
   margin: 0 10px;
   vertical-align: middle;
   border-radius: 4px;
+
+  &#color-map-overlay {
+    width: 160px;
+  }
 }
 
 .select-colormap {
@@ -3305,11 +3549,16 @@ export default {
   }
 }
 
-#colormap {
+#colormap,
+#colormapOverlay {
   width: 200px;
   position: absolute;
   left: 107px;
   top: 0;
+
+  &#colormapOverlay {
+    width: 160px;
+  }
 
   .ivu-select-selection {
     background: transparent;

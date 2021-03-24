@@ -16,7 +16,7 @@ import { lineRectCollide } from "./util";
 import Heap from "heap";
 
 const kdparam = {
-  deg: 5,
+  deg: 3,
   b: 1.128,
   k: 5,
   r: 0.05,
@@ -45,7 +45,7 @@ export default class CCHTree {
    * @param {Point[][]} lines
    * @param {number} precision
    */
-  constructor(lines, precision = 100) {
+  constructor(lines, precision = 5000) {
     //#region init tsrd
     //console.time('init tsrd');
     //#region generate tsrd
