@@ -3031,8 +3031,6 @@ export default {
       return { title, key, minWidth: 150 };
     });
 
-    console.log('This is before headerMap');
-    console.log(unobserve.headers);
     const headerMap = new Map();
     const sets = [];
     unobserve.headers.forEach(() => {
@@ -3051,10 +3049,10 @@ export default {
 
     const data = unobserve.aggregatedData;
     console.log(data);
-    const minX = d3.min(data, (line) => d3.min(line[1]));
-    const maxX = d3.max(data, (line) => d3.max(line[1]));
-    const minY = d3.min(data, (line) => d3.min(line[2]));
-    const maxY = d3.max(data, (line) => d3.max(line[2]));
+    const minX = d3.min(data, (line) => d3.min(line[this.timeIndex]));
+    const maxX = d3.max(data, (line) => d3.max(line[this.timeIndex]));
+    const minY = d3.min(data, (line) => d3.min(line[this.valueIndex]));
+    const maxY = d3.max(data, (line) => d3.max(line[this.valueIndex]));
     console.log(minX, maxX, minY, maxY);
 
     const xScaleData = d3
@@ -3079,8 +3077,8 @@ export default {
 
     let result = data.map((line) => {
       let res = [];
-      line[1].forEach((d, i) => {
-        res.push({ x: xScaleData(d), y: this.yScale(line[2][i]) });
+      line[this.timeIndex].forEach((d, i) => {
+        res.push({ x: xScaleData(d), y: this.yScale(line[this.valueIndex][i]) });
       });
       return res;
     });

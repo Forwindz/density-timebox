@@ -39,7 +39,6 @@
       >
         <Card class="sticky-content">
           <div>
-            <p>Load Data</p>
             <Menu active-name="2" :open-names="[]" style="margin-bottom: 100px" @on-select="eventHandler">
               <MenuItem name="2">
                 <Icon type="ios-cloud-upload-outline"></Icon>
