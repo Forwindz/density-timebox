@@ -39,17 +39,17 @@
       >
         <Card class="sticky-content">
           <div>
-            <Button @click="eventHandler(2)" style="width: 200px" type="info">
+            <Button @click="eventHandler('2')" style="width: 200px" type="info">
               <Icon type="ios-cloud-upload-outline"></Icon>
               Load data
             </Button>
             <Poptip style="width: 200px; display: block;">
               <Button style="width: 200px">Example Data</Button>
               <div style="display: flex; flex-direction: column;" slot="content">
-                <Button style="width: 200px" @click="eventHandler(1-1)">Stocks(25.2M)</Button>
-                <Button style="width: 200px" @click="eventHandler(1-2)">Airline(10.6M)</Button>
-                <Button style="width: 200px" @click="eventHandler(1-3)">Weather(29.6M)</Button>
-                <Button style="width: 200px" @click="eventHandler(1-4)">Reading(18.5M)</Button>
+                <Button style="width: 200px" @click="eventHandler('1-1')">Stocks(25.2M)</Button>
+                <Button style="width: 200px" @click="eventHandler('1-2')">Airline(10.6M)</Button>
+                <Button style="width: 200px" @click="eventHandler('1-3')">Weather(29.6M)</Button>
+                <Button style="width: 200px" @click="eventHandler('1-4')">Reading(18.5M)</Button>
               </div>
             </Poptip>
             <Upload
