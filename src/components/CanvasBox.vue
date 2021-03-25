@@ -65,18 +65,18 @@
       ></canvas>
       <svg
         id="axisHelper"
-        width="1030"
-        height="540"
+        width="1050"
+        height="550"
         style="
           position: absolute;
-          left: -30px;
+          left: -50px;
           top: -20px;
           pointer-events: none;
           color: black;
           z-index: 999;
         "
       >
-        <g id="cursorHelper" transform="translate(30,20)">
+        <g id="cursorHelper" transform="translate(50,20)">
           <line stroke="black" stroke-dasharray="10 5"></line>
           <line stroke="black" stroke-dasharray="10 5"></line>
           <text font-size="12px"></text>
@@ -201,8 +201,8 @@
             <Slider
               v-model="diverse"
               :min="0"
-              :max="1"
-              :step="0.001"
+              :max="0.3"
+              :step="0.002"
               show-tip="never"
               style="flex-grow:1"
             />
@@ -635,12 +635,16 @@ export default {
   watch: {
     enlargeFont(newValue) {
       if (newValue) {
-        this.svg.select('#xaxis').attr('font-size', '14px');
-        this.svg.select('#yaxis').attr('font-size', '14px');
+        this.svg.select('#xaxis').attr('font-size', '16px');
+        this.svg.select('#yaxis').attr('font-size', '16px');
+        this.svg.select('#xaxis').attr('stroke-width', '2px');
+        this.svg.select('#yaxis').attr('stroke-width', '2px');
       }
       else {
-        this.svg.select('#xaxis').attr('font-size', '10px');
-        this.svg.select('#yaxis').attr('font-size', '10px');
+        this.svg.select('#xaxis').attr('font-size', '12px');
+        this.svg.select('#yaxis').attr('font-size', '12px');
+        this.svg.select('#xaxis').attr('stroke-width', '1px');
+        this.svg.select('#yaxis').attr('stroke-width', '1px');
       }
     },
     colormapIndexCache(value) {
@@ -2112,23 +2116,30 @@ export default {
       const date = moment(oriX).format('YYYY-MM-DD');
 
       const upsideDown = this.upsideDown;
+      const enlargeFont = this.enlargeFont;
+      const fontWidth = enlargeFont ? 103 : 70;
+      const fontHeight = enlargeFont ? 22 : 20;
+      const heightInSvg = enlargeFont ? 18 : 12;
       if (this.showCursorValue) {
+        console.log('this is enlarge font', this.enlargeFont);
         this.cursorHelper.selectAll('line').each(function(_, i) {
           d3.select(this)
             .attr('x1', i === 0 ? 0 : x)
             .attr('y1', i === 0 ? 500 - y : upsideDown ? 0 : 500)
             .attr('x2', x)
-            .attr('y2', 500 - y);
+            .attr('y2', 500 - y)
+            .attr('stroke-width',() => enlargeFont ? 2 : 1);
         });
 
         this.cursorHelper.selectAll('text').each(function(_, i) {
           d3.select(this)
-            .attr('x', i === 0 ? 0 : x - (x > 930 ? 70 : 0))
+            .attr('x', i === 0 ? 0 : x - (x > 1000 - fontWidth ? fontWidth : 0))
             .attr(
               'y',
-              i === 0 ? 500 - y + (y > 480 ? 12 : 0) : upsideDown ? 12 : 500
+              i === 0 ? 500 - y + (y > 500 - fontHeight ? heightInSvg : 0) : upsideDown ? heightInSvg : 500
             )
-            .text(i === 0 ? oriY.toFixed(2) : date);
+            .text(i === 0 ? oriY.toFixed(2) : date)
+            .attr('font-size', enlargeFont ? 20 : 14)
         });
       } else {
         this.cursorHelper
@@ -2680,12 +2691,12 @@ export default {
       this.svg
         .append('g')
         .attr('id', 'yaxis')
-        .attr('transform', 'translate(30,20)')
+        .attr('transform', 'translate(50,20)')
         .call(unobserve.yAxis);
       this.svg
         .append('g')
         .attr('id', 'xaxis')
-        .attr('transform', `translate(30,${this.upsideDown ? 20 : 520})`)
+        .attr('transform', `translate(50,${this.upsideDown ? 20 : 520})`)
         .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
     },
     getStaticInformation(ids) {
@@ -3155,13 +3166,13 @@ export default {
     this.svg
       .append('g')
       .attr('id', 'xaxis')
-      .attr('transform', 'translate(30,520)')
+      .attr('transform', 'translate(50,520)')
       .call(xAxis);
-    // svg.append("g").attr("transform", "translate(30,0)").call(yAxis);
+    // svg.append("g").attr("transform", "translate(50,0)").call(yAxis);
     this.svg
       .append('g')
       .attr('id', 'yaxis')
-      .attr('transform', 'translate(30,20)')
+      .attr('transform', 'translate(50,20)')
       .call(yAxis);
 
     //#endregion
