@@ -16,10 +16,11 @@
                 <Icon type="ios-archive"></Icon>
                 Example data
               </template>
-              <MenuItem name="1-1">Stocks(25.2M)</MenuItem>
-              <MenuItem name="1-2">Airline(10.6M)</MenuItem>
-              <MenuItem name="1-3">Weather(29.6M)</MenuItem>
-              <MenuItem name="1-4">Reading(18.5M)</MenuItem>
+              <MenuItem name="1-1">Stocks(25.2MB)</MenuItem>
+              <MenuItem name="1-2">Airline(10.6MB)</MenuItem>
+              <MenuItem name="1-3">Weather(29.6MB)</MenuItem>
+              <MenuItem name="1-4">Reading(18.5MB)</MenuItem>
+              <MenuItem name="1-5">HardDrive(67.2MB)</MenuItem>
             </Submenu>
             <MenuItem name="2">
               <Icon type="ios-cloud-upload-outline"></Icon>
@@ -50,16 +51,19 @@
                 slot="content"
               >
                 <Button style="width: 200px" @click="eventHandler('1-1')"
-                  >Stocks(25.2M)</Button
+                  >Stocks(25.2MB)</Button
                 >
                 <Button style="width: 200px" @click="eventHandler('1-2')"
-                  >Airline(10.6M)</Button
+                  >Airline(10.6MB)</Button
                 >
                 <Button style="width: 200px" @click="eventHandler('1-3')"
-                  >Weather(29.6M)</Button
+                  >Weather(29.6MB)</Button
                 >
                 <Button style="width: 200px" @click="eventHandler('1-4')"
-                  >Reading(18.5M)</Button
+                  >Reading(18.5MB)</Button
+                >
+                <Button style="width: 200px" @click="eventHandler('1-5')"
+                  >HardDrive(67.2MB)</Button
                 >
               </div>
             </Poptip>
@@ -194,28 +198,35 @@
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Stocks(25.2M)
+              >Example Stocks(25.2MB)
             </Button>
             <Button
               @click="eventHandler('1-2')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Airline(10.6M)
+              >Example Airline(10.6MB)
             </Button>
             <Button
               @click="eventHandler('1-3')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Weather(29.6M)
+              >Example Weather(29.6MB)
             </Button>
             <Button
               @click="eventHandler('1-4')"
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example Reading(18.5M)
+              >Example Reading(18.5MB)
+            </Button>
+            <Button
+              @click="eventHandler('1-5')"
+              type="primary"
+              icon="ios-archive"
+              style="margin:0 12px"
+              >Example HardDrive(67.2MB)
             </Button>
             <Button
               @click="eventHandler('2')"

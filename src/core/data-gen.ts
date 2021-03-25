@@ -5,6 +5,7 @@ const exampleDataURL = [
   require("../data/airline.filtered.csv").default,
   require("../data/weather.filtered.csv").default,
   require("../data/reading.filtered.csv").default,
+  require("../data/mergeSMART194.csv").default,
 ];
 
 /**
