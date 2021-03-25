@@ -1,8 +1,8 @@
 // import Heap from "heap";
-import Queue from "tinyqueue";
-import { RBush3D } from "rbush-3d";
-const Heap = require("heap");
-const kmeans = require("ml-kmeans").default;
+import Queue from 'tinyqueue';
+import { RBush3D } from 'rbush-3d';
+const Heap = require('heap');
+const kmeans = require('ml-kmeans').default;
 // const kmeans = require('ml-kmeans');
 
 export class VolKDTree {
@@ -49,13 +49,13 @@ export class VolKDTree {
   }
 
   toString() {
-    return `VolKDTree (${this.#boundingBox.join(", ")}) ${
+    return `VolKDTree (${this.#boundingBox.join(', ')}) ${
       this.#children.length
         ? `${this.dividedBy} {
   ${this.#children[0].toString()}
   ${this.#children[1].toString()}
 }`
-        : ""
+        : ''
     }`;
   }
   //#endregion
@@ -128,19 +128,19 @@ export class VolKDTree {
     }
     switch (minCost) {
       case xCost[2]:
-        this.#dividedBy = "x";
+        this.#dividedBy = 'x';
         this.#children = xCost.slice(0, 2);
         break;
       case yMinCost[2]:
-        this.#dividedBy = "yMin";
+        this.#dividedBy = 'yMin';
         this.#children = yMinCost.slice(0, 2);
         break;
       case yMaxCost[2]:
-        this.#dividedBy = "yMax";
+        this.#dividedBy = 'yMax';
         this.#children = yMaxCost.slice(0, 2);
         break;
       case slopeCost[2]:
-        this.#dividedBy = "slope";
+        this.#dividedBy = 'slope';
         this.#children = slopeCost.slice(0, 2);
         break;
     }
@@ -717,7 +717,7 @@ export class VolRTree {
 
         // console.log(points, indexes.map(x => lines[x]), treeNode);
         const result = kmeans(points, repNumber, {
-          initialization: "mostDistant",
+          initialization: 'mostDistant',
         });
         // repNode.indexes = result.map(x => indexes[x]);
 
@@ -847,14 +847,14 @@ export function mix(point1, point2, x) {
 function getAngle(point1, point2) {
   if (point1.x === point2.x) {
     console.log(point1, point2);
-    throw Error("Same x coordinate");
+    throw Error('Same x coordinate');
   }
   return Math.atan((point2.y - point1.y) / (point2.x - point1.x));
 }
 export function getAngle2(point1, point2) {
   if (point1[0] === point2[0]) {
     console.log(point1, point2);
-    throw Error("Same x coordinate");
+    throw Error('Same x coordinate');
   }
   return Math.atan((point2[1] - point1[1]) / (point2[0] - point1[0]));
 }
@@ -1065,7 +1065,6 @@ export function brensenham(ls, hashmap, slope) {
   let yy = Math.floor(ls[1].y);
   let x = Math.floor(ls[0].x);
   let y = Math.floor(ls[0].y);
-  if (xx == x) return;
   if (Math.abs(yy - y) > Math.abs(xx - x)) {
     if (yy < y) return brensenhamHigh(xx, yy, x, y, hashmap, slope);
     return brensenhamHigh(x, y, xx, yy, hashmap, slope);
@@ -1082,12 +1081,8 @@ function brensenhamLow(x0, y0, x1, y1, hashmap, slope) {
   let dy = y1 - y0;
   let yi = dy < 0 ? ((dy = -dy), -1) : 1;
   let D = 2 * dy - dx;
-  let first = true;
   for (let x = x0, y = y0; x <= x1; ++x, D += 2 * dy) {
-    if (x >= 0 && x < 1000 && y >= 0 && y < 500) {
-      if (first) first = false;
-      else hashmap[x * 500 + y] += delta;
-    }
+    hashmap[x * 500 + y] += delta;
     if (D > 0) (y += yi), (D -= 2 * dx);
   }
 }
@@ -1099,61 +1094,8 @@ function brensenhamHigh(x0, y0, x1, y1, hashmap, slope) {
   let dy = y1 - y0;
   let xi = dx < 0 ? ((dx = -dx), -1) : 1;
   let D = 2 * dx - dy;
-  let first = true;
   for (let x = x0, y = y0; y <= y1; ++y, D += 2 * dx) {
-    if (x >= 0 && x < 1000 && y >= 0 && y < 500) {
-      if (first) first = false;
-      else hashmap[x * 500 + y] += delta;
-    }
-    if (D > 0) (x += xi), (D -= 2 * dy);
-  }
-}
-
-export function brensenhamArr(ls, hashmap, lineId, slope) {
-  let xx = Math.floor(ls[1].x);
-  let yy = Math.floor(ls[1].y);
-  let x = Math.floor(ls[0].x);
-  let y = Math.floor(ls[0].y);
-  if (xx == x) return;
-  if (Math.abs(yy - y) > Math.abs(xx - x)) {
-    if (yy < y) return brensenhamArrHigh(xx, yy, x, y, hashmap, lineId, slope);
-    return brensenhamArrHigh(x, y, xx, yy, hashmap, lineId, slope);
-  } else {
-    if (xx < x) return brensenhamArrLow(xx, yy, x, y, hashmap, lineId, slope);
-    return brensenhamArrLow(x, y, xx, yy, hashmap, lineId, slope);
-  }
-}
-
-function brensenhamArrLow(x0, y0, x1, y1, hashmap, lineId, slope) {
-  let delta = Math.min(1, Math.abs(1 / slope));
-  if (!isFinite(delta) || isNaN(delta)) delta = 1;
-  let dx = x1 - x0;
-  let dy = y1 - y0;
-  let yi = dy < 0 ? ((dy = -dy), -1) : 1;
-  let D = 2 * dy - dx;
-  let first = true;
-  for (let x = x0, y = y0; x <= x1; ++x, D += 2 * dy) {
-    if (x >= 0 && x < 1000 && y >= 0 && y < 500) {
-      if (first) first = false;
-      else hashmap[x][y][lineId] = (hashmap[x][y][lineId] ?? 0) + delta;
-    }
-    if (D > 0) (y += yi), (D -= 2 * dx);
-  }
-}
-
-function brensenhamArrHigh(x0, y0, x1, y1, hashmap, lineId, slope) {
-  let delta = Math.min(1, Math.abs(1 / slope));
-  if (!isFinite(delta) || isNaN(delta)) delta = 1;
-  let dx = x1 - x0;
-  let dy = y1 - y0;
-  let xi = dx < 0 ? ((dx = -dx), -1) : 1;
-  let D = 2 * dx - dy;
-  let first = true;
-  for (let x = x0, y = y0; y <= y1; ++y, D += 2 * dx) {
-    if (x >= 0 && x < 1000 && y >= 0 && y < 500) {
-      if (first) first = false;
-      else hashmap[x][y][lineId] = (hashmap[x][y][lineId] ?? 0) + delta;
-    }
+    hashmap[x * 500 + y] += delta;
     if (D > 0) (x += xi), (D -= 2 * dy);
   }
 }

@@ -12,11 +12,11 @@
  * @typedef {{segs: [Point, Point, number, number]}} CCHLeafNode
  * @typedef {{left: CCHInternalode|CCHLeafNode, right: CCHInternalode|CCHLeafNode}} CCHInternalode
  */
-import { lineRectCollide } from "./util";
-import Heap from "heap";
+import { lineRectCollide } from './util';
+import Heap from 'heap';
 
 const kdparam = {
-  deg: 3,
+  deg: 5,
   b: 1.128,
   k: 5,
   r: 0.05,
@@ -45,7 +45,7 @@ export default class CCHTree {
    * @param {Point[][]} lines
    * @param {number} precision
    */
-  constructor(lines, precision = 5000) {
+  constructor(lines, precision = 100) {
     //#region init tsrd
     //console.time('init tsrd');
     //#region generate tsrd
@@ -201,7 +201,6 @@ export default class CCHTree {
     //#region split
     //console.time('split');
     const stacks = [];
-    const segMapping = new Map();
     // let segcount = 0;
     // let totalTry = 0;
     // let futileTry = 0;
@@ -332,55 +331,34 @@ export default class CCHTree {
         );
       } else {
         const startIndex = this.segs.length;
-        const nl = { segs: [] };
         for (let ci of si[0]) {
           let lastIndex = ci.from;
           for (let currIndex of ci.sp) {
-            if (lastIndex == currIndex) continue;
-            const key = `${tsrd.pos[lastIndex].x}-${tsrd.pos[currIndex].x}-${tsrd.fastID[currIndex]}`;
-            const mapKey = segMapping.get(key);
-            if (mapKey !== undefined) {
-              nl.segs.push(mapKey);
-            } else {
-              const diff = pointSub(tsrd.pos[currIndex], tsrd.pos[lastIndex]);
-              const ls = [
-                tsrd.pos[lastIndex],
-                tsrd.pos[currIndex],
-                diff.y / diff.x,
-                tsrd.fastID[currIndex],
-              ];
-              const lid = this.segs.length;
-              this.segs.push(ls);
-              nl.segs.push(lid);
-              segMapping.set(key, lid);
-              // brensenham(ls, lid, this.prebuiltPixel);
-            }
-            lastIndex = currIndex;
-          }
-          if (lastIndex == ci.to) continue;
-          const key = `${tsrd.pos[lastIndex].x}-${tsrd.pos[ci.to].x}-${
-            tsrd.fastID[ci.to]
-          }`;
-          const mapKey = segMapping.get(key);
-          if (mapKey !== undefined) {
-            nl.segs.push(mapKey);
-          } else {
-            const diff = pointSub(tsrd.pos[lastIndex], tsrd.pos[ci.to]);
+            const diff = pointSub(tsrd.pos[currIndex], tsrd.pos[lastIndex]);
             const ls = [
               tsrd.pos[lastIndex],
-              tsrd.pos[ci.to],
+              tsrd.pos[currIndex],
               diff.y / diff.x,
-              tsrd.fastID[ci.to],
+              tsrd.fastID[currIndex],
             ];
             const lid = this.segs.length;
             this.segs.push(ls);
-            nl.segs.push(lid);
-            segMapping.set(key, lid);
             // brensenham(ls, lid, this.prebuiltPixel);
+            lastIndex = currIndex;
           }
+          const diff = pointSub(tsrd.pos[lastIndex], tsrd.pos[ci.to]);
+          const ls = [
+            tsrd.pos[lastIndex],
+            tsrd.pos[ci.to],
+            diff.y / diff.x,
+            tsrd.fastID[ci.to],
+          ];
+          const lid = this.segs.length;
+          this.segs.push(ls);
+          // brensenham(ls, lid, this.prebuiltPixel);
         }
         const endIndex = this.segs.length - 1;
-
+        const nl = { segs: [startIndex, endIndex] };
         // segcount += nl.segs.length;
         if (si[2] === null) {
           this.root = nl;
@@ -504,26 +482,26 @@ export default class CCHTree {
 
     const removal = new Set();
     this.#range(
-      removal,
-      { x: lo[0], z: hi[1], y: -Infinity },
-      { x: hi[0], z: Infinity, y: Infinity },
-      {
-        a: { x: -Infinity, y: -Infinity, z: -Infinity },
-        b: { x: Infinity, y: Infinity, z: Infinity },
-      },
-      this.root
-    );
+        removal,
+        {x: lo[0], z: hi[1], y: -Infinity},
+        {x: hi[0], z: Infinity, y: Infinity},
+        {
+          a: { x: -Infinity, y: -Infinity, z: -Infinity },
+          b: { x: Infinity, y: Infinity, z: Infinity },
+        },
+        this.root
+    )
 
     this.#range(
-      removal,
-      { x: lo[0], z: -Infinity, y: -Infinity },
-      { x: hi[0], z: lo[1], y: Infinity },
-      {
-        a: { x: -Infinity, y: -Infinity, z: -Infinity },
-        b: { x: Infinity, y: Infinity, z: Infinity },
-      },
-      this.root
-    );
+        removal,
+        {x: lo[0], z: -Infinity, y: -Infinity},
+        {x: hi[0], z: lo[1], y: Infinity},
+        {
+          a: { x: -Infinity, y: -Infinity, z: -Infinity },
+          b: { x: Infinity, y: Infinity, z: Infinity },
+        },
+        this.root
+    )
     return [...result].filter((x) => !removal.has(x));
   }
 
@@ -552,7 +530,7 @@ export default class CCHTree {
   }
 
   #searchLeaf(result, search, k, node) {
-    for (let i of node.segs) {
+    for (let i = node.segs[0]; i <= node.segs[1]; i++) {
       const seg = this.segs[i];
       const ap = pointSub(search, seg[0]);
       let dir = pointSub(seg[1], seg[0]);
@@ -618,7 +596,7 @@ export default class CCHTree {
   }
 
   #searchLeafRNN(result, search, r, node) {
-    for (let i of node.segs) {
+    for (let i = node.segs[0]; i <= node.segs[1]; i++) {
       const seg = this.segs[i];
       const ap = pointSub(search, seg[0]);
       let dir = pointSub(seg[1], seg[0]);
@@ -713,7 +691,7 @@ export default class CCHTree {
   }
 
   #rangeLeaf(result, p1, p2, node) {
-    for (let i of node.segs) {
+    for (let i = node.segs[0]; i <= node.segs[1]; i++) {
       const seg = this.segs[i];
       const lineId = seg[3];
       if (!result.has(lineId)) {
@@ -1029,7 +1007,7 @@ function getMidWeightedVal(data, weight) {
 // }
 
 function dim2xyz(dim) {
-  return dim == 0 ? "x" : dim == 1 ? "y" : "z";
+  return dim == 0 ? 'x' : dim == 1 ? 'y' : 'z';
 }
 
 function updateAABB(ci, pos) {
