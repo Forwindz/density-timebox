@@ -45,7 +45,7 @@ export default class CCHTree {
    * @param {Point[][]} lines
    * @param {number} precision
    */
-  constructor(lines, precision = 5000) {
+  constructor(lines, precision = 1000) {
     //#region init tsrd
     //console.time('init tsrd');
     //#region generate tsrd
