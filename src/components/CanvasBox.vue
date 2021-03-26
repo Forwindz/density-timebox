@@ -145,8 +145,8 @@
         <div>
           <span>Filter line by: </span>
           <RadioGroup v-model="filterMode" type="button">
-            <!-- <Radio label="knn">KNN</Radio>
-            <Radio label="rnn">Radius</Radio> -->
+            <!-- <Radio label="knn">KNN</Radio> -->
+            <Radio label="rnn">RNL</Radio>
             <Radio label="brush">Brush</Radio>
             <Radio label="ang">Angle</Radio>
             <Radio label="attr">Attr</Radio>
@@ -904,6 +904,20 @@ export default {
     },
   },
   methods: {
+    inRadius(ids, point,  radius) {
+      const r2 = radius * radius;
+      return ids
+          .filter(id => {
+            const line = unobserve.result[id];
+            let mx = Infinity;
+            for (let i = 0; i < line.length - 1; i++) {
+              let dis = distToSegmentSquared(point, [line[i].x, line[i].y], [line[i+1].x, line[i+1].y]);
+              if (dis < mx)
+                mx = dis;
+            }
+            return mx <= r2;
+          })
+    },
     leaveQuery(index) {
       this.mark = false;
       this.renderBoxes("mouseLayer");
@@ -1063,16 +1077,7 @@ export default {
         let radius = 5;
         let res = [];
         while (res.length === 0 && radius < 100) {
-          res = this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]).filter(id => {
-            const line = unobserve.result[id];
-            let mx = Infinity;
-            for (let i = 0; i < line.length - 1; i++) {
-              let dis = distToSegmentSquared(point, [line[i].x, line[i].y], [line[i+1].x, line[i+1].y]);
-              if (dis < mx)
-                mx = dis;
-            }
-            return mx <= 9;
-          })
+          res = this.inRadius(this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]), point, 3);
           radius *= 2;
         }
         this.drawLineWithLayer(res, unobserve.hoverLayer);
@@ -1895,7 +1900,7 @@ export default {
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-              this.tr.ee.rnn(query.start, query.n).map(({id}) => id)
+              this.inRadius( this.tr.ee.rnn(query.start, query.n * 2+ 5).map(({id}) => id), query.start, query.n)
           );
           query.cache = result;
         }
