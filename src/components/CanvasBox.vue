@@ -698,6 +698,7 @@ export default {
           ...this.getStaticInformation([...unobserve.querys[i].cache]),
           reps: unobserve.querys[i].reps.map((id) => {
             return {
+              id,
               name: unobserve.aggregatedData[id].key,
               color: `rgb(${this.getColor(id).join(",")})`,
               ...this.getStaticInformation([id]),
@@ -723,6 +724,7 @@ export default {
                 : unobserve.globalRep
         ).map((id) => {
           return {
+            id,
             name: unobserve.aggregatedData[id].key,
             color: `rgb(${this.getColor(id).join(",")})`,
             ...this.getStaticInformation([id]),
@@ -739,6 +741,7 @@ export default {
           ...this.getStaticInformation(unobserve.unionResult),
           reps: unobserve.unionReps.map((id) => {
             return {
+              id,
               name: unobserve.aggregatedData[id].key,
               color: `rgb(${this.getColor(id).join(",")})`,
               ...this.getStaticInformation([id]),
