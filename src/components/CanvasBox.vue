@@ -1,34 +1,34 @@
 <template>
   <div>
     <div
-      style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
+        style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
     >
       <div
-        style="width: 1000px; height: 500px; opacity: 0; pointer-events: none;"
+          style="width: 1000px; height: 500px; opacity: 0; pointer-events: none;"
       ></div>
       <canvas
-        id="canvas"
-        width="1000"
-        height="500"
-        style="transform: scaleY(1); position: absolute; left: 0; top: 0;"
-        @mousedown="canvasMousedown"
-        @mouseup="canvasMouseup"
-        @mousemove="canvasMousemove"
-        @wheel="canvasWheel"
-        @contextmenu="mouseContextmenu"
+          id="canvas"
+          width="1000"
+          height="500"
+          style="transform: scaleY(1); position: absolute; left: 0; top: 0;"
+          @mousedown="canvasMousedown"
+          @mouseup="canvasMouseup"
+          @mousemove="canvasMousemove"
+          @wheel="canvasWheel"
+          @contextmenu="mouseContextmenu"
       ></canvas>
       <canvas
-        id="selectionCanvas"
-        width="1000"
-        height="500"
-        style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
+          id="selectionCanvas"
+          width="1000"
+          height="500"
+          style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
-        id="selectionLayer"
-        width="1000"
-        height="500"
-        style="
+          id="selectionLayer"
+          width="1000"
+          height="500"
+          style="
           transform: scaleY(1);
           position: absolute;
           left: 0;
@@ -37,24 +37,24 @@
         "
       ></canvas>
       <canvas
-        id="rep_layer"
-        width="1000"
-        height="500"
-        style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
+          id="rep_layer"
+          width="1000"
+          height="500"
+          style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
-        id="raw_lines"
-        width="1000"
-        height="500"
-        style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
+          id="raw_lines"
+          width="1000"
+          height="500"
+          style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
-        id="mouseLayer"
-        width="1000"
-        height="500"
-        style="
+          id="mouseLayer"
+          width="1000"
+          height="500"
+          style="
           transform: scaleY(1);
           position: absolute;
           left: 0;
@@ -64,10 +64,10 @@
         "
       ></canvas>
       <svg
-        id="axisHelper"
-        width="1050"
-        height="550"
-        style="
+          id="axisHelper"
+          width="1050"
+          height="550"
+          style="
           position: absolute;
           left: -50px;
           top: -20px;
@@ -116,16 +116,16 @@
       <!--        }"-->
       <!--      ></canvas>-->
       <div
-        ref="axisTop"
-        style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
+          ref="axisTop"
+          style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
       ></div>
       <div
-        ref="axisBottom"
-        style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
+          ref="axisBottom"
+          style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
       ></div>
       <div
-        ref="axisLeft"
-        style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
+          ref="axisLeft"
+          style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
       ></div>
       <div class="control-panel">
         <div>
@@ -150,26 +150,28 @@
           <Form>
             <FormItem label="Attribute Column">
               <Select
-                v-model="attributeColumn"
-                placeholder="Choose a column for attribute filtering"
+                  v-model="attributeColumn"
+                  placeholder="Choose a column for attribute filtering"
               >
                 <Option
-                  v-for="header in headers"
-                  :value="header.key"
-                  :key="header.title"
-                  >{{ header.title }}</Option
+                    v-for="header in headers"
+                    :value="header.key"
+                    :key="header.title"
+                >{{ header.title }}
+                </Option
                 >
               </Select>
             </FormItem>
             <FormItem label="Value">
               <AutoComplete
-                v-model="attributeValue"
-                :data="attributeData"
-                @on-search="handleSearch"
+                  v-model="attributeValue"
+                  :data="attributeData"
+                  @on-search="handleSearch"
               ></AutoComplete>
             </FormItem>
             <Button type="info" style="float: right" @click="addAttrQuery"
-              >add attribute query</Button
+            >add attribute query
+            </Button
             >
           </Form>
           <!--          <span>Column Name</span>-->
@@ -188,23 +190,24 @@
           <div style="display:flex;align-items:center">
             <span style="margin-right:8px">Line count</span>
             <Slider
-              v-model="repCount"
-              :min="1"
-              :max="20"
-              :step="1"
-              show-tip="never"
-              style="flex-grow:1"
+                v-model="repCount"
+                :min="1"
+                :max="20"
+                :step="1"
+                show-tip="never"
+                style="flex-grow:1"
             />
             <span style="margin-left:8px">{{ repCount }}</span>
 
             <span style="margin-right:8px; margin-left: 12px;">Diverse</span>
             <Slider
-              v-model="diverse"
-              :min="0"
-              :max="0.3"
-              :step="0.002"
-              show-tip="never"
-              style="flex-grow:1"
+                v-model="diverse"
+                :min="0"
+                :max="0.3"
+                :step="0.002"
+                show-tip="never"
+                style="flex-grow:1"
+                @on-change="cnt++"
             />
           </div>
           <div style="display:flex;align-items:center"></div>
@@ -234,9 +237,9 @@
           <div class="select-colormap">
             <span style="margin:0">Colormap:</span>
             <Select
-              id="colormap"
-              placeholder="Choose colormap"
-              v-model="colormapIndexCache"
+                id="colormap"
+                placeholder="Choose colormap"
+                v-model="colormapIndexCache"
             >
               <Option value="0">viridis</Option>
               <Option value="1" selected>magma</Option>
@@ -264,10 +267,10 @@
           <span>1</span>
           <span class="color-map" id="color-map"></span>
           <InputNumber
-            :min="1"
-            v-model="maxDensity"
-            :active-change="false"
-            style="width: 50px"
+              :min="1"
+              v-model="maxDensity"
+              :active-change="false"
+              style="width: 50px"
           />
         </div>
 
@@ -281,27 +284,124 @@
         <div style="margin-left:2em">
           <draggable v-model="layers">
             <div
-              v-for="layer in layers"
-              :key="layer.id"
-              style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
+                v-for="layer in layers"
+                :key="layer.id"
+                style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
             >
-              <Icon type="md-menu" style="cursor:move" />
-              <p style="width:170px;padding-left: 12px">
-                {{ layer.name }}
-              </p>
-              <Icon
-                :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
-                :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
-                @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
-              />
-              <Slider
-                v-model="layer.opacity"
-                :min="0"
-                :max="1"
-                :step="0.01"
-                show-tip="never"
-                style="flex-grow:1; margin-left:12px;margin-right:8px"
-              />
+              <Icon type="md-menu" style="cursor:move"/>
+              <!-- <Poptip
+                v-if="layer.id == 'selectionCanvas'"
+                :width="340"
+                :offset="62"
+                trigger="click"
+              >
+                <p style="width:170px;padding-left: 12px">
+                  {{ layer.name }}
+                </p>
+                <div slot="content" style="display:flex;align-items:center">
+                  <div class="select-colormap">
+                    <span style="margin:0">Colormap:</span>
+                    <Select
+                      id="colormap"
+                      placeholder="Choose colormap"
+                      v-model="colormapOverlayIndexCache"
+                    >
+                      <Option value="0">viridis</Option>
+                      <Option value="1" selected>magma</Option>
+                      <Option value="2">inferno</Option>
+                      <Option value="3">plasma</Option>
+                      <Option value="4">cividis</Option>
+                      <Option value="5">turbo</Option>
+                      <Option value="6">bluegreen</Option>
+                      <Option value="7">bluepurple</Option>
+                      <Option value="8">goldgreen</Option>
+                      <Option value="9">goldorange</Option>
+                      <Option value="10">goldred</Option>
+                      <Option value="11">greenblue</Option>
+                      <Option value="12">orangered</Option>
+                      <Option value="13">purplebluegreen</Option>
+                      <Option value="14">purpleblue</Option>
+                      <Option value="15">purplered</Option>
+                      <Option value="16">redpurple</Option>
+                      <Option value="17">yellowgreenblue</Option>
+                      <Option value="18">yellowgreen</Option>
+                      <Option value="19">yelloworangebrown</Option>
+                      <Option value="20">yelloworangered</Option>
+                    </Select>
+                  </div>
+                  <span>1</span>
+                  <span class="color-map" id="color-map"></span>
+                  <InputNumber
+                    :min="1"
+                    v-model="maxOverlayDensity"
+                    :active-change="false"
+                    style="width: 50px"
+                  />
+                </div>
+              </Poptip> -->
+              <div style="flex-grow:1">
+                <div style="display:flex;align-items:center">
+                  <p style="width:170px;padding-left: 12px">
+                    {{ layer.name }}
+                  </p>
+                  <Icon
+                      :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
+                      :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
+                      @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
+                  />
+                  <Slider
+                      v-model="layer.opacity"
+                      :min="0"
+                      :max="1"
+                      :step="0.01"
+                      show-tip="never"
+                      style="flex-grow:1; margin-left:12px;margin-right:8px"
+                  />
+                </div>
+                <div
+                    v-if="layer.id == 'selectionCanvas'"
+                    style="display:flex;align-items:center;margin:0 12px 8px;position:relative"
+                >
+                  <div class="select-colormap">
+                    <span style="margin:0">Colormap:</span>
+                    <Select
+                        id="colormapOverlay"
+                        placeholder="Choose colormap"
+                        v-model="colormapOverlayIndexCache"
+                    >
+                      <Option value="0">viridis</Option>
+                      <Option value="1" selected>magma</Option>
+                      <Option value="2">inferno</Option>
+                      <Option value="3">plasma</Option>
+                      <Option value="4">cividis</Option>
+                      <Option value="5">turbo</Option>
+                      <Option value="6">bluegreen</Option>
+                      <Option value="7">bluepurple</Option>
+                      <Option value="8">goldgreen</Option>
+                      <Option value="9">goldorange</Option>
+                      <Option value="10">goldred</Option>
+                      <Option value="11">greenblue</Option>
+                      <Option value="12">orangered</Option>
+                      <Option value="13">purplebluegreen</Option>
+                      <Option value="14">purpleblue</Option>
+                      <Option value="15">purplered</Option>
+                      <Option value="16">redpurple</Option>
+                      <Option value="17">yellowgreenblue</Option>
+                      <Option value="18">yellowgreen</Option>
+                      <Option value="19">yelloworangebrown</Option>
+                      <Option value="20">yelloworangered</Option>
+                    </Select>
+                  </div>
+                  <span>1</span>
+                  <span class="color-map" id="color-map-overlay"></span>
+                  <InputNumber
+                      :min="1"
+                      v-model="maxOverlayDensity"
+                      :active-change="false"
+                      style="width: 50px"
+                  />
+                </div>
+              </div>
             </div>
           </draggable>
         </div>
@@ -312,35 +412,35 @@
 
         <div>
           <span>Show value of cursor:</span>
-          <iSwitch style="margin-left:12px" v-model="showCursorValue" />
+          <iSwitch style="margin-left:12px" v-model="showCursorValue"/>
         </div>
         <div>
           <span>Reverse y-axis:</span>
-          <iSwitch style="margin-left:12px" v-model="upsideDown" />
+          <iSwitch style="margin-left:12px" v-model="upsideDown"/>
         </div>
         <div>
           <span>Normalize density:</span>
-          <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
+          <iSwitch style="margin-left:12px" v-model="normalizeDensity"/>
         </div>
         <div>
           <span>Enlarge Axis Font Size:</span>
-          <iSwitch style="margin-left:12px" v-model="enlargeFont" />
+          <iSwitch style="margin-left:12px" v-model="enlargeFont"/>
         </div>
       </div>
     </div>
     <Table
-      :row-class-name="calClassName"
-      border
-      :columns="tableColumns"
-      :data="cnt + 1 && tableData"
-      :on-current-change="hoveringQuery"
-      id="informationTable"
-      style="margin-top: 30px"
+        :row-class-name="calClassName"
+        border
+        :columns="tableColumns"
+        :data="cnt + 1 && tableData"
+        :on-current-change="hoveringQuery"
+        id="informationTable"
+        style="margin-top: 30px"
     >
       <template slot-scope="{ row, index }" slot="name">
         <p
-          v-if="index >= tableData.length - 2"
-          style="font-style:italic;font-weight:700"
+            v-if="index >= tableData.length - 2"
+            style="font-style:italic;font-weight:700"
         >
           {{ row.name }}
         </p>
@@ -348,34 +448,34 @@
       </template>
       <template slot-scope="{ row, index }" slot="op">
         <Button
-          ghost
-          :type="row.query === selectedQuery ? 'primary' : 'default'"
-          size="small"
-          style="margin-right: 5px"
-          @click="selectedQuery = row.query"
-          >Explore
+            ghost
+            :type="row.query === selectedQuery ? 'primary' : 'default'"
+            size="small"
+            style="margin-right: 5px"
+            @click="selectedQuery = row.query"
+        >Explore
         </Button>
-        <Button
+        <!-- <Button
           type="warning"
           style="margin-right: 5px"
           size="small"
           v-if="index < tableData.length - 2"
           >Invisible
-        </Button>
+        </Button> -->
         <Button
-          type="error"
-          size="small"
-          v-if="index < tableData.length - 2"
-          @click="deleteQuery(index)"
-          >Delete
+            type="error"
+            size="small"
+            v-if="index < tableData.length - 2"
+            @click="deleteQuery(index)"
+        >Delete
         </Button>
       </template>
     </Table>
     <Button
-      type="error"
-      size="small"
-      style="float: right; margin: 20px"
-      @click="deleteAllQuery"
+        type="error"
+        size="small"
+        style="float: right; margin: 20px"
+        @click="deleteAllQuery"
     >
       Delete all Querys
     </Button>
@@ -384,10 +484,11 @@
         <Icon type="ios-information-circle"></Icon>
         <span>Representative Line Information</span>
       </p>
-      <Table border :columns="repColumns" :data="repStaticInformation"> </Table>
+      <Table border :columns="repColumns" :data="repStaticInformation"></Table>
       <div slot="footer">
         <Button type="primary" size="large" long @click="repModal = false"
-          >Confirm</Button
+        >Confirm
+        </Button
         >
       </div>
     </Modal>
@@ -395,12 +496,12 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable';
-import { exportCanvas } from '../core/utils';
-import unobserve from '../store';
-import render from '../core';
-import * as d3 from 'd3';
-import expandRow from '@/components/expandRow';
+import draggable from "vuedraggable";
+import {exportCanvas} from "../core/utils";
+import unobserve from "../store";
+import render from "../core";
+import * as d3 from "d3";
+import expandRow from "@/components/expandRow";
 import {
   calculateCurvature,
   calculateDifference,
@@ -413,11 +514,14 @@ import {
   movePoint,
   sqr,
   updatePoint,
-} from '@/core/util';
-import KDTree from '../core/kdtree';
-import seedrandom from 'seedrandom';
-import moment from 'moment';
-import { brensenham } from '../core/util';
+} from "@/core/util";
+import KDTree from "../core/kdtree";
+import seedrandom from "seedrandom";
+import moment from "moment";
+import {brensenham, brensenhamArr} from "../core/util";
+
+const tempBuffer = new Float32Array(1000 * 500);
+const colorMapCache = {};
 
 export default {
   props: {
@@ -438,12 +542,12 @@ export default {
       contextHandler: null,
       canvasContext: null,
       rawLineContext: null,
-      filterMode: 'brush',
-      brushMethod: 'tree',
-      rawMode: 'rep',
+      filterMode: "brush",
+      brushMethod: "tree",
+      rawMode: "rep",
       repCount: 3,
       diverse: 0.1,
-      cursor: 'crosshair',
+      cursor: "crosshair",
       mouseDown: false,
       listener: null,
       hoverListener: null,
@@ -451,72 +555,75 @@ export default {
       coord: [0, 0, 0, 0, 0],
       boxes: [],
       maxDensity: null,
+      maxOverlayDensity: null,
       rawLines: [],
-      colorMap: ['aqua', 'limegreen', 'lightgreen'],
+      colorMap: ["aqua", "limegreen", "lightgreen"],
       upsideDown: false,
       showCursorValue: true,
       normalizeDensity: true,
       enlargeFont: false,
       headers: [],
       previewIndex: -1,
-      selectedQuery: '$int',
+      selectedQuery: "$int",
       tableColumns: [
         {
-          type: 'expand',
+          type: "expand",
           width: 50,
           render: (h, params) =>
-            h(expandRow, {
-              props: {
-                row: params.row.reps,
-              },
-            }),
+              h(expandRow, {
+                props: {
+                  row: params.row.reps,
+                },
+              }),
         },
-        { title: 'Query', align: 'center', slot: 'name' },
+        {title: "Query", align: "center", slot: "name"},
         // { title: 'Min start time', align: 'center', key: 'minT' },
         // { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: 'Count', align: 'center', key: 'count' },
-        { title: 'Min value', align: 'center', key: 'minV' },
-        { title: 'Max value', align: 'center', key: 'maxV' },
-        { title: 'Mean value', align: 'center', key: 'mean' },
-        { title: 'Variance', align: 'center', key: 'var' },
-        { title: 'Operations', align: 'center', slot: 'op', width: 250 },
+        {title: "Line series count", align: "center", key: "count"},
+        {title: "Time points count", align: "center", key: "points"},
+        {title: "Min value", align: "center", key: "minV"},
+        {title: "Max value", align: "center", key: "maxV"},
+        {title: "Mean value", align: "center", key: "mean"},
+        {title: "Variance", align: "center", key: "var"},
+        {title: "Operations", align: "center", slot: "op", width: 250},
       ],
       repColumns: [
-        { title: 'Index num.', align: 'center', key: 'name' },
-        { title: 'Min start time', align: 'center', key: 'minT' },
-        { title: 'Max start time', align: 'center', key: 'maxT' },
-        { title: 'Min value', align: 'center', key: 'minV' },
-        { title: 'Max value', align: 'center', key: 'maxV' },
-        { title: 'Mean value', align: 'center', key: 'mean' },
+        {title: "Index num.", align: "center", key: "name"},
+        {title: "Min start time", align: "center", key: "minT"},
+        {title: "Max start time", align: "center", key: "maxT"},
+        {title: "Min value", align: "center", key: "minV"},
+        {title: "Max value", align: "center", key: "maxV"},
+        {title: "Mean value", align: "center", key: "mean"},
       ],
       layers: [
         {
-          id: 'rep_layer',
-          name: 'representative line',
+          id: "rep_layer",
+          name: "representative line",
           opacity: 1,
         },
         {
-          id: 'selectionCanvas',
-          name: 'selected density',
+          id: "selectionCanvas",
+          name: "selected density",
           opacity: 0,
         },
         {
-          id: 'selectionLayer',
-          name: 'selected line',
+          id: "selectionLayer",
+          name: "selected line",
           opacity: 0.4,
         },
         {
-          id: 'canvas',
-          name: 'density',
+          id: "canvas",
+          name: "density",
           opacity: 1,
         },
         {
-          id: 'raw_lines',
-          name: 'raw line',
+          id: "raw_lines",
+          name: "raw line",
           opacity: 0,
         },
       ],
       colormapIndexCache: 1,
+      colormapOverlayIndexCache: 1,
       initDensityCache: null,
       initDensityBufferCache: null,
       initDensityMaxCache: 0,
@@ -539,7 +646,7 @@ export default {
       cursorHelper: null,
       svg: null,
 
-      tree: null,
+      tr: null,
       cnt: 0,
       renderSelectedDensity: 0,
 
@@ -562,10 +669,10 @@ export default {
     previewData() {
       if (this.previewIndex < 0) return [];
       return [...unobserve.aggregatedData[this.previewIndex].ref]
-        .slice(0, 6)
-        .map((i, ii) =>
-          ii == 5 ? this.headers.map((_) => '...') : unobserve.data[i]
-        );
+          .slice(0, 6)
+          .map((i, ii) =>
+              ii == 5 ? this.headers.map((_) => "...") : unobserve.data[i]
+          );
     },
     tableData() {
       if (!this.cnt) {
@@ -573,11 +680,11 @@ export default {
       }
       let res = [];
       let mp = {
-        brush: 'Brush',
-        ang: 'Angle',
-        knn: 'KNN',
-        rnn: 'Radius',
-        attr: 'Attribute',
+        brush: "Brush",
+        ang: "Angle",
+        knn: "KNN",
+        rnn: "Radius",
+        attr: "Attribute",
       };
       for (let i = 0; i < unobserve.querys.length; i++) {
         if (!unobserve.querys[i].reps)
@@ -585,6 +692,7 @@ export default {
             ...unobserve.querys[i].cache,
           ]);
         res.push({
+          _expanded: i == this.selectedQuery,
           query: i,
           name: mp[unobserve.querys[i].type],
           ...this.getStaticInformation([...unobserve.querys[i].cache]),
@@ -598,35 +706,46 @@ export default {
         });
       }
 
-      console.log('this is unoberserve interResult');
+      console.log("this is unoberserve interResult");
       console.log(unobserve.interResult);
       unobserve.interReps = this.calcRepLines(unobserve.interResult);
       res.push({
-        query: '$int',
-        name: 'intersection',
-        ...this.getStaticInformation(unobserve.interResult),
-        reps: unobserve.interReps.map((id) => {
+        _expanded: "$int" == this.selectedQuery,
+        query: "$int",
+        name: unobserve.querys.length ? "intersection" : "global",
+        ...this.getStaticInformation(
+            unobserve.querys.length
+                ? unobserve.interResult
+                : new Array(unobserve.aggregatedData.length).fill().map((_, i) => i)
+        ),
+        reps: (unobserve.querys.length
+                ? unobserve.interReps
+                : unobserve.globalRep
+        ).map((id) => {
           return {
-            name: id,
-            color: `rgb(${this.getColor(id).join(',')})`,
+            name: unobserve.aggregatedData[id].key,
+            color: `rgb(${this.getColor(id).join(",")})`,
             ...this.getStaticInformation([id]),
           };
         }),
       });
 
-      unobserve.unionReps = this.calcRepLines(unobserve.unionResult);
-      res.push({
-        query: '$uni',
-        name: 'union',
-        ...this.getStaticInformation(unobserve.unionResult),
-        reps: unobserve.unionReps.map((id) => {
-          return {
-            name: id,
-            color: `rgb(${this.getColor(id).join(',')})`,
-            ...this.getStaticInformation([id]),
-          };
-        }),
-      });
+      if (unobserve.querys.length) {
+        unobserve.unionReps = this.calcRepLines(unobserve.unionResult);
+        res.push({
+          _expanded: "$uni" == this.selectedQuery,
+          query: "$uni",
+          name: "union",
+          ...this.getStaticInformation(unobserve.unionResult),
+          reps: unobserve.unionReps.map((id) => {
+            return {
+              name: unobserve.aggregatedData[id].key,
+              color: `rgb(${this.getColor(id).join(",")})`,
+              ...this.getStaticInformation([id]),
+            };
+          }),
+        });
+      }
       console.log(res);
 
       return res;
@@ -639,8 +758,7 @@ export default {
         this.svg.select('#yaxis').attr('font-size', '16px');
         this.svg.select('#xaxis').attr('stroke-width', '2px');
         this.svg.select('#yaxis').attr('stroke-width', '2px');
-      }
-      else {
+      } else {
         this.svg.select('#xaxis').attr('font-size', '12px');
         this.svg.select('#yaxis').attr('font-size', '12px');
         this.svg.select('#xaxis').attr('stroke-width', '1px');
@@ -650,8 +768,11 @@ export default {
     colormapIndexCache(value) {
       console.log(value);
       this.renderColorMap();
-      this.renderDensity();
       this.renderAllDensity();
+    },
+    colormapOverlayIndexCache() {
+      this.renderColorMapOverlay();
+      this.renderDensity();
     },
     repCount(value) {
       this.renderBoxes();
@@ -663,7 +784,7 @@ export default {
         this.rearrangeLayer(value);
         for (let i in value) {
           const layer = value[i];
-          if (layer.id === 'selectionCanvas') {
+          if (layer.id === "selectionCanvas") {
             if (!this.renderSelectedDensity && layer.opacity > 0)
               this.renderDensity();
             this.renderSelectedDensity = layer.opacity > 0;
@@ -673,34 +794,34 @@ export default {
     },
     showCursorValue() {
       this.svg
-        .select('#cursorHelper')
-        .selectAll('line')
-        .attr('x1', 0)
-        .attr('y1', 0)
-        .attr('x2', 0)
-        .attr('y2', 0);
+          .select("#cursorHelper")
+          .selectAll("line")
+          .attr("x1", 0)
+          .attr("y1", 0)
+          .attr("x2", 0)
+          .attr("y2", 0);
       this.svg
-        .select('#cursorHelper')
-        .selectAll('text')
-        .attr('x', 0)
-        .attr('y', 0)
-        .text('');
+          .select("#cursorHelper")
+          .selectAll("text")
+          .attr("x", 0)
+          .attr("y", 0)
+          .text("");
     },
     upsideDown(value) {
       unobserve.upsideDown = value;
       this.svg
-        .select('#cursorHelper')
-        .selectAll('line')
-        .attr('x1', 0)
-        .attr('y1', 0)
-        .attr('x2', 0)
-        .attr('y2', 0);
+          .select("#cursorHelper")
+          .selectAll("line")
+          .attr("x1", 0)
+          .attr("y1", 0)
+          .attr("x2", 0)
+          .attr("y2", 0);
       this.svg
-        .select('#cursorHelper')
-        .selectAll('text')
-        .attr('x', 0)
-        .attr('y', 0)
-        .text('');
+          .select("#cursorHelper")
+          .selectAll("text")
+          .attr("x", 0)
+          .attr("y", 0)
+          .text("");
       this.setReverseY(value);
     },
     filter(value) {
@@ -720,6 +841,9 @@ export default {
     },
     maxDensity() {
       this.renderAllDensity();
+    },
+    maxOverlayDensity() {
+      this.renderDensity();
     },
     diverse() {
       // this.getTopK();
@@ -745,13 +869,13 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-          (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
-          500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+            (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
+            500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-            (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
-            500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+              (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
+              500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
           );
         }
         this.rawLineContext.stroke();
@@ -759,12 +883,13 @@ export default {
     },
     normalizeDensity() {
       this.renderAllDensity(true);
+      this.renderDensity();
     },
   },
   methods: {
     leaveQuery(index) {
       this.mark = false;
-      this.renderBoxes('mouseLayer');
+      this.renderBoxes("mouseLayer");
     },
     handleSearch(value) {
       console.log(value);
@@ -776,7 +901,9 @@ export default {
       const datas = unobserve.headerMap.get(name);
       console.log(unobserve.headerMap);
       console.log(name, datas, this.attributeValue);
-      this.attributeData = datas.filter(str => str.slice(0, value.length) === value).slice(0, 10);
+      this.attributeData = datas
+          .filter((str) => str.slice(0, value.length) === value)
+          .slice(0, 10);
     },
     hoveringQuery(index) {
       console.log(index);
@@ -786,7 +913,7 @@ export default {
 
     addAttrQuery() {
       unobserve.querys.push({
-        type: 'attr',
+        type: "attr",
         info: {
           ind: this.attributeColumn,
           val: this.attributeValue,
@@ -808,7 +935,7 @@ export default {
         flag = true;
       }
       unobserve.querys.splice(query, 1);
-      if (flag) this.selectedQuery = '$int';
+      if (flag) this.selectedQuery = "$int";
       this.renderBoxes();
       this.cnt++;
       this.renderDensity();
@@ -825,24 +952,24 @@ export default {
 
         this.modify.lastPos = startPoint;
         if (this.modify.onBorder) {
-          this.modify.type = 'resize';
+          this.modify.type = "resize";
         } else {
-          this.modify.type = 'drag';
+          this.modify.type = "drag";
         }
         return;
       }
-      if (this.filterMode === 'attr') return;
+      if (this.filterMode === "attr") return;
       this.preview = {
         // type: document.getElementById("mode").value,
         type: this.filterMode,
         start: startPoint,
       };
       unobserve.preview = this.preview;
-      if (this.preview.type === 'knn') {
+      if (this.preview.type === "knn") {
         this.preview.n = 5;
-      } else if (this.preview.type === 'rnn') {
+      } else if (this.preview.type === "rnn") {
         this.preview.n = 10;
-      } else if (this.preview.type === 'ang') {
+      } else if (this.preview.type === "ang") {
         this.preview.n = 5;
       }
     },
@@ -852,15 +979,15 @@ export default {
       if (this.modify) {
         unobserve.querys[this.modify.i] = this.preview;
         this.modify = this.preview = null;
-      } else if (this.filterMode === 'attr') {
+      } else if (this.filterMode === "attr") {
         return;
       } else {
         const point = [e.offsetX, e.offsetY];
-        if (this.preview.type === 'knn' || this.preview.type === 'rnn') {
+        if (this.preview.type === "knn" || this.preview.type === "rnn") {
           this.preview.start = point;
         } else if (
-          this.preview.type === 'brush' ||
-          this.preview.type === 'ang'
+            this.preview.type === "brush" ||
+            this.preview.type === "ang"
         ) {
           this.preview.end = point;
         }
@@ -870,14 +997,15 @@ export default {
         this.preview = null;
       }
       unobserve.preview = this.preview;
-      console.time('render Density in mouseup');
-      this.renderDensity();
-      console.timeEnd('render Density in mouseup');
       // renderQuerys();
 
-      console.time('renderBoxes in mouseup');
+      console.time("renderBoxes in mouseup");
       this.renderBoxes();
-      console.timeEnd('renderBoxes in mouseup');
+      console.timeEnd("renderBoxes in mouseup");
+
+      console.time("render Density in mouseup");
+      this.renderDensity();
+      console.timeEnd("render Density in mouseup");
       this.cnt++;
     },
 
@@ -889,11 +1017,11 @@ export default {
         const query = res.instance;
         const sign = Math.sign(e.deltaY);
         if (
-          query.type === 'knn' ||
-          query.type === 'rnn' ||
-          query.type === 'ang'
+            query.type === "knn" ||
+            query.type === "rnn" ||
+            query.type === "ang"
         ) {
-          if (query.type === 'ang')
+          if (query.type === "ang")
             query.n = Math.min(Math.max(1, query.n - sign), 180);
           else query.n = Math.max(query.n - Math.sign(e.deltaY), 0);
           query.cache = null;
@@ -918,19 +1046,19 @@ export default {
         return;
       }
       if (this.modify) {
-        if (this.modify.type === 'resize') {
-          if (this.preview.type === 'brush') {
+        if (this.modify.type === "resize") {
+          if (this.preview.type === "brush") {
             updatePoint(this.preview.end, this.modify.lastPos, point);
             updatePoint(this.preview.start, this.modify.lastPos, point);
-          } else if (this.preview.type === 'ang') {
+          } else if (this.preview.type === "ang") {
             this.preview.end[0] = point[0];
             this.preview.end[1] += point[1] - this.modify.lastPos[1];
           }
         } else {
           const offsetX = point[0] - this.modify.lastPos[0],
-            offsetY = point[1] - this.modify.lastPos[1];
+              offsetY = point[1] - this.modify.lastPos[1];
 
-          if (this.preview.type === 'brush' || this.preview.type === 'ang') {
+          if (this.preview.type === "brush" || this.preview.type === "ang") {
             movePoint(this.preview.end, offsetX, offsetY);
           }
           movePoint(this.preview.start, offsetX, offsetY);
@@ -938,23 +1066,23 @@ export default {
 
         this.modify.lastPos = point;
       } else {
-        if (this.preview.type === 'knn' || this.preview.type === 'rnn') {
+        if (this.preview.type === "knn" || this.preview.type === "rnn") {
           this.preview.start = point;
         } else if (
-          this.preview.type === 'brush' ||
-          this.preview.type === 'ang'
+            this.preview.type === "brush" ||
+            this.preview.type === "ang"
         ) {
           this.preview.end = point;
         }
       }
       this.preview.cache = null;
-      console.time('renderBoxes');
+      console.time("renderBoxes");
       clearTimeout(unobserve.async);
       unobserve.async = setTimeout(() => {
         this.renderBoxes();
       }, 10);
       this.renderBoxes();
-      console.timeEnd('renderBoxes');
+      console.timeEnd("renderBoxes");
     },
 
     mouseContextmenu(e) {
@@ -965,14 +1093,14 @@ export default {
       const x = e.offsetX;
       const y = e.offsetY;
       const kArray = this.contextHandler
-        .filterRange(
-          (x - 5) / 1000,
-          (x + 5) / 1000,
-          1 - (y + 5) / 500,
-          1 - (y - 5) / 500
-        )
-        .filter((x) => !this.filter || this.filter.includes(x))
-        .slice(0, 3);
+          .filterRange(
+              (x - 5) / 1000,
+              (x + 5) / 1000,
+              1 - (y + 5) / 500,
+              1 - (y - 5) / 500
+          )
+          .filter((x) => !this.filter || this.filter.includes(x))
+          .slice(0, 3);
       this.rawLineContext.clearRect(0, 0, 1000, 500);
       const colorMap = this.colorMap;
       for (let i = kArray.length - 1; i >= 0; i--) {
@@ -982,13 +1110,13 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-          (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
-          500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+            (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
+            500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-            (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
-            500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+              (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
+              500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
           );
         }
         this.rawLineContext.stroke();
@@ -998,17 +1126,17 @@ export default {
     getTopK() {
       let kArray = [];
       if (this.hoverListener) {
-        this.$refs.canvas.removeEventListener('mousemove', this.hoverListener);
+        this.$refs.canvas.removeEventListener("mousemove", this.hoverListener);
       }
       switch (this.rawMode) {
-        case 'cur':
+        case "cur":
           this.hoverListener = this.hoverLines.bind(this);
-          this.$refs.canvas.addEventListener('mousemove', this.hoverListener);
+          this.$refs.canvas.addEventListener("mousemove", this.hoverListener);
           break;
-        case 'out':
+        case "out":
           kArray = this.contextHandler.findKTop(false);
           break;
-        case 'rep':
+        case "rep":
           kArray = this.contextHandler.findKTop(true, this.diverse);
           break;
       }
@@ -1021,13 +1149,13 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-          (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
-          500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+            (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
+            500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-            (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
-            500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+              (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
+              500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
           );
         }
         this.rawLineContext.stroke();
@@ -1035,7 +1163,7 @@ export default {
       this.rawLines = kArray;
     },
     resetFilter() {
-      this.$emit('filterChange', undefined);
+      this.$emit("filterChange", undefined);
       this.boxes = [];
       this.mouseDown = false;
       this.canvasContext.clearRect(0, 0, 1000, 500);
@@ -1045,36 +1173,36 @@ export default {
       if (this.mouseDown) return;
       this.mouseDown = true;
       let x = e.offsetX,
-        y = e.offsetY,
-        flag = false;
-      if (this.filterMode == 'rect') {
+          y = e.offsetY,
+          flag = false;
+      if (this.filterMode == "rect") {
         x /= 1000;
         y = 1 - y / 500;
         for (let box of this.boxes) {
           if (
-            (Math.abs(x - box[0]) <= 0.002 || Math.abs(x - box[1]) <= 0.002) &&
-            y > box[2] &&
-            y < box[3]
+              (Math.abs(x - box[0]) <= 0.002 || Math.abs(x - box[1]) <= 0.002) &&
+              y > box[2] &&
+              y < box[3]
           ) {
             if (Math.abs(x - box[0]) <= 0.002) {
-              this.mouseDown = 'left';
+              this.mouseDown = "left";
             } else {
-              this.mouseDown = 'right';
+              this.mouseDown = "right";
             }
             flag = true;
           } else if (
-            (Math.abs(y - box[2]) <= 0.004 || Math.abs(y - box[3]) <= 0.004) &&
-            x > box[0] &&
-            x < box[1]
+              (Math.abs(y - box[2]) <= 0.004 || Math.abs(y - box[3]) <= 0.004) &&
+              x > box[0] &&
+              x < box[1]
           ) {
             if (Math.abs(y - box[2]) <= 0.004) {
-              this.mouseDown = 'bottom';
+              this.mouseDown = "bottom";
             } else {
-              this.mouseDown = 'top';
+              this.mouseDown = "top";
             }
             flag = true;
           } else if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
-            this.mouseDown = 'move';
+            this.mouseDown = "move";
             flag = true;
           }
           if (flag) {
@@ -1093,44 +1221,44 @@ export default {
                 filterResult = tmpResult;
               } else {
                 filterResult = filterResult.filter((x) =>
-                  tmpResult.includes(x)
+                    tmpResult.includes(x)
                 );
               }
             });
-            this.$emit('filterChange', filterResult);
+            this.$emit("filterChange", filterResult);
             break;
           }
         }
       } else {
         if (
-          Math.abs(x - this.coord[0]) <= 2 &&
-          Math.abs(y - this.coord[1]) <= 2
+            Math.abs(x - this.coord[0]) <= 2 &&
+            Math.abs(y - this.coord[1]) <= 2
         ) {
-          this.mouseDown = 'move';
+          this.mouseDown = "move";
           flag = true;
         } else if (
-          Math.abs(x - this.coord[2]) <= 2 &&
-          Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
+            Math.abs(x - this.coord[2]) <= 2 &&
+            Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
         ) {
-          this.mouseDown = 'time';
+          this.mouseDown = "time";
           flag = true;
         } else if (
-          x > this.coord[0] &&
-          x < this.coord[2] &&
-          y >
+            x > this.coord[0] &&
+            x < this.coord[2] &&
+            y >
             (this.coord[1] * (this.coord[2] - x)) /
-              (this.coord[2] - this.coord[0]) +
-              ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
+            (this.coord[2] - this.coord[0]) +
+            ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
                 (x - this.coord[0])) /
-                (this.coord[2] - this.coord[0]) &&
-          y <
+            (this.coord[2] - this.coord[0]) &&
+            y <
             (this.coord[1] * (this.coord[2] - x)) /
-              (this.coord[2] - this.coord[0]) +
-              ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
+            (this.coord[2] - this.coord[0]) +
+            ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
                 (x - this.coord[0])) /
-                (this.coord[2] - this.coord[0])
+            (this.coord[2] - this.coord[0])
         ) {
-          this.mouseDown = 'angular';
+          this.mouseDown = "angular";
           flag = true;
         }
       }
@@ -1140,129 +1268,129 @@ export default {
         this.coord[1] = e.offsetY;
       }
       this.listener = this.startFilter.bind(this);
-      window.addEventListener('mouseup', this.listener);
+      window.addEventListener("mouseup", this.listener);
     },
     drawBoxes() {
       for (let box of this.boxes) {
         this.canvasContext.fillRect(
-          box[0] * 1000,
-          500 - box[3] * 500,
-          (box[1] - box[0]) * 1000,
-          (box[3] - box[2]) * 500
+            box[0] * 1000,
+            500 - box[3] * 500,
+            (box[1] - box[0]) * 1000,
+            (box[3] - box[2]) * 500
         );
       }
     },
     cursorShape(e) {
       let x = e.offsetX,
-        y = e.offsetY;
+          y = e.offsetY;
       switch (this.mouseDown) {
-        case 'move':
-          this.cursor = 'grabbing';
+        case "move":
+          this.cursor = "grabbing";
           return;
-        case 'left':
-        case 'right':
-        case 'time':
-          this.cursor = 'ew-resize';
+        case "left":
+        case "right":
+        case "time":
+          this.cursor = "ew-resize";
           return;
-        case 'top':
-        case 'bottom':
-        case 'angular':
-        case 'range':
-          this.cursor = 'ns-resize';
+        case "top":
+        case "bottom":
+        case "angular":
+        case "range":
+          this.cursor = "ns-resize";
           return;
-        case 'magnet':
+        case "magnet":
         case true:
-          this.cursor = 'crosshair';
+          this.cursor = "crosshair";
           return;
         default:
-          if (this.filterMode == 'rect') {
+          if (this.filterMode == "rect") {
             x /= 1000;
             y = 1 - y / 500;
             for (let box of this.boxes) {
               if (
-                (Math.abs(x - box[0]) <= 0.002 ||
-                  Math.abs(x - box[1]) <= 0.002) &&
-                y > box[2] &&
-                y < box[3]
+                  (Math.abs(x - box[0]) <= 0.002 ||
+                      Math.abs(x - box[1]) <= 0.002) &&
+                  y > box[2] &&
+                  y < box[3]
               ) {
-                this.cursor = 'ew-resize';
+                this.cursor = "ew-resize";
                 return;
               }
               if (
-                (Math.abs(y - box[2]) <= 0.004 ||
-                  Math.abs(y - box[3]) <= 0.004) &&
-                x > box[0] &&
-                x < box[1]
+                  (Math.abs(y - box[2]) <= 0.004 ||
+                      Math.abs(y - box[3]) <= 0.004) &&
+                  x > box[0] &&
+                  x < box[1]
               ) {
-                this.cursor = 'ns-resize';
+                this.cursor = "ns-resize";
                 return;
               }
               if (x > box[0] && x < box[1] && y > box[2] && y < box[3]) {
-                this.cursor = 'move';
+                this.cursor = "move";
                 return;
               }
             }
           } else {
             if (
-              Math.abs(x - this.coord[0]) <= 2 &&
-              Math.abs(y - this.coord[1]) <= 2
+                Math.abs(x - this.coord[0]) <= 2 &&
+                Math.abs(y - this.coord[1]) <= 2
             ) {
-              this.cursor = 'move';
+              this.cursor = "move";
               return;
             }
             if (
-              Math.abs(x - this.coord[2]) <= 2 &&
-              Math.abs(y - this.coord[3]) <=
+                Math.abs(x - this.coord[2]) <= 2 &&
+                Math.abs(y - this.coord[3]) <=
                 Math.abs(this.coord[4] - this.coord[3])
             ) {
-              this.cursor = 'ew-resize';
+              this.cursor = "ew-resize";
               return;
             }
             if (
-              x > this.coord[0] &&
-              x < this.coord[2] &&
-              y >
+                x > this.coord[0] &&
+                x < this.coord[2] &&
+                y >
                 (this.coord[1] * (this.coord[2] - x)) /
-                  (this.coord[2] - this.coord[0]) +
-                  ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
+                (this.coord[2] - this.coord[0]) +
+                ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
                     (x - this.coord[0])) /
-                    (this.coord[2] - this.coord[0]) &&
-              y <
+                (this.coord[2] - this.coord[0]) &&
+                y <
                 (this.coord[1] * (this.coord[2] - x)) /
-                  (this.coord[2] - this.coord[0]) +
-                  ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
+                (this.coord[2] - this.coord[0]) +
+                ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
                     (x - this.coord[0])) /
-                    (this.coord[2] - this.coord[0])
+                (this.coord[2] - this.coord[0])
             ) {
-              this.cursor = 'ns-resize';
+              this.cursor = "ns-resize";
               return;
             }
           }
-          this.cursor = 'crosshair';
+          this.cursor = "crosshair";
       }
     },
     moveMouse(e) {
       this.cursorShape(e);
       if (!this.mouseDown) return;
-      if (this.mouseDown == 'magnet') {
+      if (this.mouseDown == "magnet") {
         this.coord[4] = e.offsetY;
-      } else if (this.mouseDown == 'move') {
+      } else if (this.mouseDown == "move") {
         this.coord[0] += e.movementX;
         this.coord[2] += e.movementX;
         this.coord[1] += e.movementY * this.upsideDownFactor;
         this.coord[3] += e.movementY * this.upsideDownFactor;
         this.coord[4] += e.movementY * this.upsideDownFactor;
-      } else if (this.mouseDown == 'left') {
+      } else if (this.mouseDown == "left") {
         this.coord[0] = e.offsetX;
-      } else if (this.mouseDown == 'right') {
+      } else if (this.mouseDown == "right") {
         this.coord[2] = e.offsetX;
-      } else if (this.mouseDown == 'bottom') {
+      } else if (this.mouseDown == "bottom") {
         this.coord[3] = e.offsetY;
-      } else if (this.mouseDown == 'top') {
+      } else if (this.mouseDown == "top") {
         this.coord[1] = e.offsetY;
-      } else if (this.mouseDown == 'time') {
+      } else if (this.mouseDown == "time") {
         this.coord[2] = Math.max(this.coord[0] + 1, e.offsetX);
-      } else if (this.mouseDown == 'angular') {
+      } else if (this.mouseDown == "angular") {
         this.coord[3] += e.movementY * this.upsideDownFactor;
         this.coord[4] += e.movementY * this.upsideDownFactor;
       } else {
@@ -1270,19 +1398,19 @@ export default {
         this.coord[3] = e.offsetY;
       }
       this.canvasContext.clearRect(0, 0, 1000, 500);
-      if (this.filterMode == 'rect') {
+      if (this.filterMode == "rect") {
         this.canvasContext.globalAlpha = 0.3;
-        this.canvasContext.fillStyle = 'black';
+        this.canvasContext.fillStyle = "black";
         this.drawBoxes();
         this.canvasContext.fillRect(
-          Math.min(this.coord[0], this.coord[2]),
-          Math.min(this.coord[1], this.coord[3]),
-          Math.abs(this.coord[2] - this.coord[0]),
-          Math.abs(this.coord[3] - this.coord[1])
+            Math.min(this.coord[0], this.coord[2]),
+            Math.min(this.coord[1], this.coord[3]),
+            Math.abs(this.coord[2] - this.coord[0]),
+            Math.abs(this.coord[3] - this.coord[1])
         );
       } else {
         this.canvasContext.globalAlpha = 1;
-        this.canvasContext.strokeStyle = 'black';
+        this.canvasContext.strokeStyle = "black";
         this.canvasContext.beginPath();
         this.canvasContext.moveTo(this.coord[0], this.coord[1]);
         this.canvasContext.lineTo(this.coord[2], this.coord[3]);
@@ -1294,7 +1422,7 @@ export default {
           this.canvasContext.lineTo(this.coord[2], this.coord[3] + offset);
           this.canvasContext.stroke();
           this.canvasContext.globalAlpha = 0.3;
-          this.canvasContext.fillStyle = 'black';
+          this.canvasContext.fillStyle = "black";
           this.canvasContext.beginPath();
           this.canvasContext.moveTo(this.coord[0], this.coord[1]);
           this.canvasContext.lineTo(this.coord[2], this.coord[3] - offset);
@@ -1304,44 +1432,44 @@ export default {
       }
     },
     startFilter() {
-      if (this.filterMode == 'rect') {
+      if (this.filterMode == "rect") {
         this.mouseDown = false;
         if (this.coord[2] != 0 || this.coord[3] != 0) {
           let [left, right] = [this.coord[0], this.coord[2]]
-            .map((x) => x / 1000)
-            .sort();
+              .map((x) => x / 1000)
+              .sort();
           let [bottom, top] = [this.coord[1], this.coord[3]]
-            .map((x) => 1 - x / 500)
-            .sort();
+              .map((x) => 1 - x / 500)
+              .sort();
           this.boxes.push([left, right, bottom, top]);
           let filterResult = this.contextHandler.filterRange(
-            left,
-            right,
-            bottom,
-            top
+              left,
+              right,
+              bottom,
+              top
           );
           if (this.filter) {
             this.$emit(
-              'filterChange',
-              this.filter.filter((x) => filterResult.includes(x))
+                "filterChange",
+                this.filter.filter((x) => filterResult.includes(x))
             );
           } else {
-            this.$emit('filterChange', filterResult);
+            this.$emit("filterChange", filterResult);
           }
         }
       }
-      window.removeEventListener('mouseup', this.listener);
+      window.removeEventListener("mouseup", this.listener);
       this.listener = null;
     },
     angleConfirm() {
       if (
-        this.filterMode == 'ang' &&
-        this.coord[2] &&
-        this.coord[3] &&
-        this.coord[0] != this.coord[2]
+          this.filterMode == "ang" &&
+          this.coord[2] &&
+          this.coord[3] &&
+          this.coord[0] != this.coord[2]
       ) {
         if (this.mouseDown === true) {
-          this.mouseDown = 'magnet';
+          this.mouseDown = "magnet";
           let start = [0, 0];
           let end = [0, 0];
           if (this.coord[0] < this.coord[2]) {
@@ -1356,19 +1484,19 @@ export default {
           this.mouseDown = false;
           let offset = Math.abs(this.coord[4] - this.coord[3]);
           let startAngle =
-            -(this.coord[3] + offset - this.coord[1]) /
-            (this.coord[2] - this.coord[0]);
+              -(this.coord[3] + offset - this.coord[1]) /
+              (this.coord[2] - this.coord[0]);
           let endAngle =
-            -(this.coord[3] - offset - this.coord[1]) /
-            (this.coord[2] - this.coord[0]);
+              -(this.coord[3] - offset - this.coord[1]) /
+              (this.coord[2] - this.coord[0]);
           this.$emit(
-            'filterChange',
-            this.contextHandler.filterAngle(
-              this.coord[0] / 1000,
-              this.coord[2] / 1000,
-              startAngle,
-              endAngle
-            )
+              "filterChange",
+              this.contextHandler.filterAngle(
+                  this.coord[0] / 1000,
+                  this.coord[2] / 1000,
+                  startAngle,
+                  endAngle
+              )
           );
         }
       }
@@ -1379,9 +1507,9 @@ export default {
       //     this.upsideDown
       // );
       exportCanvas(
-        this.layers.map((layer) => document.getElementById(layer.id)).reverse(),
-        this.upsideDown,
-        this.layers.map((layer) => layer.opacity).reverse()
+          this.layers.map((layer) => document.getElementById(layer.id)).reverse(),
+          this.upsideDown,
+          this.layers.map((layer) => layer.opacity).reverse()
       );
     },
     showRepData() {
@@ -1394,13 +1522,13 @@ export default {
       });
     },
     hightlightRow(row) {
-      return row.query === this.selectedQuery ? 'selected-table-row' : '';
+      return row.query === this.selectedQuery ? "selected-table-row" : "";
     },
     calClassName(row) {
       let ret =
-        this.hightlightRow(row) +
-        ' ' +
-        (row.query === this.hoveringInd ? 'ivu-table-row-hover' : '');
+          this.hightlightRow(row) +
+          " " +
+          (row.query === this.hoveringInd ? "ivu-table-row-hover" : "");
       return ret;
     },
     calcLineDistance(aid, bid) {
@@ -1421,17 +1549,17 @@ export default {
       const bLine = unobserve.result[bid];
       while (true) {
         while (
-          aPointer < aLine.length &&
-          bPointer < bLine.length &&
-          aLine[aPointer].x < bLine[bPointer].x
-        ) {
+            aPointer < aLine.length &&
+            bPointer < bLine.length &&
+            aLine[aPointer].x < bLine[bPointer].x
+            ) {
           aPointer++;
         }
         while (
-          aPointer < aLine.length &&
-          bPointer < bLine.length &&
-          aLine[aPointer].x > bLine[bPointer].x
-        ) {
+            aPointer < aLine.length &&
+            bPointer < bLine.length &&
+            aLine[aPointer].x > bLine[bPointer].x
+            ) {
           bPointer++;
         }
         if (aPointer >= aLine.length || bPointer >= bLine.length) {
@@ -1452,16 +1580,26 @@ export default {
       return distance;
     },
     drawRawLines() {
+      // const shuffle = new Array(unobserve.result.length)
+      //   .fill()
+      //   .map((_, id) => ({ id, line: [] }));
+      // this.tr.ee.segs.forEach((seg) => {
+      //   shuffle[seg[3]].line.push(seg);
+      // });
       const shuffle = unobserve.result
-        .slice()
-        .map((line, id) => ({ line, id }));
+          .slice()
+          .map((line, id) => ({line, id}));
       shuffle.sort(() => (Math.random() > 0.5 ? 1 : -1));
       for (let sid in shuffle) {
-        const { line, id } = shuffle[sid];
+        const {line, id} = shuffle[sid];
         unobserve.rawLinesLayerContext.strokeStyle = `rgb(${this.getColor(
-          id
-        ).join(',')})`;
+            id
+        ).join(",")})`;
         unobserve.rawLinesLayerContext.beginPath();
+        // for (let seg of line) {
+        //   unobserve.rawLinesLayerContext.moveTo(seg[0].x, seg[0].y);
+        //   unobserve.rawLinesLayerContext.lineTo(seg[1].x, seg[1].y);
+        // }
         unobserve.rawLinesLayerContext.moveTo(line[0].x, line[0].y);
         for (let point of line) {
           unobserve.rawLinesLayerContext.lineTo(point.x, point.y);
@@ -1471,95 +1609,99 @@ export default {
     },
 
     renderQuerys() {
-      const ctner = document.getElementById('query_ctner');
-      ctner.innerHTML = '';
+      const ctner = document.getElementById("query_ctner");
+      ctner.innerHTML = "";
       if (!unobserve.querys.length) {
-        ctner.innerHTML = '(empty)';
+        ctner.innerHTML = "(empty)";
       }
       for (let i = 0; i < unobserve.querys.length; i++) {
         const query = unobserve.querys[i];
-        const element = document.createElement('p');
+        const element = document.createElement("p");
 
-        const icon = document.createElement('i');
-        icon.style.display = 'inline-block';
+        const icon = document.createElement("i");
+        icon.style.display = "inline-block";
         icon.style.background =
-          query.type === 'knn'
-            ? 'deepskyblue'
-            : query.type === 'ang'
-            ? 'transparent'
-            : 'gray';
+            query.type === "knn"
+                ? "deepskyblue"
+                : query.type === "ang"
+                ? "transparent"
+                : "gray";
         icon.style.borderRadius =
-          query.type === 'knn' || query.type === 'rnn' ? '50%' : '0';
+            query.type === "knn" || query.type === "rnn" ? "50%" : "0";
         icon.style.borderBottom = icon.style.borderRight =
-          query.type === 'ang' ? '6px solid gray' : '';
+            query.type === "ang" ? "6px solid gray" : "";
         icon.style.borderLeft = icon.style.borderTop =
-          query.type === 'ang' ? '6px solid transparent' : '';
+            query.type === "ang" ? "6px solid transparent" : "";
         icon.style.height = icon.style.width =
-          query.type === 'ang' ? '0' : '12px';
+            query.type === "ang" ? "0" : "12px";
 
-        const desc = document.createElement('span');
+        const desc = document.createElement("span");
         switch (query.type) {
-          case 'knn':
-            desc.innerText = 'KNN';
+          case "knn":
+            desc.innerText = "KNN";
             break;
-          case 'rnn':
-            desc.innerText = 'RNN';
+          case "rnn":
+            desc.innerText = "RNN";
             break;
-          case 'brush':
-            desc.innerText = 'Brush';
+          case "brush":
+            desc.innerText = "Brush";
             break;
-          case 'ang':
-            desc.innerText = 'Angular';
+          case "ang":
+            desc.innerText = "Angular";
             break;
         }
 
-        const conf = document.createElement('p');
+        const conf = document.createElement("p");
         switch (query.type) {
-          case 'knn':
-            conf.innerText = 'k=';
+          case "knn":
+            conf.innerText = "k=";
             break;
-          case 'rnn':
-            conf.innerText = 'r=';
+          case "rnn":
+            conf.innerText = "r=";
             break;
-          case 'brush':
+          case "brush":
             conf.innerHTML = `(${query.start
-              .map((x, i) =>
-                i === 0
-                  ? moment(xScale.invert(x)).format('YYYY-M-D')
-                  : yScale.invert(500 - x).toFixed(0)
-              )
-              .join(', ')}) ~<br>(${query.end
-              .map((x, i) =>
-                i === 0
-                  ? moment(xScale.invert(x)).format('YYYY-M-D')
-                  : yScale.invert(500 - x).toFixed(0)
-              )
-              .join(', ')})`;
+                .map((x, i) =>
+                    i === 0
+                        ? unobserve.inferX == "date"
+                        ? moment(xScale.invert(x)).format("YYYY-M-D")
+                        : xScale.invert(x).toFixed(0)
+                        : yScale.invert(500 - x).toFixed(0)
+                )
+                .join(", ")}) ~<br>(${query.end
+                .map((x, i) =>
+                    i === 0
+                        ? unobserve.inferX == "date"
+                        ? moment(xScale.invert(x)).format("YYYY-M-D")
+                        : xScale.invert(x).toFixed(0)
+                        : yScale.invert(500 - x).toFixed(0)
+                )
+                .join(", ")})`;
             break;
-          case 'ang':
-            conf.innerText = 'degree±';
+          case "ang":
+            conf.innerText = "degree±";
             break;
         }
-        const confInput = document.createElement('input');
-        confInput.type = 'number';
+        const confInput = document.createElement("input");
+        confInput.type = "number";
         confInput.value = query.n;
-        confInput.addEventListener('change', () => {
+        confInput.addEventListener("change", () => {
           query.n = parseFloat(confInput.value);
           query.cache = null;
           query.reps = null;
           setTimeout(renderBoxes, 0);
         });
         if (
-          query.type === 'knn' ||
-          query.type === 'rnn' ||
-          query.type === 'ang'
+            query.type === "knn" ||
+            query.type === "rnn" ||
+            query.type === "ang"
         ) {
           conf.append(confInput);
         }
 
-        const del = document.createElement('button');
-        del.innerText = 'Delete this query';
-        del.addEventListener('click', () => {
+        const del = document.createElement("button");
+        del.innerText = "Delete this query";
+        del.addEventListener("click", () => {
           querys.splice(i, 1);
           // setTimeout(renderQuerys, 0);
           setTimeout(renderBoxes, 0);
@@ -1567,13 +1709,13 @@ export default {
         });
 
         element.append(icon, desc, conf, del);
-        element.addEventListener('mouseenter', () => {
-          element.style.border = '1px solid red';
+        element.addEventListener("mouseenter", () => {
+          element.style.border = "1px solid red";
           hoverBox(query);
         });
 
-        element.addEventListener('mouseleave', () => {
-          element.style.border = '1px solid transparent';
+        element.addEventListener("mouseleave", () => {
+          element.style.border = "1px solid transparent";
           renderBoxes();
         });
 
@@ -1584,7 +1726,7 @@ export default {
     colorSpan(ids) {
       return ids.map((id) => {
         return `<span style="color: rgb(${this.getColor(id).join(
-          ','
+            ","
         )})">${id}</span>`;
       });
     },
@@ -1606,14 +1748,14 @@ export default {
       const query = unobserve.querys[index];
       this.hoveringInd = index;
       if (this.mark !== query) {
-        this.renderBoxes('mouseLayer');
+        this.renderBoxes("mouseLayer");
       }
       this.mark = query;
       this.hoverBox(query);
       if (onBorder) {
-        document.getElementById('canvas').style.cursor = 'move';
+        document.getElementById("canvas").style.cursor = "move";
       } else {
-        document.getElementById('canvas').style.cursor = 'pointer';
+        document.getElementById("canvas").style.cursor = "pointer";
       }
     },
 
@@ -1622,14 +1764,14 @@ export default {
         const query = unobserve.querys[index];
         this.hoveringInd = index;
         if (this.mark !== query) {
-          this.renderBoxes('mouseLayer');
+          this.renderBoxes("mouseLayer");
         }
         this.mark = query;
         this.hoverBox(query);
         if (onBorder) {
-          document.getElementById('canvas').style.cursor = 'move';
+          document.getElementById("canvas").style.cursor = "move";
         } else {
-          document.getElementById('canvas').style.cursor = 'pointer';
+          document.getElementById("canvas").style.cursor = "pointer";
         }
       }
 
@@ -1637,67 +1779,67 @@ export default {
         const query = unobserve.querys[i];
         // switch (query.type) {
         // }
-        if (query.type === 'brush') {
+        if (query.type === "brush") {
           // update rect
           let minX = Math.min(query.start[0], query.end[0]),
-            maxX = Math.max(query.start[0], query.end[0]),
-            minY = Math.min(query.start[1], query.end[1]),
-            maxY = Math.max(query.start[1], query.end[1]),
-            onBorder =
-              eq(minX, point[0]) ||
-              eq(maxX, point[0]) ||
-              eq(minY, point[1]) ||
-              eq(maxY, point[1]);
+              maxX = Math.max(query.start[0], query.end[0]),
+              minY = Math.min(query.start[1], query.end[1]),
+              maxY = Math.max(query.start[1], query.end[1]),
+              onBorder =
+                  eq(minX, point[0]) ||
+                  eq(maxX, point[0]) ||
+                  eq(minY, point[1]) ||
+                  eq(maxY, point[1]);
           // onBorder = [
           //   eq(minX, point[0]) ? -1 : eq(maxX, point[0]) ? 1 : 0,
           //   eq(minY, point[1]) ? -1 : eq(maxY, point[1]) ? 1 : 0,
           // ];
           if (
-            minX <= point[0] &&
-            point[0] <= maxX &&
-            minY <= point[1] &&
-            point[1] <= maxY
+              minX <= point[0] &&
+              point[0] <= maxX &&
+              minY <= point[1] &&
+              point[1] <= maxY
           ) {
             hovering.call(this, i, onBorder);
-            return { instance: query, onBorder, i };
+            return {instance: query, onBorder, i};
           }
-        } else if (query.type === 'knn' || query.type === 'rnn') {
+        } else if (query.type === "knn" || query.type === "rnn") {
           let dis = dist2(point, query.start);
           if (sqr(query.n) > dis) {
             hovering.call(this, i);
-            return { instance: query, i };
+            return {instance: query, i};
           }
-        } else if (query.type === 'ang') {
+        } else if (query.type === "ang") {
           const endX = Math.max(query.start[0] + 1, query.end[0]);
           const start = query.start,
-            end = [endX, query.end[1]],
-            onBorder = eq(endX, point[0]);
+              end = [endX, query.end[1]],
+              onBorder = eq(endX, point[0]);
           if (
-            start[0] <= point[0] &&
-            point[0] <= endX &&
-            ((start[0] === point[0] && start[1] === point[1]) ||
-              (start[0] !== point[0] &&
-                Math.abs(getAngle2(start, point) - getAngle2(start, end)) <=
-                  (query.n / 180) * Math.PI))
+              start[0] <= point[0] &&
+              point[0] <= endX &&
+              ((start[0] === point[0] && start[1] === point[1]) ||
+                  (start[0] !== point[0] &&
+                      Math.abs(getAngle2(start, point) - getAngle2(start, end)) <=
+                      (query.n / 180) * Math.PI))
           ) {
             hovering.call(this, i, onBorder);
-            return { instance: query, i, onBorder };
+            return {instance: query, i, onBorder};
           }
         }
       }
       if (this.mark) {
         this.mark = false;
-        document.getElementById('canvas').style.cursor = 'default';
-        this.renderBoxes('mouseLayer');
+        document.getElementById("canvas").style.cursor = "default";
+        this.renderBoxes("mouseLayer");
         this.hoveringInd = null;
       }
     },
 
     renderBox(query) {
-      if (query.type === 'knn') {
+      if (query.type === "knn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
-        unobserve.mouseLayerContext.fillStyle = 'deepskyblue';
+        unobserve.mouseLayerContext.fillStyle = "deepskyblue";
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           let result = new Set();
@@ -1705,28 +1847,28 @@ export default {
           while (result.size < query.n) {
             base += query.n - result.size;
             result = new Set(
-              this.tree.knn(query.start, base).map(({ id }) => id)
+                this.tr.ee.knn(query.start, base).map(({id}) => id)
             );
           }
           query.cache = result;
         }
-      } else if (query.type === 'rnn') {
+      } else if (query.type === "rnn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
-          ...query.start,
-          query.n,
-          0,
-          2 * Math.PI
+            ...query.start,
+            query.n,
+            0,
+            2 * Math.PI
         );
-        unobserve.mouseLayerContext.fillStyle = 'rgba(0,0,0,0.3)';
+        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-            this.tree.rnn(query.start, query.n).map(({ id }) => id)
+              this.tr.ee.rnn(query.start, query.n).map(({id}) => id)
           );
           query.cache = result;
         }
-      } else if (query.type === 'brush') {
+      } else if (query.type === "brush") {
         // if (document.getElementById("line_mode").value === "all") {
         //   unobserve.mouseLayerContext.putImageData(
         //       currentDensity,
@@ -1736,19 +1878,19 @@ export default {
         //       ...query.end.map((v, i) => Math.abs(v - query.start[i]))
         //   );
         // } else {
-        unobserve.mouseLayerContext.fillStyle = 'rgba(0,0,0,0.3)';
+        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.fillRect(
-          ...query.start.map((v, i) => Math.min(v, query.end[i])),
-          ...query.end.map((v, i) => Math.abs(v - query.start[i]))
+            ...query.start.map((v, i) => Math.min(v, query.end[i])),
+            ...query.end.map((v, i) => Math.abs(v - query.start[i]))
         );
         // }
         if (!query.cache) {
           const minX = Math.min(query.start[0], query.end[0]),
-            maxX = Math.max(query.start[0], query.end[0]),
-            minY = Math.min(query.start[1], query.end[1]),
-            maxY = Math.max(query.start[1], query.end[1]);
+              maxX = Math.max(query.start[0], query.end[0]),
+              minY = Math.min(query.start[1], query.end[1]),
+              maxY = Math.max(query.start[1], query.end[1]);
 
-          if (this.brushMethod === 'seq') {
+          if (this.brushMethod === "seq") {
             // console.log(query);
             let result = [];
             // let info = [];
@@ -1756,8 +1898,8 @@ export default {
               const line = unobserve.result[id];
 
               let st = 0,
-                ed = line.length - 1,
-                flag = true;
+                  ed = line.length - 1,
+                  flag = true;
               if (line[ed].x < minX || line[st].x > maxX) continue;
               while (st < line.length - 1 && line[st].x < minX) st++;
               while (ed > 0 && line[ed].x > maxX) ed--;
@@ -1789,9 +1931,75 @@ export default {
             // console.log('result', result);
             result = new Set(result);
             query.cache = result;
-          } else if (this.brushMethod === 'tree') {
+          } else if (this.brushMethod === "tree") {
             const result = new Set(
-              this.tree.brush(
+                this.tr.ee
+                    .brush(
+                        [
+                          Math.min(query.start[0], query.end[0]),
+                          Math.min(query.start[1], query.end[1]),
+                        ],
+                        [
+                          Math.max(query.start[0], query.end[0]),
+                          Math.max(query.start[1], query.end[1]),
+                        ]
+                    )
+                    .filter((id) => {
+                      // return true;
+                      const line = unobserve.result[id];
+                      let l = 0,
+                          r = line.length - 1,
+                          lp = 0,
+                          rp = r,
+                          mid,
+                          tmpY;
+                      while (l <= r) {
+                        mid = (l + r) >> 1;
+                        if (line[mid].x >= minX) {
+                          lp = mid;
+                          r = mid - 1;
+                        } else l = mid + 1;
+                      }
+
+                      l = 0;
+                      r = line.length - 1;
+                      while (l <= r) {
+                        mid = (l + r) >> 1;
+                        if (line[mid].x <= maxX) {
+                          rp = mid;
+                          l = mid + 1;
+                        } else {
+                          r = mid - 1;
+                        }
+                      }
+                      // console.log(lp, rp);
+                      for (let i = lp; i <= rp; i++) {
+                        if (line[i].y < minY || line[i].y > maxY) {
+                          // console.log(line[i]);
+                          return false;
+                        }
+                      }
+                      if (lp) {
+                        tmpY = mix(line[lp - 1], line[lp], minX).y;
+                        if (tmpY < minY || tmpY > maxY) {
+                          // console.log(tmpY);
+                          return false;
+                        }
+                      }
+                      if (rp < line.length - 1) {
+                        tmpY = mix(line[rp], line[rp + 1], minX).y;
+                        if (tmpY < minY || tmpY > maxY) {
+                          // console.log(tmpY);
+                          return false;
+                        }
+                      }
+                      return true;
+                    })
+            );
+
+            query.cache = result;
+          } else {
+            const yyds = this.tr.ee.brush(
                 [
                   Math.min(query.start[0], query.end[0]),
                   Math.min(query.start[1], query.end[1]),
@@ -1800,124 +2008,59 @@ export default {
                   Math.max(query.start[0], query.end[0]),
                   Math.max(query.start[1], query.end[1]),
                 ]
-              )
-              // .filter((id) => {
-              //   // return true;
-              //   const line = unobserve.result[id];
-              //   let l = 0,
-              //     r = line.length - 1,
-              //     lp = 0,
-              //     rp = r,
-              //     mid,
-              //     tmpY;
-              //   while (l <= r) {
-              //     mid = (l + r) >> 1;
-              //     if (line[mid].x >= minX) {
-              //       lp = mid;
-              //       r = mid - 1;
-              //     } else l = mid + 1;
-              //   }
-
-              //   l = 0;
-              //   r = line.length - 1;
-              //   while (l <= r) {
-              //     mid = (l + r) >> 1;
-              //     if (line[mid].x <= maxX) {
-              //       rp = mid;
-              //       l = mid + 1;
-              //     } else {
-              //       r = mid - 1;
-              //     }
-              //   }
-              //   // console.log(lp, rp);
-              //   for (let i = lp; i <= rp; i++) {
-              //     if (line[i].y < minY || line[i].y > maxY) {
-              //       // console.log(line[i]);
-              //       return false;
-              //     }
-              //   }
-              //   if (lp) {
-              //     tmpY = mix(line[lp - 1], line[lp], minX).y;
-              //     if (tmpY < minY || tmpY > maxY) {
-              //       // console.log(tmpY);
-              //       return false;
-              //     }
-              //   }
-              //   if (rp < line.length - 1) {
-              //     tmpY = mix(line[rp], line[rp + 1], minX).y;
-              //     if (tmpY < minY || tmpY > maxY) {
-              //       // console.log(tmpY);
-              //       return false;
-              //     }
-              //   }
-              //   return true;
-              // })
-            );
-
-            query.cache = result;
-          } else {
-            const yyds = this.tree.brush(
-              [
-                Math.min(query.start[0], query.end[0]),
-                Math.min(query.start[1], query.end[1]),
-              ],
-              [
-                Math.max(query.start[0], query.end[0]),
-                Math.max(query.start[1], query.end[1]),
-              ]
             );
 
             const result = new Set(
-              yyds
-                .filter(({ raw }) =>
-                  lineRectCollide(
-                    {
-                      x1: raw[0],
-                      x2: raw[1],
-                      y1: raw[2],
-                      y2: raw[3],
-                    },
-                    {
-                      x: Math.min(query.start[0], query.end[0]),
-                      y: Math.min(query.start[1], query.end[1]),
-                      width: Math.abs(query.start[0] - query.end[0]),
-                      height: Math.abs(query.start[1] - query.end[1]),
-                    }
-                  )
-                )
-                .map(({ raw }) => raw[5])
+                yyds
+                    .filter(({raw}) =>
+                        lineRectCollide(
+                            {
+                              x1: raw[0],
+                              x2: raw[1],
+                              y1: raw[2],
+                              y2: raw[3],
+                            },
+                            {
+                              x: Math.min(query.start[0], query.end[0]),
+                              y: Math.min(query.start[1], query.end[1]),
+                              width: Math.abs(query.start[0] - query.end[0]),
+                              height: Math.abs(query.start[1] - query.end[1]),
+                            }
+                        )
+                    )
+                    .map(({raw}) => raw[5])
             );
 
             yyds
-              .filter(
-                ({ raw }) =>
-                  lineSegmentsCollide(
-                    { x: raw[0], y: raw[2] },
-                    { x: raw[1], y: raw[3] },
-                    {
-                      x: Math.min(query.start[0], query.end[0]),
-                      y: Math.min(query.start[1], query.end[1]) - 1,
-                    },
-                    {
-                      x: Math.max(query.start[0], query.end[0]),
-                      y: Math.min(query.start[1], query.end[1]) - 1,
-                    }
-                  ) ||
-                  lineSegmentsCollide(
-                    { x: raw[0], y: raw[2] },
-                    { x: raw[1], y: raw[3] },
-                    {
-                      x: Math.min(query.start[0], query.end[0]),
-                      y: Math.max(query.start[1], query.end[1]) + 1,
-                    },
-                    {
-                      x: Math.max(query.start[0], query.end[0]),
-                      y: Math.max(query.start[1], query.end[1]) + 1,
-                    }
-                  )
-              )
-              .forEach(({ raw }) => result.delete(raw[5]));
-            // this.tree
+                .filter(
+                    ({raw}) =>
+                        lineSegmentsCollide(
+                            {x: raw[0], y: raw[2]},
+                            {x: raw[1], y: raw[3]},
+                            {
+                              x: Math.min(query.start[0], query.end[0]),
+                              y: Math.min(query.start[1], query.end[1]) - 1,
+                            },
+                            {
+                              x: Math.max(query.start[0], query.end[0]),
+                              y: Math.min(query.start[1], query.end[1]) - 1,
+                            }
+                        ) ||
+                        lineSegmentsCollide(
+                            {x: raw[0], y: raw[2]},
+                            {x: raw[1], y: raw[3]},
+                            {
+                              x: Math.min(query.start[0], query.end[0]),
+                              y: Math.max(query.start[1], query.end[1]) + 1,
+                            },
+                            {
+                              x: Math.max(query.start[0], query.end[0]),
+                              y: Math.max(query.start[1], query.end[1]) + 1,
+                            }
+                        )
+                )
+                .forEach(({raw}) => result.delete(raw[5]));
+            // this.tr.ee
             //     .brush(
             //         [
             //           Math.min(query.start[0], query.end[0]),
@@ -1948,26 +2091,26 @@ export default {
             query.cache = result;
           }
         }
-      } else if (query.type === 'ang') {
+      } else if (query.type === "ang") {
         const endX = Math.max(query.start[0] + 1, query.end[0]);
         const minX = query.start[0],
-          maxX = endX;
+            maxX = endX;
         const slopeBase =
-          (query.end[1] - query.start[1]) / (endX - query.start[0]);
+            (query.end[1] - query.start[1]) / (endX - query.start[0]);
         const angBase = Math.atan(slopeBase);
         const angMax = Math.min(
-          (1 / 2) * Math.PI - 0.0001,
-          angBase + (query.n / 180) * Math.PI
+            (1 / 2) * Math.PI - 0.0001,
+            angBase + (query.n / 180) * Math.PI
         );
         const angMin = Math.max(
-          -(1 / 2) * Math.PI + 0.0001,
-          angBase - (query.n / 180) * Math.PI
+            -(1 / 2) * Math.PI + 0.0001,
+            angBase - (query.n / 180) * Math.PI
         );
         const slopeMax = Math.tan(angMax);
         const slopeMin = Math.tan(angMin);
         const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
         const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
-        unobserve.mouseLayerContext.fillStyle = 'rgba(0,0,0,0.3)';
+        unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
         unobserve.mouseLayerContext.lineTo(endX, endYMin);
@@ -1975,29 +2118,81 @@ export default {
         unobserve.mouseLayerContext.closePath();
         unobserve.mouseLayerContext.fill();
         unobserve.mouseLayerContext.lineWidth = 1;
-        unobserve.mouseLayerContext.strokeStyle = 'black';
+        unobserve.mouseLayerContext.strokeStyle = "black";
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
         unobserve.mouseLayerContext.lineTo(endX, query.end[1]);
         unobserve.mouseLayerContext.stroke();
         if (!query.cache) {
           const result = new Set(
-            this.tree.angular([query.start[0], slopeMin], [endX, slopeMax])
+              this.tr.ee
+                  .angular([query.start[0], slopeMin], [endX, slopeMax])
+                  .filter((id) => {
+                    // return true;
+                    const line = unobserve.result[id];
+                    let l = 0,
+                        r = line.length - 1,
+                        lp = 0,
+                        rp = r,
+                        mid,
+                        tmpY;
+                    while (l <= r) {
+                      mid = (l + r) >> 1;
+                      if (line[mid].x >= minX) {
+                        lp = mid;
+                        r = mid - 1;
+                      } else l = mid + 1;
+                    }
+
+                    l = 0;
+                    r = line.length - 1;
+                    while (l <= r) {
+                      mid = (l + r) >> 1;
+                      if (line[mid].x <= maxX) {
+                        rp = mid;
+                        l = mid + 1;
+                      } else {
+                        r = mid - 1;
+                      }
+                    }
+                    // console.log(lp, rp);
+                    for (let i = lp; i <= rp; i++) {
+                      if (line[i].y < minY || line[i].y > maxY) {
+                        // console.log(line[i]);
+                        return false;
+                      }
+                    }
+                    if (lp) {
+                      tmpY = mix(line[lp - 1], line[lp], minX).y;
+                      if (tmpY < minY || tmpY > maxY) {
+                        // console.log(tmpY);
+                        return false;
+                      }
+                    }
+                    if (rp < line.length - 1) {
+                      tmpY = mix(line[rp], line[rp + 1], minX).y;
+                      if (tmpY < minY || tmpY > maxY) {
+                        // console.log(tmpY);
+                        return false;
+                      }
+                    }
+                    return true;
+                  })
           );
           query.cache = result;
         }
-      } else if (query.type === 'attr') {
+      } else if (query.type === "attr") {
         if (!query.cache) {
-          const { ind, val } = query.info;
+          const {ind, val} = query.info;
           console.log(unobserve.aggregatedData, unobserve.data);
           const result = new Array(unobserve.result.length)
-            .fill(0)
-            .map((_, i) => i)
-            .filter((i) => {
-              const exampleInd = unobserve.aggregatedData[i].ref[0];
-              const targetVal = unobserve.data[exampleInd][ind];
-              return targetVal === val;
-            });
+              .fill(0)
+              .map((_, i) => i)
+              .filter((i) => {
+                const exampleInd = unobserve.aggregatedData[i].ref[0];
+                const targetVal = unobserve.data[exampleInd][ind];
+                return targetVal === val;
+              });
           query.cache = new Set(result);
         }
       }
@@ -2005,45 +2200,45 @@ export default {
 
     hoverBox(query) {
       unobserve.mouseLayerContext.lineWidth = 2;
-      if (query.type === 'knn') {
+      if (query.type === "knn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
-        unobserve.mouseLayerContext.strokeStyle = 'red';
+        unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.stroke();
-      } else if (query.type === 'rnn') {
+      } else if (query.type === "rnn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
-          ...query.start,
-          query.n,
-          0,
-          2 * Math.PI
+            ...query.start,
+            query.n,
+            0,
+            2 * Math.PI
         );
-        unobserve.mouseLayerContext.strokeStyle = 'red';
+        unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.stroke();
-      } else if (query.type === 'brush') {
-        unobserve.mouseLayerContext.strokeStyle = 'red';
+      } else if (query.type === "brush") {
+        unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.strokeRect(
-          ...query.start.map((v, i) => Math.min(v, query.end[i])),
-          ...query.end.map((v, i) => Math.abs(v - query.start[i]))
+            ...query.start.map((v, i) => Math.min(v, query.end[i])),
+            ...query.end.map((v, i) => Math.abs(v - query.start[i]))
         );
-      } else if (query.type === 'ang') {
+      } else if (query.type === "ang") {
         const endX = Math.max(query.start[0] + 1, query.end[0]);
         const slopeBase =
-          (query.end[1] - query.start[1]) / (endX - query.start[0]);
+            (query.end[1] - query.start[1]) / (endX - query.start[0]);
         const angBase = Math.atan(slopeBase);
         const angMax = Math.min(
-          (1 / 2) * Math.PI - 0.0001,
-          angBase + (query.n / 180) * Math.PI
+            (1 / 2) * Math.PI - 0.0001,
+            angBase + (query.n / 180) * Math.PI
         );
         const angMin = Math.max(
-          -(1 / 2) * Math.PI + 0.0001,
-          angBase - (query.n / 180) * Math.PI
+            -(1 / 2) * Math.PI + 0.0001,
+            angBase - (query.n / 180) * Math.PI
         );
         const slopeMax = Math.tan(angMax);
         const slopeMin = Math.tan(angMin);
         const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
         const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
-        unobserve.mouseLayerContext.strokeStyle = 'red';
+        unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
         unobserve.mouseLayerContext.lineTo(endX, endYMin);
@@ -2054,13 +2249,13 @@ export default {
     },
 
     initCanvas(context) {
-      context.fillStyle = 'black';
+      context.fillStyle = "black";
       context.globalAlpha = 1;
       context.fillRect(0, 0, 1000, 500);
       context.clearRect(0, 0, 1000, 500);
     },
 
-    renderBoxes(type = 'all') {
+    renderBoxes(type = "all") {
       this.initCanvas(unobserve.mouseLayerContext);
 
       let tmpQueries = [...unobserve.querys];
@@ -2068,43 +2263,43 @@ export default {
         tmpQueries.push(this.preview);
         // drawLine([...preview.cache]);
       }
-      console.time('update brush');
+      console.time("update brush");
       tmpQueries.forEach(this.renderBox);
-      console.timeEnd('update brush');
+      console.timeEnd("update brush");
 
-      if (type === 'mouseLayer') return;
+      if (type === "mouseLayer") return;
 
       this.initCanvas(unobserve.selectionLayerContext);
       this.initCanvas(unobserve.repLayerContext);
 
       if (!this.preview) {
         let result1 = [],
-          result2 = [];
+            result2 = [];
         result1 = tmpQueries.reduce(
-          (p, v) =>
-            v.hide ? p : new Set([...p].filter((x) => v.cache.has(x))),
-          (tmpQueries[0] || { cache: new Set() }).cache
+            (p, v) =>
+                v.hide ? p : new Set([...p].filter((x) => v.cache.has(x))),
+            (tmpQueries[0] || {cache: new Set()}).cache
         );
         result2 = tmpQueries.reduce(
-          (p, v) => (v.hide ? p : new Set([...p, ...v.cache])),
-          (tmpQueries[0] || { cache: new Set() }).cache
+            (p, v) => (v.hide ? p : new Set([...p, ...v.cache])),
+            (tmpQueries[0] || {cache: new Set()}).cache
         );
         this.renderResult([...result1], [...result2]);
       }
-      console.time('begin calculate rep line and draw line');
+      console.time("begin calculate rep line and draw line");
       this.drawLine(this.getSelectedIds());
-      console.timeEnd('begin calculate rep line and draw line');
+      console.timeEnd("begin calculate rep line and draw line");
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
 
-      console.log('render boxes ended ==== \n\n');
+      console.log("render boxes ended ==== \n\n");
     },
 
     getSelectedIds() {
-      return typeof this.selectedQuery === 'number'
-        ? [...unobserve.querys[this.selectedQuery].cache]
-        : this.selectedQuery === '$int'
-        ? unobserve.interResult
-        : unobserve.unionResult;
+      return typeof this.selectedQuery === "number"
+          ? [...unobserve.querys[this.selectedQuery].cache]
+          : this.selectedQuery === "$int"
+              ? unobserve.interResult
+              : unobserve.unionResult;
     },
 
     renderAxisHelper(e) {
@@ -2113,7 +2308,10 @@ export default {
       const oriX = this.xScale.invert(x);
       const oriY = this.yScale.invert(500 - y);
 
-      const date = moment(oriX).format('YYYY-MM-DD');
+      const date =
+          unobserve.inferX == "date"
+              ? moment(oriX).format("YYYY-MM-DD")
+              : oriX.toFixed(2);
 
       const upsideDown = this.upsideDown;
       const enlargeFont = this.enlargeFont;
@@ -2121,39 +2319,38 @@ export default {
       const fontHeight = enlargeFont ? 22 : 20;
       const heightInSvg = enlargeFont ? 18 : 12;
       if (this.showCursorValue) {
-        console.log('this is enlarge font', this.enlargeFont);
-        this.cursorHelper.selectAll('line').each(function(_, i) {
+        this.cursorHelper.selectAll("line").each(function (_, i) {
           d3.select(this)
-            .attr('x1', i === 0 ? 0 : x)
-            .attr('y1', i === 0 ? 500 - y : upsideDown ? 0 : 500)
-            .attr('x2', x)
-            .attr('y2', 500 - y)
-            .attr('stroke-width',() => enlargeFont ? 2 : 1);
+              .attr('x1', i === 0 ? 0 : x)
+              .attr('y1', i === 0 ? 500 - y : upsideDown ? 0 : 500)
+              .attr('x2', x)
+              .attr('y2', 500 - y)
+              .attr('stroke-width', () => enlargeFont ? 2 : 1);
         });
 
-        this.cursorHelper.selectAll('text').each(function(_, i) {
+        this.cursorHelper.selectAll("text").each(function (_, i) {
           d3.select(this)
-            .attr('x', i === 0 ? 0 : x - (x > 1000 - fontWidth ? fontWidth : 0))
-            .attr(
-              'y',
-              i === 0 ? 500 - y + (y > 500 - fontHeight ? heightInSvg : 0) : upsideDown ? heightInSvg : 500
-            )
-            .text(i === 0 ? oriY.toFixed(2) : date)
-            .attr('font-size', enlargeFont ? 20 : 14)
+              .attr('x', i === 0 ? 0 : x - (x > 1000 - fontWidth ? fontWidth : 0))
+              .attr(
+                  'y',
+                  i === 0 ? 500 - y + (y > 500 - fontHeight ? heightInSvg : 0) : upsideDown ? heightInSvg : 500
+              )
+              .text(i === 0 ? oriY.toFixed(2) : date)
+              .attr('font-size', enlargeFont ? 20 : 14)
         });
       } else {
         this.cursorHelper
-          .selectAll('line')
-          .attr('x1', 0)
-          .attr('x2', 0)
-          .attr('y1', 0)
-          .attr('y2', 0);
+            .selectAll("line")
+            .attr("x1", 0)
+            .attr("x2", 0)
+            .attr("y1", 0)
+            .attr("y2", 0);
 
-        this.cursorHelper.selectAll('text').text('');
+        this.cursorHelper.selectAll("text").text("");
       }
     },
 
-    getColorMap() {
+    getColorMap(overlay = false) {
       const colormaps = [
         [
           [253, 231, 37],
@@ -2429,32 +2626,59 @@ export default {
           [175, 2, 37],
         ],
       ];
-      return colormaps[this.colormapIndexCache];
+      return colormaps[
+          overlay ? this.colormapOverlayIndexCache : this.colormapIndexCache
+          ];
     },
 
     renderColorMap() {
       // document.getElementById("colorMax").innerText = currentDensityMax;
       document.getElementById(
-        'color-map'
+          "color-map"
       ).style.background = `linear-gradient(to right, ${this.getColorMap()
-        .map(
-          (color, i, arr) =>
-            `rgb(${color.join(', ')}) ${((i / (arr.length - 1)) * 100).toFixed(
-              0
-            )}%`
-        )
-        .join(', ')})`;
+          .map(
+              (color, i, arr) =>
+                  `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
+                      0
+                  )}%`
+          )
+          .join(", ")})`;
     },
 
-    rgb(i) {
-      const colormap = this.getColorMap();
+    renderColorMapOverlay() {
+      // document.getElementById("colorMax").innerText = currentDensityMax;
+      document.getElementById(
+          "color-map-overlay"
+      ).style.background = `linear-gradient(to right, ${this.getColorMap(true)
+          .map(
+              (color, i, arr) =>
+                  `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
+                      0
+                  )}%`
+          )
+          .join(", ")})`;
+    },
+
+    rgb(i, overlay = false) {
+      const ci = overlay
+          ? this.colormapOverlayIndexCache
+          : this.colormapIndexCache;
+      if (colorMapCache[ci]?.[Math.round(i * 100)]) {
+        return colorMapCache[ci][Math.round(i * 100)];
+      }
+      const colormap = this.getColorMap(overlay);
       const base = Math.floor(i * 10);
       if (i <= 0) return colormap[0];
       if (i >= 1) return colormap[10];
       if (colormap[base] === undefined) console.log(colormap, base, i);
-      return colormap[base].map(
-        (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
+      const result = colormap[base].map(
+          (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
       );
+      if (!colorMapCache[ci]) {
+        colorMapCache[ci] = {};
+      }
+      colorMapCache[ci][Math.round(i * 100)] = result;
+      return result;
     },
 
     //#region old render method
@@ -2517,40 +2741,69 @@ export default {
     // },
     //#endregion
 
-    renderAllDensity(initFlag = true) {
-      const bgContext = document.getElementById('canvas').getContext('2d');
-
-      console.time('temp canvas');
-      const tempBuffer = new Float32Array(1000 * 500);
-      for (let seg of this.tree.segs) {
-        brensenham(seg, tempBuffer, this.normalizeDensity ? seg[2] : 1);
+    renderAllDensity(initFlag) {
+      const bgContext = document.getElementById("canvas").getContext("2d");
+      if (!unobserve.slopePixelCache) {
+        const cache = new Array(1000)
+            .fill()
+            .map(() => new Array(500).fill().map(() => ({})));
+        for (let id in unobserve.result) {
+          const line = unobserve.result[id];
+          for (let i = 0; i < line.length - 1; i++) {
+            brensenhamArr(
+                [line[i], line[i + 1]],
+                cache,
+                id,
+                (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
+            );
+          }
+        }
+        unobserve.slopePixelCache = cache;
       }
+      console.time("temp canvas");
+      const tempBuffer = new Float32Array(1000 * 500).map((_, i) => {
+        const row = i % 500;
+        const col = Math.floor(i / 500);
+        const pixelCache = Object.values(unobserve.slopePixelCache[col][row]);
+        if (this.normalizeDensity) {
+          return pixelCache.reduce((p, v) => p + v, 0);
+        } else {
+          return pixelCache.length;
+        }
+      });
       if (initFlag) {
         this.initDensityBufferCache = tempBuffer;
       }
-      console.timeEnd('temp canvas');
-      console.time('render');
-      bgContext.fillStyle = 'black';
+      console.timeEnd("temp canvas");
+      console.time("render");
+      bgContext.fillStyle = "black";
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, 1000, 500);
       bgContext.clearRect(0, 0, 1000, 500);
       const tempImageBuffer = new Uint8ClampedArray(1000 * 500 * 4);
       const tempImageData = new ImageData(tempImageBuffer, 1000, 500);
       const maxWeight = Math.ceil(
-        (!initFlag && this.maxDensity) ||
+          (!initFlag && this.maxDensity) ||
           tempBuffer.reduce((p, v) => Math.max(p, v))
       );
       this.maxDensity = maxWeight;
+      if (initFlag) {
+        this.maxOverlayDensity = maxWeight;
+      }
+      const colorCache = {};
       for (let i = 0; i < 1000; i++) {
         for (let j = 0; j < 500; j++) {
-          const ratio = tempBuffer[i * 500 + j] / maxWeight;
-          const color = this.rgb(ratio);
-          tempImageData.data.set(color, (j * 1000 + i) * 4);
-          tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          const ratio = Math.round((tempBuffer[i * 500 + j] / maxWeight) * 100);
+          if (!colorCache[ratio]) {
+            colorCache[ratio] = this.rgb(ratio / 100);
+          }
+          const color = colorCache[ratio];
+          tempImageBuffer.set(color, (j * 1000 + i) * 4);
+          tempImageBuffer[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
-      console.timeEnd('render');
+      console.timeEnd("render");
       if (initFlag) {
         this.initDensityMaxCache = maxWeight;
         this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
@@ -2562,99 +2815,84 @@ export default {
 
     renderDensity() {
       let ids = this.getSelectedIds();
+      const fastMapping = {};
+      ids.forEach((id) => (fastMapping[id] = 1));
       let initFlag = false;
       let renderFlag = false;
       for (let i in this.layers) {
         const layer = this.layers[i];
-        if (layer.name === 'selected density' && layer.opacity > 0) {
+        if (layer.name === "selected density" && layer.opacity > 0) {
           renderFlag = true;
         }
       }
       if (!renderFlag) return;
       const bgContext = document
-        .getElementById('selectionCanvas')
-        .getContext('2d');
-      console.time('temp canvas');
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = 1000;
-      tempCanvas.height = 500;
-      const tempContext = tempCanvas.getContext('2d');
-      tempContext.globalCompositeOperation = 'lighter';
-      tempContext.strokeStyle = '#010101';
-      for (let id of ids) {
-        const line = unobserve.result[id];
-        tempContext.beginPath();
-        tempContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          tempContext.lineTo(point.x, point.y);
-        }
-        tempContext.stroke();
-      }
+          .getElementById("selectionCanvas")
+          .getContext("2d");
 
-      const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
-      // if (initFlag) {
-      //   this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
-      // }
-      console.timeEnd('temp canvas');
-      console.time('render');
-      bgContext.fillStyle = 'black';
+      console.time("render");
+      bgContext.fillStyle = "black";
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, 1000, 500);
       bgContext.clearRect(0, 0, 1000, 500);
-      const maxWeight = Math.max(
-        tempImageData.data.reduce((p, v, i) =>
-          i % 4 === 3 ? p : Math.max(p, v)
-        ),
-        1.0
-      );
+      const tempImageBuffer = new Uint8ClampedArray(1000 * 500 * 4);
+      const tempImageData = new ImageData(tempImageBuffer, 1000, 500);
+      const maxWeight = this.maxOverlayDensity;
       for (let i = 0; i < 1000; i++) {
         for (let j = 0; j < 500; j++) {
-          const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
-          if (isNaN(ratio)) console.log(maxWeight, tempImageData);
-          const color = this.rgb(ratio);
-          tempImageData.data.set(color, (j * 1000 + i) * 4);
-          tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          let weight = 0;
+          const pixelCache = Object.entries(unobserve.slopePixelCache[i][j]);
+          if (this.normalizeDensity) {
+            weight = pixelCache.reduce(
+                (p, v) => p + (fastMapping[v[0]] ? v[1] : 0),
+                0
+            );
+          } else {
+            weight = pixelCache.reduce(
+                (p, v) => p + (fastMapping[v[0]] ? 1 : 0),
+                0
+            );
+          }
+          const ratio = weight / maxWeight;
+          const color = this.rgb(ratio, true);
+          tempImageBuffer.set(color, (j * 1000 + i) * 4);
+          tempImageBuffer[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
-      console.timeEnd('render');
-      if (initFlag) {
-        this.initDensityMaxCache = maxWeight;
-        this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
-      }
+      console.timeEnd("render");
       this.currentDensityMax = maxWeight;
       this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
-      // renderColorMap();
     },
 
     rearrangeLayer(
-      options = [
-        {
-          name: 'raw_lines',
-          opacity: 0,
-          zIndex: 0,
-        },
-        {
-          name: 'canvas',
-          opacity: 1,
-          zIndex: 1,
-        },
-        {
-          name: 'selectionCanvas',
-          opacity: 0,
-          zIndex: 2,
-        },
-        {
-          name: 'selectionLayer',
-          opacity: 0.4,
-          zIndex: 3,
-        },
-        {
-          name: 'rep_layer',
-          opacity: 1,
-          zIndex: 4,
-        },
-      ]
+        options = [
+          {
+            name: "raw_lines",
+            opacity: 0,
+            zIndex: 0,
+          },
+          {
+            name: "canvas",
+            opacity: 1,
+            zIndex: 1,
+          },
+          {
+            name: "selectionCanvas",
+            opacity: 0,
+            zIndex: 2,
+          },
+          {
+            name: "selectionLayer",
+            opacity: 0.4,
+            zIndex: 3,
+          },
+          {
+            name: "rep_layer",
+            opacity: 1,
+            zIndex: 4,
+          },
+        ]
     ) {
       for (let ind in options) {
         const option = options[ind];
@@ -2667,37 +2905,37 @@ export default {
     setReverseY() {
       console.log("before set", this.yScale.range());
       this.yScale.range(this.upsideDown ? [0, 500] : [500, 0]);
-      console.log('after set', this.yScale.range());
+      console.log("after set", this.yScale.range());
 
       const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
 
       //#region reverse the every canvas
       const canvasList = [
-        'canvas',
-        'selectionCanvas',
-        'selectionLayer',
-        'rep_layer',
-        'raw_lines',
-        'mouseLayer',
+        "canvas",
+        "selectionCanvas",
+        "selectionLayer",
+        "rep_layer",
+        "raw_lines",
+        "mouseLayer",
       ];
       for (let id of canvasList) {
         document.getElementById(id).style.transform = scaleY;
       }
       //#regionend
 
-      this.svg.select('#xaxis').remove();
-      this.svg.select('#yaxis').remove();
+      this.svg.select("#xaxis").remove();
+      this.svg.select("#yaxis").remove();
       // svg.append("g").attr("transform", "translate(30,500)").call(xAxis);
       this.svg
-        .append('g')
-        .attr('id', 'yaxis')
-        .attr('transform', 'translate(50,20)')
-        .call(unobserve.yAxis);
+          .append('g')
+          .attr('id', 'yaxis')
+          .attr('transform', 'translate(50,20)')
+          .call(unobserve.yAxis);
       this.svg
-        .append('g')
-        .attr('id', 'xaxis')
-        .attr('transform', `translate(50,${this.upsideDown ? 20 : 520})`)
-        .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
+          .append('g')
+          .attr('id', 'xaxis')
+          .attr('transform', `translate(50,${this.upsideDown ? 20 : 520})`)
+          .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
     },
     getStaticInformation(ids) {
       if (!ids || !ids.length) return {};
@@ -2705,28 +2943,29 @@ export default {
       const minX = d3.min(ids, (id) => unobserve.result[id][0].x);
       const maxX = d3.max(ids, (id) => unobserve.result[id][0].x);
       const minY = d3.min(ids, (id) =>
-        d3.min(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
+          d3.min(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
       );
       const maxY = d3.max(ids, (id) =>
-        d3.max(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
+          d3.max(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
       );
       const means = ids.map((id) =>
-        d3.mean(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
+          d3.mean(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
       );
       const mean = d3.mean(means);
       const variance =
-        means.length > 1
-          ? d3.variance(means)
-          : d3.variance(unobserve.result[ids[0]], (d) =>
-              this.yScaleC.invert(d.y)
-            );
+          means.length > 1
+              ? d3.variance(means)
+              : d3.variance(unobserve.result[ids[0]], (d) =>
+                  this.yScaleC.invert(d.y)
+              );
 
       return {
-        minT: moment(this.xScale.invert(minX)).format('YYYY-M-D'),
-        maxT: moment(this.xScale.invert(maxX)).format('YYYY-M-D'),
+        minT: moment(this.xScale.invert(minX)).format("YYYY-M-D"),
+        maxT: moment(this.xScale.invert(maxX)).format("YYYY-M-D"),
         minV: minY.toFixed(2),
         maxV: maxY.toFixed(2),
         count: ids.length,
+        points: ids.reduce((p, v) => p + unobserve.result[v]?.length ?? 0, 0),
         mean: mean.toFixed(2),
         var: variance.toFixed(2),
       };
@@ -2736,7 +2975,7 @@ export default {
       if (this.colorCache[id]) return this.colorCache[id];
 
       function luminance(r, g, b) {
-        var a = [r, g, b].map(function(v) {
+        var a = [r, g, b].map(function (v) {
           v /= 255;
           return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
         });
@@ -2763,49 +3002,49 @@ export default {
     calcRepLines(ids) {
       const lineCount = this.repCount;
       const lineWeights = ids
-        .map((id) => ({
-          id,
-          w: this.calcLineWeight(id),
-          cur: calculateCurvature(
-            unobserve.result[id].filter((point) =>
-              unobserve.querys.length <= 0 && !unobserve.preview
-                ? true
-                : (unobserve.preview
-                    ? [unobserve.preview]
-                    : unobserve.querys
-                  ).find((query) => {
-                    if (query.type === 'knn') {
-                      return true; // TODO: only line in knn
-                    } else if (query.type === 'rnn') {
-                      return (
-                        Math.sqrt(
-                          Math.pow(point.x - query.start[0], 2) +
-                            Math.pow(point.y - query.start[1], 2)
-                        ) <= query.n
-                      );
-                    } else if (query.type === 'brush') {
-                      const startX = Math.min(query.start[0], query.end[0]);
-                      const startY = Math.min(query.start[1], query.end[1]);
-                      const endX = Math.max(query.start[0], query.end[0]);
-                      const endY = Math.max(query.start[1], query.end[1]);
-                      return (
-                        point.x >= startX &&
-                        point.y >= startY &&
-                        point.x <= endX &&
-                        point.y <= endY
-                      );
-                    } else if (query.type === 'ang') {
-                      const startX = Math.min(query.start[0], query.end[0]);
-                      const endX = Math.max(query.start[0], query.end[0]);
-                      return point.x >= startX && point.x <= endX;
-                    }
-                  })
-            )
-          ),
-        }))
-        .sort(
-          (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
-        );
+          .map((id) => ({
+            id,
+            w: this.calcLineWeight(id),
+            cur: calculateCurvature(
+                unobserve.result[id].filter((point) =>
+                    unobserve.querys.length <= 0 && !unobserve.preview
+                        ? true
+                        : (unobserve.preview
+                            ? [unobserve.preview]
+                            : unobserve.querys
+                        ).find((query) => {
+                          if (query.type === "knn") {
+                            return true; // TODO: only line in knn
+                          } else if (query.type === "rnn") {
+                            return (
+                                Math.sqrt(
+                                    Math.pow(point.x - query.start[0], 2) +
+                                    Math.pow(point.y - query.start[1], 2)
+                                ) <= query.n
+                            );
+                          } else if (query.type === "brush") {
+                            const startX = Math.min(query.start[0], query.end[0]);
+                            const startY = Math.min(query.start[1], query.end[1]);
+                            const endX = Math.max(query.start[0], query.end[0]);
+                            const endY = Math.max(query.start[1], query.end[1]);
+                            return (
+                                point.x >= startX &&
+                                point.y >= startY &&
+                                point.x <= endX &&
+                                point.y <= endY
+                            );
+                          } else if (query.type === "ang") {
+                            const startX = Math.min(query.start[0], query.end[0]);
+                            const endX = Math.max(query.start[0], query.end[0]);
+                            return point.x >= startX && point.x <= endX;
+                          }
+                        })
+                )
+            ),
+          }))
+          .sort(
+              (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
+          );
       // const extend0 = d3.extent(lineWeights, d => d.cur[0]);
       // const extend1 = d3.extent(lineWeights, d => d.cur[1]);
       // const scale0 = d3.scaleLinear().domain(extend0).range([0, 1]);
@@ -2815,28 +3054,28 @@ export default {
       //   d.cur[0] = scale0(d.cur[0]);
       //   d.cur[1] = scale1(d.cur[1]);
       // })
-      console.log('this is line weight');
+      console.log("this is line weight");
       console.log(lineWeights);
 
       return (
-        lineWeights
-          .reduce((p, v) => {
-            // if (document.getElementById("show-all-clusters").checked) {
-            //   p.push(v);
-            //   return p;
-            // }
-            if (
-              p.length >= lineCount ||
-              v.w[1] < 1000 / 3 ||
-              p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-            ) {
-              return p;
-            }
-            p.push(v);
-            return p;
-          }, [])
-          // .slice(0, lineCount)
-          .map((x) => x.id)
+          lineWeights
+              .reduce((p, v) => {
+                // if (document.getElementById("show-all-clusters").checked) {
+                //   p.push(v);
+                //   return p;
+                // }
+                if (
+                    p.length >= lineCount ||
+                    v.w[1] < 1000 / 3 ||
+                    p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
+                ) {
+                  return p;
+                }
+                p.push(v);
+                return p;
+              }, [])
+              // .slice(0, lineCount)
+              .map((x) => x.id)
       );
     },
     drawLine(ids) {
@@ -2848,8 +3087,8 @@ export default {
         for (let id of ids) {
           const line = unobserve.result[id];
           unobserve.selectionLayerContext.strokeStyle = `rgb(${this.getColor(
-            id
-          ).join(',')})`;
+              id
+          ).join(",")})`;
           unobserve.selectionLayerContext.beginPath();
           unobserve.selectionLayerContext.moveTo(line[0].x, line[0].y);
           for (let point of line) {
@@ -2869,6 +3108,10 @@ export default {
       }
 
       const topIds = this.calcRepLines(ids);
+
+      if (!unobserve.querys.length) {
+        unobserve.globalRep = topIds;
+      }
       // console.log('lllllllllllllllllegth', ids.length);
 
       // const lineCount = document.getElementById("rep_count").value;
@@ -2927,8 +3170,8 @@ export default {
       // unobserve.repLayerContext.lineWidth = 1;
       for (let i in topIds) {
         unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(
-          topIds[i]
-        ).join(',')})`;
+            topIds[i]
+        ).join(",")})`;
 
         // if (document.getElementById("show-all-clusters").checked) {
         //   for (let id of topIds[i]) {
@@ -2969,15 +3212,15 @@ export default {
       let weight = 0;
       let passedPixels = 0;
       let lineLen = 0;
-      const hasBrush = unobserve.querys.find((q) => q.type === 'brush');
+      const hasBrush = unobserve.querys.find((q) => q.type === "brush");
       const brushes = unobserve.querys
-        .filter((q) => q.type === 'brush')
-        .map((b) => [
-          Math.min(b.start[0], b.end[0]),
-          Math.max(b.start[0], b.end[0]),
-          Math.min(b.start[1], b.end[1]),
-          Math.max(b.start[1], b.end[1]),
-        ]);
+          .filter((q) => q.type === "brush")
+          .map((b) => [
+            Math.min(b.start[0], b.end[0]),
+            Math.max(b.start[0], b.end[0]),
+            Math.min(b.start[1], b.end[1]),
+            Math.max(b.start[1], b.end[1]),
+          ]);
       // if (unobserve.weightCache[id] !== undefined && !hasBrush) return unobserve.weightCache[id];
       const line = unobserve.result[id];
 
@@ -3000,14 +3243,14 @@ export default {
 
         while (!end) {
           if (
-            (!hasBrush ||
-              brushes.find(
-                (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
-              )) &&
-            x1 >= 0 &&
-            x1 < 1000 &&
-            y1 >= 0 &&
-            y1 < 500
+              (!hasBrush ||
+                  brushes.find(
+                      (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
+                  )) &&
+              x1 >= 0 &&
+              x1 < 1000 &&
+              y1 >= 0 &&
+              y1 < 500
           ) {
             weight += this.initDensityBufferCache[x1 * 500 + y1];
             passedPixels++;
@@ -3056,7 +3299,7 @@ export default {
     unobserve.upsideDown = this.upsideDown;
 
     this.headers = unobserve.headers.map((title, key) => {
-      return { title, key, minWidth: 150 };
+      return {title, key, minWidth: 150};
     });
 
     const headerMap = new Map();
@@ -3084,24 +3327,27 @@ export default {
     console.log(minX, maxX, minY, maxY);
 
     const xScaleData = d3
-      .scaleLinear()
-      .domain([minX, maxX])
-      .range([0, 1000]);
-    this.xScale = d3
-      .scaleTime()
-      .domain([
-        new Date(minX * 3600 * 24 * 1000),
-        new Date(maxX * 3600 * 24 * 1000),
-      ])
-      .range([0, 1000]);
+        .scaleLinear()
+        .domain([minX, maxX])
+        .range([0, 1000]);
+    this.xScale =
+        unobserve.inferX == "date"
+            ? d3
+                .scaleTime()
+                .domain([
+                  new Date(minX * 3600 * 24 * 1000),
+                  new Date(maxX * 3600 * 24 * 1000),
+                ])
+                .range([0, 1000])
+            : xScaleData;
     this.yScale = d3
-      .scaleLinear()
-      .domain([minY, maxY])
-      .range([500, 0]);
+        .scaleLinear()
+        .domain([minY, maxY])
+        .range([500, 0]);
     this.yScaleC = d3
-      .scaleLinear()
-      .domain([minY, maxY])
-      .range([500, 0]);
+        .scaleLinear()
+        .domain([minY, maxY])
+        .range([500, 0]);
 
     let result = data.map((line) => {
       let res = [];
@@ -3114,14 +3360,15 @@ export default {
       return res;
     });
     unobserve.result = result;
-    let drawMode = 'all';
+    let drawMode = "all";
     let reverseY = false;
     //#endregion
 
     // #region init tree
 
-    this.tree = new KDTree(result);
-    // this.tree.buildKDTree();
+    this.tr = {}; // Avoid tracking properties in tree
+    this.tr.ee = new KDTree(result);
+    // this.tr.ee.buildKDTree();
 
     // tree.render(
     //   document.getElementById("canvas"),
@@ -3136,25 +3383,25 @@ export default {
     //   [[1]]
     // ); // GPU will be faster
     // In order to have a high performance, we use JS fallback instead
-    this.renderAllDensity();
+    this.renderAllDensity(true);
     this.renderDensity();
     //#endregion
 
     //#region init helpers
     unobserve.selectionLayerContext = document
-      .getElementById('selectionLayer')
-      .getContext('2d');
+        .getElementById("selectionLayer")
+        .getContext("2d");
     unobserve.mouseLayerContext = document
-      .getElementById('mouseLayer')
-      .getContext('2d');
+        .getElementById("mouseLayer")
+        .getContext("2d");
     unobserve.repLayerContext = document
-      .getElementById('rep_layer')
-      .getContext('2d');
+        .getElementById("rep_layer")
+        .getContext("2d");
     unobserve.rawLinesLayerContext = document
-      .getElementById('raw_lines')
-      .getContext('2d');
-    this.svg = d3.select(document.getElementById('axisHelper'));
-    this.cursorHelper = d3.select(document.getElementById('cursorHelper'));
+        .getElementById("raw_lines")
+        .getContext("2d");
+    this.svg = d3.select(document.getElementById("axisHelper"));
+    this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
 
     const xAxis = d3.axisBottom(this.xScale);
     const xAxisR = d3.axisTop(this.xScale);
@@ -3164,16 +3411,16 @@ export default {
     unobserve.xAxisR = xAxisR;
 
     this.svg
-      .append('g')
-      .attr('id', 'xaxis')
-      .attr('transform', 'translate(50,520)')
-      .call(xAxis);
+        .append('g')
+        .attr('id', 'xaxis')
+        .attr('transform', 'translate(50,520)')
+        .call(xAxis);
     // svg.append("g").attr("transform", "translate(50,0)").call(yAxis);
     this.svg
-      .append('g')
-      .attr('id', 'yaxis')
-      .attr('transform', 'translate(50,20)')
-      .call(yAxis);
+        .append('g')
+        .attr('id', 'yaxis')
+        .attr('transform', 'translate(50,20)')
+        .call(yAxis);
 
     //#endregion
 
@@ -3189,6 +3436,7 @@ export default {
     // console.log(this.layers);
     this.colormapIndexCache = 1;
     this.renderColorMap();
+    this.renderColorMapOverlay();
     // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
 
     // const table = document.querySelector(
@@ -3199,21 +3447,21 @@ export default {
       let ele = null;
       if (e.path.length >= 18) ele = e.path[e.path.length - 18];
       if (
-        !ele ||
-        !(
-          ele.tagName.toLowerCase() === 'tr' &&
-          ele.parentNode.tagName.toLowerCase() === 'tbody'
-        )
+          !ele ||
+          !(
+              ele.tagName.toLowerCase() === "tr" &&
+              ele.parentNode.tagName.toLowerCase() === "tbody"
+          )
       ) {
         this.hoveringInd = null;
-        this.renderBoxes('mouseLayer');
+        this.renderBoxes("mouseLayer");
       } else {
         let ind;
         const children = ele.parentNode.children;
         let counter = 0;
         for (let i = 0; i < children.length; i++) {
           const e = children[i];
-          if (e.className?.includes('ivu-table-row')) {
+          if (e.className?.includes("ivu-table-row")) {
             counter++;
           }
           if (e === ele) {
@@ -3222,7 +3470,7 @@ export default {
           }
         }
         if (ind >= unobserve.querys.length) {
-          this.renderBoxes('mouseLayer');
+          this.renderBoxes("mouseLayer");
           this.hoveringInd = null;
           return;
         }
@@ -3230,8 +3478,8 @@ export default {
       }
     });
 
-    tableId.addEventListener('mouseleave', () => {
-      this.renderBoxes('mouseLayer');
+    tableId.addEventListener("mouseleave", () => {
+      this.renderBoxes("mouseLayer");
       this.hoveringInd = null;
     });
   },
@@ -3275,6 +3523,10 @@ export default {
   margin: 0 10px;
   vertical-align: middle;
   border-radius: 4px;
+
+  &#color-map-overlay {
+    width: 160px;
+  }
 }
 
 .select-colormap {
@@ -3310,11 +3562,16 @@ export default {
   }
 }
 
-#colormap {
+#colormap,
+#colormapOverlay {
   width: 200px;
   position: absolute;
   left: 107px;
   top: 0;
+
+  &#colormapOverlay {
+    width: 160px;
+  }
 
   .ivu-select-selection {
     background: transparent;
