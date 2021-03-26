@@ -190,7 +190,7 @@
             </div>
           </div>
         </Card>
-        <Card style="margin-left:20px;flex-grow:1">
+        <Card style="padding-left: 20px;flex-grow:1" dis-hover :bordered="false">
           <div style="min-height: 200px;color:red" v-if="!headers.length">
             Please load a dataset (.csv file) first!
             <Button
