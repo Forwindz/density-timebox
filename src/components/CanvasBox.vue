@@ -63,6 +63,19 @@
           z-index: 999;
         "
       ></canvas>
+      <canvas
+          id="hoverLayer"
+          width="1000"
+          height="500"
+          style="
+          transform: scaleY(1);
+          position: absolute;
+          left: 0;
+          top: 0;
+          pointer-events: none;
+          z-index: 999;
+        "
+      ></canvas>
       <svg
           id="axisHelper"
           width="1050"
@@ -95,6 +108,7 @@
       <!--        }"-->
       <!--        @mousedown="startMouse"-->
       <!--        @mousemove="moveMouse"-->
+
       <!--        @click="angleConfirm"-->
       <!--      ></canvas>-->
       <!--      <canvas-->
@@ -136,6 +150,7 @@
             <Radio label="brush">Brush</Radio>
             <Radio label="ang">Angle</Radio>
             <Radio label="attr">Attr</Radio>
+            <Radio label="hover">Hover</Radio>
           </RadioGroup>
         </div>
         <!-- <div>
@@ -505,7 +520,7 @@ import expandRow from "@/components/expandRow";
 import {
   calculateCurvature,
   calculateDifference,
-  dist2,
+  dist2, distToSegment, distToSegmentSquared,
   eq,
   getAngle2,
   lineRectCollide,
@@ -836,8 +851,10 @@ export default {
         this.contextHandler.rerender(this.filter);
       }
     },
-    filterMode() {
-      // this.resetFilter();
+    filterMode(newV, oldV) {
+      if (oldV === 'hover') {
+        this.initCanvas(unobserve.hoverLayer);
+      }
     },
     rawMode() {
       this.getTopK();
@@ -1044,6 +1061,26 @@ export default {
     canvasMousemove(e) {
       const point = [e.offsetX, e.offsetY];
       this.renderAxisHelper(e);
+      if (this.filterMode === 'hover') {
+        this.initCanvas(unobserve.hoverLayer);
+        let radius = 5;
+        let res = [];
+        while (res.length === 0 && radius < 100) {
+          res = this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]).filter(id => {
+            const line = unobserve.result[id];
+            let mx = Infinity;
+            for (let i = 0; i < line.length - 1; i++) {
+              let dis = distToSegmentSquared(point, [line[i].x, line[i].y], [line[i+1].x, line[i+1].y]);
+              if (dis < mx)
+                mx = dis;
+            }
+            return mx <= 9;
+          })
+          radius *= 2;
+        }
+        this.drawLineWithLayer(res, unobserve.hoverLayer);
+        return;
+      }
       if (!this.preview) {
         this.findBox(point);
         return;
@@ -1583,12 +1620,6 @@ export default {
       return distance;
     },
     drawRawLines() {
-      // const shuffle = new Array(unobserve.result.length)
-      //   .fill()
-      //   .map((_, id) => ({ id, line: [] }));
-      // this.tr.ee.segs.forEach((seg) => {
-      //   shuffle[seg[3]].line.push(seg);
-      // });
       const shuffle = unobserve.result
           .slice()
           .map((line, id) => ({line, id}));
@@ -2252,6 +2283,11 @@ export default {
     },
 
     initCanvas(context) {
+      if (typeof context === 'string')
+        context = document.getElementById(context)
+            .getContext("2d");
+      if (!context)
+        return;
       context.fillStyle = "black";
       context.globalAlpha = 1;
       context.fillRect(0, 0, 1000, 500);
@@ -3081,25 +3117,25 @@ export default {
               .map((x) => x.id)
       );
     },
+    drawLineWithLayer(ids, layer) {
+      for (let id of ids) {
+        const line = unobserve.result[id];
+        layer.strokeStyle = `rgb(${this.getColor(id).join(',')})`;
+        layer.beginPath();
+        layer.moveTo(line[0].x, line[0].y);
+        for (let point of line) {
+          layer.lineTo(point.x, point.y);
+        }
+        layer.stroke();
+      }
+    },
     drawLine(ids) {
       // Selected Part =====================
       if (this.preview) {
         ids = ids.slice(0, 5);
       }
       if (!this.preview) {
-        for (let id of ids) {
-          const line = unobserve.result[id];
-          unobserve.selectionLayerContext.strokeStyle = `rgb(${this.getColor(
-              id
-          ).join(",")})`;
-          unobserve.selectionLayerContext.beginPath();
-          unobserve.selectionLayerContext.moveTo(line[0].x, line[0].y);
-          for (let point of line) {
-            unobserve.selectionLayerContext.lineTo(point.x, point.y);
-          }
-          unobserve.selectionLayerContext.stroke();
-        }
-        unobserve.selectedLines = ids;
+        this.drawLineWithLayer(ids, unobserve.selectionLayerContext);
       }
 
       // REP PART =====================
@@ -3109,107 +3145,12 @@ export default {
       } else if (!unobserve.querys.length) {
         ids = new Array(unobserve.result.length).fill(0).map((_, i) => i);
       }
-
       const topIds = this.calcRepLines(ids);
 
       if (!unobserve.querys.length) {
         unobserve.globalRep = topIds;
       }
-      // console.log('lllllllllllllllllegth', ids.length);
-
-      // const lineCount = document.getElementById("rep_count").value;
-      // lineWeights.sort((a, b) => a.w[0] - b.w[0]);
-      // const topIds2 = lineWeights
-      //   .reduce((p, v) => {
-      //     // if (document.getElementById("show-all-clusters").checked) {
-      //     //   p.push(v);
-      //     //   return p;
-      //     // }
-      //     // console.log(v.w[1]);
-      //     if (
-      //       p.length >= lineCount ||
-      //       v.w[1] < 1000 / 3 ||
-      //       p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-      //     ) {
-      //       return p;
-      //     }
-      //     p.push(v);
-      //     return p;
-      //   }, [])
-      //   // .slice(0, lineCount)
-      //   .map((x) => x.id);
-      // console.log(topIds1, topIds2);
-      // for (let i of topIds1)
-      //   console.log(unobserve.result[i], this.calcLineWeight(i));
-      // for (let i of topIds2)
-      //   console.log(unobserve.result[i], this.calcLineWeight(i));
-      // for(let i of topIds1){
-      //   console.log(i, this.getStaticInformation([i]), this.getColor(i));
-      // }
-      // const topIds = [...new Set([...topIds1])];
-      // const topIds = lineWeights
-      //   .reduce((p, v) => {
-      //     if (
-      //       p.length >= lineCount ||
-      //       p.find((a) => calcLineDistance(a.id, v.id) < 40)
-      //     ) {
-      //       return p;
-      //     }
-      //     p.push(v);
-      //     return p;
-      //   }, [])
-      //   // .slice(0, lineCount)
-      //   .map((x) => x.id);
-      const repColorMap = [
-        [31, 119, 180],
-        [44, 160, 44],
-        [148, 103, 189],
-        [140, 86, 75],
-        [227, 119, 194],
-        [127, 127, 127],
-        [188, 189, 34],
-        [23, 190, 207],
-      ];
-      // unobserve.repLayerContext.lineWidth = 1;
-      for (let i in topIds) {
-        unobserve.repLayerContext.strokeStyle = `rgb(${this.getColor(
-            topIds[i]
-        ).join(",")})`;
-
-        // if (document.getElementById("show-all-clusters").checked) {
-        //   for (let id of topIds[i]) {
-        //     const line = result[id];
-        //     selectionLayerContext.beginPath();
-        //     selectionLayerContext.moveTo(line[0].x, line[0].y);
-        //     for (let point of line) {
-        //       selectionLayerContext.lineTo(point.x, point.y);
-        //     }
-        //     selectionLayerContext.stroke();
-        //   }
-        // } else {
-        const line = unobserve.result[topIds[i]];
-        unobserve.repLayerContext.beginPath();
-        unobserve.repLayerContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          unobserve.repLayerContext.lineTo(point.x, point.y);
-        }
-        unobserve.repLayerContext.stroke();
-        // }
-      }
-      // if (!topIds.length) {
-      //   document.getElementById("rep_res").innerHTML = "(empty)";
-      // } else {
-      //   document.getElementById("rep_res").innerHTML = topIds
-      //       .map((id, i) =>
-      //           document.getElementById("show-all-clusters").checked
-      //               ? `<span style="color:rgba(31, 119, 180, ${
-      //                   1 - (i / topIds.length) * 0.7
-      //               })">${id instanceof Array ? id.join(", ") : id}</span>`
-      //               : `<span style="color:rgb(${repColorMap[i % 8].join(",")})">${
-      //                   id instanceof Array ? id.join(", ") : id
-      //               }</span>`
-      //       )
-      //       .join(", ");
+      this.drawLineWithLayer(topIds, unobserve.repLayerContext);
     },
     calcLineWeight(id) {
       let weight = 0;
@@ -3402,6 +3343,9 @@ export default {
         .getContext("2d");
     unobserve.rawLinesLayerContext = document
         .getElementById("raw_lines")
+        .getContext("2d");
+    unobserve.hoverLayer = document
+        .getElementById('hoverLayer')
         .getContext("2d");
     this.svg = d3.select(document.getElementById("axisHelper"));
     this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
