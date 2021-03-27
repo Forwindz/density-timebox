@@ -87,6 +87,7 @@
           pointer-events: none;
           color: black;
           z-index: 999;
+          overflow: visible;
         "
       >
         <g id="cursorHelper" transform="translate(50,20)">
