@@ -119,6 +119,17 @@
             </Select>
             <br />
             <br />
+            <div style="margin-bottom: 20px">
+              <InputNumber
+                  v-model="canvasWidth"
+              >
+              </InputNumber>
+              <Icon type="ios-close"></Icon>
+              <InputNumber
+                  v-model="canvasHeight"
+              >
+              </InputNumber>
+            </div>
             <Button
               @click="generateCharts"
               type="primary"
@@ -239,7 +250,7 @@
           <div v-else>
             <div
               style="min-height: 200px;color:red"
-              v-if="!chartConfigs.length"
+              v-if="!chartConfigs.length || this.canvasWidth > 1000 || this.canvasWidth < 100 || this.canvasHeight > 500 || this.canvasHeight < 100"
             >
               Please use a valid configuration in left panel!
             </div>
@@ -259,6 +270,7 @@
                   :valueName="config.valueName"
                   :filter="config.filter"
                   :layers="layers"
+                  :option="{height:canvasHeight, width:canvasWidth}"
                   @filterChange="handleFilterChange(i, $event)"
                 />
               </template>
@@ -296,6 +308,8 @@ export default {
   },
   data() {
     return {
+      canvasWidth: 1000,
+      canvasHeight: 500,
       headers: [],
       inferTypes: [],
       aggregateAttr: 0,
@@ -544,6 +558,7 @@ export default {
   position: relative;
   left: 20px;
   color: white;
+  z-index: 999;
 }
 
 .layout-nav {

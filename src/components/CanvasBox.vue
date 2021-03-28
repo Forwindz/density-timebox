@@ -4,12 +4,13 @@
         style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
     >
       <div
+          id="blank-div"
           style="width: 1000px; height: 500px; opacity: 0; pointer-events: none;"
       ></div>
       <canvas
           id="canvas"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0;"
           @mousedown="canvasMousedown"
           @mouseup="canvasMouseup"
@@ -26,8 +27,8 @@
       </canvas>
       <canvas
           id="selectionLayer"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="
           transform: scaleY(1);
           position: absolute;
@@ -38,22 +39,22 @@
       ></canvas>
       <canvas
           id="rep_layer"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
           id="raw_lines"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
           id="mouseLayer"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="
           transform: scaleY(1);
           position: absolute;
@@ -65,8 +66,8 @@
       ></canvas>
       <canvas
           id="hoverLayer"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="
           transform: scaleY(1);
           position: absolute;
@@ -78,8 +79,8 @@
       ></canvas>
       <svg
           id="axisHelper"
-          width="1050"
-          height="550"
+          :width="option.width + 50"
+          :height="option.height + 50"
           style="
           position: absolute;
           left: -50px;
@@ -97,39 +98,6 @@
           <text font-size="12px"></text>
         </g>
       </svg>
-      <!--      <canvas-->
-      <!--        ref="canvas"-->
-      <!--        width="1000"-->
-      <!--        height="500"-->
-      <!--        :style="{-->
-      <!--          width: '1000px',-->
-      <!--          height: '500px',-->
-      <!--          cursor,-->
-      <!--          transform: `scaleY(${upsideDownFactor})`,-->
-      <!--        }"-->
-      <!--        @mousedown="startMouse"-->
-      <!--        @mousemove="moveMouse"-->
-
-      <!--        @click="angleConfirm"-->
-      <!--      ></canvas>-->
-      <!--      <canvas-->
-      <!--        ref="canvasRawLine"-->
-      <!--        width="1000"-->
-      <!--        height="500"-->
-      <!--        style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"-->
-      <!--        :style="{-->
-      <!--          transform: `scaleY(${upsideDownFactor})`,-->
-      <!--        }"-->
-      <!--      ></canvas>-->
-      <!--      <canvas-->
-      <!--        ref="canvasOverlay"-->
-      <!--        width="1000"-->
-      <!--        height="500"-->
-      <!--        style="width:1000px;height:500px;pointer-events:none;position:absolute;top:0;left:0"-->
-      <!--        :style="{-->
-      <!--          transform: `scaleY(${upsideDownFactor})`,-->
-      <!--        }"-->
-      <!--      ></canvas>-->
       <div
           ref="axisTop"
           style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
@@ -536,7 +504,6 @@ import seedrandom from "seedrandom";
 import moment from "moment";
 import {brensenham, brensenhamArr} from "../core/util";
 
-const tempBuffer = new Float32Array(1000 * 500);
 const colorMapCache = {};
 
 export default {
@@ -546,6 +513,7 @@ export default {
     timeName: String,
     valueName: String,
     filter: Float32Array,
+    option: Object,
     // layers: Array,
     // headers: Array,
   },
@@ -881,7 +849,7 @@ export default {
     },
     colorMap() {
       const kArray = this.rawLines;
-      this.rawLineContext.clearRect(0, 0, 1000, 500);
+      this.rawLineContext.clearRect(0, 0, this.option.width, this.option.height);
       const colorMap = this.colorMap;
       for (let i = 0; i < kArray.length; i++) {
         const data = unobserve.aggregatedData[kArray[i]];
@@ -890,13 +858,13 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-            (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
-            500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+            (data[this.timeIndex][0] / this.contextHandler.maxX) * this.option.width,
+            this.option.height - (data[this.valueIndex][0] / this.contextHandler.maxY) * this.option.height
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-              (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
-              500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+              (data[this.timeIndex][j] / this.contextHandler.maxX) * this.option.width,
+              this.option.height - (data[this.valueIndex][j] / this.contextHandler.maxY) * this.option.height
           );
         }
         this.rawLineContext.stroke();
@@ -1140,14 +1108,14 @@ export default {
       const y = e.offsetY;
       const kArray = this.contextHandler
           .filterRange(
-              (x - 5) / 1000,
-              (x + 5) / 1000,
-              1 - (y + 5) / 500,
-              1 - (y - 5) / 500
+              (x - 5) / this.option.width,
+              (x + 5) / this.option.width,
+              1 - (y + 5) / this.option.height,
+              1 - (y - 5) / this.option.height
           )
           .filter((x) => !this.filter || this.filter.includes(x))
           .slice(0, 3);
-      this.rawLineContext.clearRect(0, 0, 1000, 500);
+      this.rawLineContext.clearRect(0, 0, this.option.width, this.option.height);
       const colorMap = this.colorMap;
       for (let i = kArray.length - 1; i >= 0; i--) {
         const data = unobserve.aggregatedData[kArray[i]];
@@ -1156,13 +1124,13 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-            (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
-            500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+            (data[this.timeIndex][0] / this.contextHandler.maxX) * this.option.width,
+            this.option.height - (data[this.valueIndex][0] / this.contextHandler.maxY) * this.option.height
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-              (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
-              500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+              (data[this.timeIndex][j] / this.contextHandler.maxX) * this.option.width,
+              this.option.height - (data[this.valueIndex][j] / this.contextHandler.maxY) * this.option.height
           );
         }
         this.rawLineContext.stroke();
@@ -1186,7 +1154,7 @@ export default {
           kArray = this.contextHandler.findKTop(true, this.diverse);
           break;
       }
-      this.rawLineContext.clearRect(0, 0, 1000, 500);
+      this.rawLineContext.clearRect(0, 0, this.option.width, this.option.height);
       const colorMap = this.colorMap;
       for (let i = kArray.length - 1; i >= 0; i--) {
         const data = unobserve.aggregatedData[kArray[i]];
@@ -1195,13 +1163,13 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-            (data[this.timeIndex][0] / this.contextHandler.maxX) * 1000,
-            500 - (data[this.valueIndex][0] / this.contextHandler.maxY) * 500
+            (data[this.timeIndex][0] / this.contextHandler.maxX) * this.option.width,
+            this.option.height - (data[this.valueIndex][0] / this.contextHandler.maxY) * this.option.height
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-              (data[this.timeIndex][j] / this.contextHandler.maxX) * 1000,
-              500 - (data[this.valueIndex][j] / this.contextHandler.maxY) * 500
+              (data[this.timeIndex][j] / this.contextHandler.maxX) * this.option.width,
+              this.option.height - (data[this.valueIndex][j] / this.contextHandler.maxY) * this.option.height
           );
         }
         this.rawLineContext.stroke();
@@ -1212,7 +1180,7 @@ export default {
       this.$emit("filterChange", undefined);
       this.boxes = [];
       this.mouseDown = false;
-      this.canvasContext.clearRect(0, 0, 1000, 500);
+      this.canvasContext.clearRect(0, 0, this.option.width, this.option.height);
       this.coord = [0, 0, 0, 0, 0];
     },
     startMouse(e) {
@@ -1222,8 +1190,8 @@ export default {
           y = e.offsetY,
           flag = false;
       if (this.filterMode == "rect") {
-        x /= 1000;
-        y = 1 - y / 500;
+        x /= this.option.width;
+        y = 1 - y / this.option.height;
         for (let box of this.boxes) {
           if (
               (Math.abs(x - box[0]) <= 0.002 || Math.abs(x - box[1]) <= 0.002) &&
@@ -1253,10 +1221,10 @@ export default {
           }
           if (flag) {
             this.coord = [
-              box[0] * 1000,
-              500 - box[3] * 500,
-              box[1] * 1000,
-              500 - box[2] * 500,
+              box[0] * this.option.width,
+              this.option.height - box[3] * this.option.height,
+              box[1] * this.option.width,
+              this.option.height - box[2] * this.option.height,
               0,
             ];
             this.boxes.splice(this.boxes.indexOf(box), 1);
@@ -1319,10 +1287,10 @@ export default {
     drawBoxes() {
       for (let box of this.boxes) {
         this.canvasContext.fillRect(
-            box[0] * 1000,
-            500 - box[3] * 500,
-            (box[1] - box[0]) * 1000,
-            (box[3] - box[2]) * 500
+            box[0] * this.option.width,
+            this.option.height - box[3] * this.option.height,
+            (box[1] - box[0]) * this.option.width,
+            (box[3] - box[2]) * this.option.height
         );
       }
     },
@@ -1350,8 +1318,8 @@ export default {
           return;
         default:
           if (this.filterMode == "rect") {
-            x /= 1000;
-            y = 1 - y / 500;
+            x /= this.option.width;
+            y = 1 - y / this.option.height;
             for (let box of this.boxes) {
               if (
                   (Math.abs(x - box[0]) <= 0.002 ||
@@ -1443,7 +1411,7 @@ export default {
         this.coord[2] = e.offsetX;
         this.coord[3] = e.offsetY;
       }
-      this.canvasContext.clearRect(0, 0, 1000, 500);
+      this.canvasContext.clearRect(0, 0, this.option.width, this.option.height);
       if (this.filterMode == "rect") {
         this.canvasContext.globalAlpha = 0.3;
         this.canvasContext.fillStyle = "black";
@@ -1482,10 +1450,10 @@ export default {
         this.mouseDown = false;
         if (this.coord[2] != 0 || this.coord[3] != 0) {
           let [left, right] = [this.coord[0], this.coord[2]]
-              .map((x) => x / 1000)
+              .map((x) => x / this.option.width)
               .sort();
           let [bottom, top] = [this.coord[1], this.coord[3]]
-              .map((x) => 1 - x / 500)
+              .map((x) => 1 - x / this.option.height)
               .sort();
           this.boxes.push([left, right, bottom, top]);
           let filterResult = this.contextHandler.filterRange(
@@ -1538,8 +1506,8 @@ export default {
           this.$emit(
               "filterChange",
               this.contextHandler.filterAngle(
-                  this.coord[0] / 1000,
-                  this.coord[2] / 1000,
+                  this.coord[0] / this.option.width,
+                  this.coord[2] / this.option.width,
                   startAngle,
                   endAngle
               )
@@ -1706,7 +1674,7 @@ export default {
                         ? unobserve.inferX == "date"
                         ? moment(xScale.invert(x)).format("YYYY-M-D")
                         : xScale.invert(x).toFixed(0)
-                        : yScale.invert(500 - x).toFixed(0)
+                        : yScale.invert(this.option.height - x).toFixed(0)
                 )
                 .join(", ")}) ~<br>(${query.end
                 .map((x, i) =>
@@ -1714,7 +1682,7 @@ export default {
                         ? unobserve.inferX == "date"
                         ? moment(xScale.invert(x)).format("YYYY-M-D")
                         : xScale.invert(x).toFixed(0)
-                        : yScale.invert(500 - x).toFixed(0)
+                        : yScale.invert(this.option.height - x).toFixed(0)
                 )
                 .join(", ")})`;
             break;
@@ -2296,8 +2264,8 @@ export default {
         return;
       context.fillStyle = "black";
       context.globalAlpha = 1;
-      context.fillRect(0, 0, 1000, 500);
-      context.clearRect(0, 0, 1000, 500);
+      context.fillRect(0, 0, this.option.width, this.option.height);
+      context.clearRect(0, 0, this.option.width, this.option.height);
     },
 
     renderBoxes(type = "all") {
@@ -2349,9 +2317,9 @@ export default {
 
     renderAxisHelper(e) {
       const x = e.offsetX;
-      const y = !this.upsideDown ? 500 - e.offsetY : e.offsetY;
+      const y = !this.upsideDown ? this.option.height - e.offsetY : e.offsetY;
       const oriX = this.xScale.invert(x);
-      const oriY = this.yScale.invert(500 - y);
+      const oriY = this.yScale.invert(this.option.height - y);
 
       const date =
           unobserve.inferX == "date"
@@ -2363,22 +2331,23 @@ export default {
       const fontWidth = enlargeFont ? 103 : 70;
       const fontHeight = enlargeFont ? 22 : 20;
       const heightInSvg = enlargeFont ? 18 : 12;
+      const option = this.option;
       if (this.showCursorValue) {
         this.cursorHelper.selectAll("line").each(function (_, i) {
           d3.select(this)
               .attr('x1', i === 0 ? 0 : x)
-              .attr('y1', i === 0 ? 500 - y : upsideDown ? 0 : 500)
+              .attr('y1', i === 0 ? option.height - y : upsideDown ? 0 : option.height)
               .attr('x2', x)
-              .attr('y2', 500 - y)
+              .attr('y2', option.height - y)
               .attr('stroke-width', () => enlargeFont ? 2 : 1);
         });
 
         this.cursorHelper.selectAll("text").each(function (_, i) {
           d3.select(this)
-              .attr('x', i === 0 ? 0 : x - (x > 1000 - fontWidth ? fontWidth : 0))
+              .attr('x', i === 0 ? 0 : x - (x > option.width - fontWidth ? fontWidth : 0))
               .attr(
                   'y',
-                  i === 0 ? 500 - y + (y > 500 - fontHeight ? heightInSvg : 0) : upsideDown ? heightInSvg : 500
+                  i === 0 ? option.height - y + (y > option.height - fontHeight ? heightInSvg : 0) : upsideDown ? heightInSvg : option.height
               )
               .text(i === 0 ? oriY.toFixed(2) : date)
               .attr('font-size', enlargeFont ? 20 : 14)
@@ -2735,8 +2704,8 @@ export default {
 
     //   console.time('temp canvas');
     //   const tempCanvas = document.createElement('canvas');
-    //   tempCanvas.width = 1000;
-    //   tempCanvas.height = 500;
+    //   tempCanvas.width = this.option.width;
+    //   tempCanvas.height = this.option.height;
     //   const tempContext = tempCanvas.getContext('2d');
     //   tempContext.globalCompositeOperation = 'lighter';
     //   tempContext.strokeStyle = '#010101';
@@ -2750,38 +2719,38 @@ export default {
     //     tempContext.stroke();
     //   }
 
-    //   const tempImageData = tempContext.getImageData(0, 0, 1000, 500);
+    //   const tempImageData = tempContext.getImageData(0, 0, this.option.width, this.option.height);
     //   if (initFlag) {
-    //     this.initDensityBufferCache = tempContext.getImageData(0, 0, 1000, 500);
+    //     this.initDensityBufferCache = tempContext.getImageData(0, 0, this.option.width, this.option.height);
     //   }
     //   console.timeEnd('temp canvas');
     //   console.time('render');
     //   bgContext.fillStyle = 'black';
     //   bgContext.globalAlpha = 1;
-    //   bgContext.fillRect(0, 0, 1000, 500);
-    //   bgContext.clearRect(0, 0, 1000, 500);
+    //   bgContext.fillRect(0, 0, this.option.width, this.option.height);
+    //   bgContext.clearRect(0, 0, this.option.width, this.option.height);
     //   const maxWeight =
     //     this.maxDensity ||
     //     tempImageData.data.reduce((p, v, i) =>
     //       i % 4 === 3 ? p : Math.max(p, v)
     //     );
     //   this.maxDensity = maxWeight;
-    //   for (let i = 0; i < 1000; i++) {
-    //     for (let j = 0; j < 500; j++) {
-    //       const ratio = tempImageData.data[(j * 1000 + i) * 4] / maxWeight;
+    //   for (let i = 0; i < this.option.width; i++) {
+    //     for (let j = 0; j < this.option.height; j++) {
+    //       const ratio = tempImageData.data[(j * this.option.width + i) * 4] / maxWeight;
     //       const color = this.rgb(ratio);
-    //       tempImageData.data.set(color, (j * 1000 + i) * 4);
-    //       tempImageData.data[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+    //       tempImageData.data.set(color, (j * this.option.width + i) * 4);
+    //       tempImageData.data[(j * this.option.width + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
     //     }
     //   }
     //   bgContext.putImageData(tempImageData, 0, 0);
     //   console.timeEnd('render');
     //   if (initFlag) {
     //     this.initDensityMaxCache = maxWeight;
-    //     this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
+    //     this.initDensityCache = bgContext.getImageData(0, 0, this.option.width, this.option.height);
     //   }
     //   this.currentDensityMax = maxWeight;
-    //   this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
+    //   this.currentDensity = bgContext.getImageData(0, 0, this.option.width, this.option.height);
     //   // renderColorMap();
     // },
     //#endregion
@@ -2789,9 +2758,9 @@ export default {
     renderAllDensity(initFlag) {
       const bgContext = document.getElementById("canvas").getContext("2d");
       if (!unobserve.slopePixelCache) {
-        const cache = new Array(1000)
+        const cache = new Array(this.option.width)
             .fill()
-            .map(() => new Array(500).fill().map(() => ({})));
+            .map(() => new Array(this.option.height).fill().map(() => ({})));
         for (let id in unobserve.result) {
           const line = unobserve.result[id];
           for (let i = 0; i < line.length - 1; i++) {
@@ -2806,9 +2775,9 @@ export default {
         unobserve.slopePixelCache = cache;
       }
       console.time("temp canvas");
-      const tempBuffer = new Float32Array(1000 * 500).map((_, i) => {
-        const row = i % 500;
-        const col = Math.floor(i / 500);
+      const tempBuffer = new Float32Array(this.option.width * this.option.height).map((_, i) => {
+        const row = i % this.option.height;
+        const col = Math.floor(i / this.option.height);
         const pixelCache = Object.values(unobserve.slopePixelCache[col][row]);
         if (this.normalizeDensity) {
           return pixelCache.reduce((p, v) => p + v, 0);
@@ -2823,10 +2792,10 @@ export default {
       console.time("render");
       bgContext.fillStyle = "black";
       bgContext.globalAlpha = 1;
-      bgContext.fillRect(0, 0, 1000, 500);
-      bgContext.clearRect(0, 0, 1000, 500);
-      const tempImageBuffer = new Uint8ClampedArray(1000 * 500 * 4);
-      const tempImageData = new ImageData(tempImageBuffer, 1000, 500);
+      bgContext.fillRect(0, 0, this.option.width, this.option.height);
+      bgContext.clearRect(0, 0, this.option.width, this.option.height);
+      const tempImageBuffer = new Uint8ClampedArray(this.option.width * this.option.height * 4);
+      const tempImageData = new ImageData(tempImageBuffer, this.option.width, this.option.height);
       const maxWeight = Math.ceil(
           (!initFlag && this.maxDensity) ||
           tempBuffer.reduce((p, v) => Math.max(p, v))
@@ -2836,25 +2805,25 @@ export default {
         this.maxOverlayDensity = maxWeight;
       }
       const colorCache = {};
-      for (let i = 0; i < 1000; i++) {
-        for (let j = 0; j < 500; j++) {
-          const ratio = Math.round((tempBuffer[i * 500 + j] / maxWeight) * 100);
+      for (let i = 0; i < this.option.width; i++) {
+        for (let j = 0; j < this.option.height; j++) {
+          const ratio = Math.round((tempBuffer[i * this.option.height + j] / maxWeight) * 100);
           if (!colorCache[ratio]) {
             colorCache[ratio] = this.rgb(ratio / 100);
           }
           const color = colorCache[ratio];
-          tempImageBuffer.set(color, (j * 1000 + i) * 4);
-          tempImageBuffer[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          tempImageBuffer.set(color, (j * this.option.width + i) * 4);
+          tempImageBuffer[(j * this.option.width + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
       console.timeEnd("render");
       if (initFlag) {
         this.initDensityMaxCache = maxWeight;
-        this.initDensityCache = bgContext.getImageData(0, 0, 1000, 500);
+        this.initDensityCache = bgContext.getImageData(0, 0, this.option.width, this.option.height);
       }
       this.currentDensityMax = maxWeight;
-      this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
+      this.currentDensity = bgContext.getImageData(0, 0, this.option.width, this.option.height);
       // renderColorMap();
     },
 
@@ -2878,13 +2847,13 @@ export default {
       console.time("render");
       bgContext.fillStyle = "black";
       bgContext.globalAlpha = 1;
-      bgContext.fillRect(0, 0, 1000, 500);
-      bgContext.clearRect(0, 0, 1000, 500);
-      const tempImageBuffer = new Uint8ClampedArray(1000 * 500 * 4);
-      const tempImageData = new ImageData(tempImageBuffer, 1000, 500);
+      bgContext.fillRect(0, 0, this.option.width, this.option.height);
+      bgContext.clearRect(0, 0, this.option.width, this.option.height);
+      const tempImageBuffer = new Uint8ClampedArray(this.option.width * this.option.height * 4);
+      const tempImageData = new ImageData(tempImageBuffer, this.option.width, this.option.height);
       const maxWeight = this.maxOverlayDensity;
-      for (let i = 0; i < 1000; i++) {
-        for (let j = 0; j < 500; j++) {
+      for (let i = 0; i < this.option.width; i++) {
+        for (let j = 0; j < this.option.height; j++) {
           let weight = 0;
           const pixelCache = Object.entries(unobserve.slopePixelCache[i][j]);
           if (this.normalizeDensity) {
@@ -2900,14 +2869,14 @@ export default {
           }
           const ratio = weight / maxWeight;
           const color = this.rgb(ratio, true);
-          tempImageBuffer.set(color, (j * 1000 + i) * 4);
-          tempImageBuffer[(j * 1000 + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          tempImageBuffer.set(color, (j * this.option.width + i) * 4);
+          tempImageBuffer[(j * this.option.width + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
       console.timeEnd("render");
       this.currentDensityMax = maxWeight;
-      this.currentDensity = bgContext.getImageData(0, 0, 1000, 500);
+      this.currentDensity = bgContext.getImageData(0, 0, this.option.width, this.option.height);
     },
 
     rearrangeLayer(
@@ -2949,7 +2918,7 @@ export default {
 
     setReverseY() {
       console.log("before set", this.yScale.range());
-      this.yScale.range(this.upsideDown ? [0, 500] : [500, 0]);
+      this.yScale.range(this.upsideDown ? [0, this.option.height] : [this.option.height, 0]);
       console.log("after set", this.yScale.range());
 
       const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
@@ -2970,7 +2939,7 @@ export default {
 
       this.svg.select("#xaxis").remove();
       this.svg.select("#yaxis").remove();
-      // svg.append("g").attr("transform", "translate(30,500)").call(xAxis);
+      // svg.append("g").attr("transform", "translate(30,this.option.height)").call(xAxis);
       this.svg
           .append('g')
           .attr('id', 'yaxis')
@@ -2979,7 +2948,7 @@ export default {
       this.svg
           .append('g')
           .attr('id', 'xaxis')
-          .attr('transform', `translate(50,${this.upsideDown ? 20 : 520})`)
+          .attr('transform', `translate(50,${this.upsideDown ? 20 : this.option.height + 20})`)
           .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
     },
     getStaticInformation(ids) {
@@ -3111,7 +3080,7 @@ export default {
                 // }
                 if (
                     p.length >= lineCount ||
-                    v.w[1] < 1000 / 3 ||
+                    v.w[1] < this.option.width / 3 ||
                     p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
                 ) {
                   return p;
@@ -3198,11 +3167,11 @@ export default {
                       (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
                   )) &&
               x1 >= 0 &&
-              x1 < 1000 &&
+              x1 < this.option.width &&
               y1 >= 0 &&
-              y1 < 500
+              y1 < this.option.height
           ) {
-            weight += this.initDensityBufferCache[x1 * 500 + y1];
+            weight += this.initDensityBufferCache[x1 * this.option.height + y1];
             passedPixels++;
             if (x1 !== px) {
               px = x1;
@@ -3243,6 +3212,30 @@ export default {
     },
   },
   mounted() {
+    // change the canvas size
+
+    const width = this.option.width + 'px';
+    const height = this.option.height + 'px';
+    let elementIds = [
+        'blank-div',
+        'canvas',
+        'selectionCanvas',
+        'selectionLayer',
+        'rep_layer',
+        'raw_lines',
+        'mouseLayer',
+        'hoverLayer',
+        'axisHelper'
+    ];
+    for (let i of elementIds) {
+      const ele = document.getElementById(i);
+      console.log(ele);
+      ele.style.width = width;
+      ele.style.height = height;
+    }
+
+
+
     unobserve.querys = [];
     unobserve.weightCache = [];
     unobserve.layers = this.layers;
@@ -3279,7 +3272,7 @@ export default {
     const xScaleData = d3
         .scaleLinear()
         .domain([minX, maxX])
-        .range([0, 1000]);
+        .range([0, this.option.width]);
     this.xScale =
         unobserve.inferX == "date"
             ? d3
@@ -3288,16 +3281,16 @@ export default {
                   new Date(minX * 3600 * 24 * 1000),
                   new Date(maxX * 3600 * 24 * 1000),
                 ])
-                .range([0, 1000])
+                .range([0, this.option.width])
             : xScaleData;
     this.yScale = d3
         .scaleLinear()
         .domain([minY, maxY])
-        .range([500, 0]);
+        .range([this.option.height, 0]);
     this.yScaleC = d3
         .scaleLinear()
         .domain([minY, maxY])
-        .range([500, 0]);
+        .range([this.option.height, 0]);
 
     let result = data.map((line) => {
       let res = [];
@@ -3323,12 +3316,12 @@ export default {
     // tree.render(
     //   document.getElementById("canvas"),
     //   [
-    //     [0, 1000],
-    //     [0, 500],
+    //     [0, this.option.width],
+    //     [0, this.option.height],
     //   ],
     //   [
-    //     [0, 1000],
-    //     [0, 500],
+    //     [0, this.option.width],
+    //     [0, this.option.height],
     //   ],
     //   [[1]]
     // ); // GPU will be faster
@@ -3354,6 +3347,7 @@ export default {
         .getElementById('hoverLayer')
         .getContext("2d");
     this.svg = d3.select(document.getElementById("axisHelper"));
+    this.svg.attr('viewBox', [0, 0, this.option.width, this.option.height]);
     this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
 
     const xAxis = d3.axisBottom(this.xScale);
@@ -3366,7 +3360,7 @@ export default {
     this.svg
         .append('g')
         .attr('id', 'xaxis')
-        .attr('transform', 'translate(50,520)')
+        .attr('transform', `translate(50,${this.option.height + 20})`)
         .call(xAxis);
     // svg.append("g").attr("transform", "translate(50,0)").call(yAxis);
     this.svg
