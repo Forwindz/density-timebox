@@ -20,8 +20,8 @@
       ></canvas>
       <canvas
           id="selectionCanvas"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
@@ -79,8 +79,8 @@
       ></canvas>
       <svg
           id="axisHelper"
-          :width="option.width + 50"
-          :height="option.height + 50"
+          :width="1050"
+          :height="550"
           style="
           position: absolute;
           left: -50px;
@@ -876,6 +876,9 @@ export default {
     },
   },
   methods: {
+    convertPoint(point) {
+      return [this.xScale(unobserve.screenXScale.invert(point[0])), this.yScale(unobserve.screenyScale.invert(point[1]))];
+    },
     inRadius(ids, point,  radius) {
       const r2 = radius * radius;
       return ids
@@ -947,7 +950,7 @@ export default {
     // event handler part
     canvasMousedown(e) {
       if (e.button === 2) return;
-      let startPoint = [e.offsetX, e.offsetY];
+      let startPoint = this.convertPoint([e.offsetX, e.offsetY]);
       let box = this.findBox(startPoint);
       if (box) {
         this.modify = box;
@@ -985,7 +988,7 @@ export default {
       } else if (this.filterMode === "attr") {
         return;
       } else {
-        const point = [e.offsetX, e.offsetY];
+        const point = this.convertPoint([e.offsetX, e.offsetY]);
         if (this.preview.type === "knn" || this.preview.type === "rnn") {
           this.preview.start = point;
         } else if (
@@ -1013,7 +1016,7 @@ export default {
     },
 
     canvasWheel(e) {
-      const pointer = [e.offsetX, e.offsetY];
+      const pointer = this.convertPoint([e.offsetX, e.offsetY]);
       const res = this.findBox(pointer);
       if (res) {
         e.preventDefault();
@@ -1042,7 +1045,7 @@ export default {
     },
 
     canvasMousemove(e) {
-      const point = [e.offsetX, e.offsetY];
+      const point = this.convertPoint([e.offsetX, e.offsetY]);
       this.renderAxisHelper(e);
       if (this.filterMode === 'hover') {
         this.initCanvas(unobserve.hoverLayer);
@@ -2316,10 +2319,11 @@ export default {
     },
 
     renderAxisHelper(e) {
+      console.log(e.offsetX, e.offsetY);
       const x = e.offsetX;
-      const y = !this.upsideDown ? this.option.height - e.offsetY : e.offsetY;
-      const oriX = this.xScale.invert(x);
-      const oriY = this.yScale.invert(this.option.height - y);
+      const y = !this.upsideDown ? unobserve.screenHeight - e.offsetY : e.offsetY;
+      const oriX = unobserve.screenXScale.invert(x);
+      const oriY = unobserve.screenyScale.invert(unobserve.screenHeight - y);
 
       const date =
           unobserve.inferX == "date"
@@ -2331,7 +2335,7 @@ export default {
       const fontWidth = enlargeFont ? 103 : 70;
       const fontHeight = enlargeFont ? 22 : 20;
       const heightInSvg = enlargeFont ? 18 : 12;
-      const option = this.option;
+      const option = {height: unobserve.screenHeight, width: unobserve.screenWidth};
       if (this.showCursorValue) {
         this.cursorHelper.selectAll("line").each(function (_, i) {
           d3.select(this)
@@ -2919,6 +2923,7 @@ export default {
     setReverseY() {
       console.log("before set", this.yScale.range());
       this.yScale.range(this.upsideDown ? [0, this.option.height] : [this.option.height, 0]);
+      unobserve.screenyScale.range(this.upsideDown ? [0, unobserve.screenHeight] : [unobserve.screenHeight, 0]);
       console.log("after set", this.yScale.range());
 
       const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
@@ -2948,7 +2953,7 @@ export default {
       this.svg
           .append('g')
           .attr('id', 'xaxis')
-          .attr('transform', `translate(50,${this.upsideDown ? 20 : this.option.height + 20})`)
+          .attr('transform', `translate(50,${this.upsideDown ? 20 : unobserve.screenHeight + 20})`)
           .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
     },
     getStaticInformation(ids) {
@@ -3214,8 +3219,11 @@ export default {
   mounted() {
     // change the canvas size
 
-    const width = this.option.width + 'px';
-    const height = this.option.height + 'px';
+    unobserve.screenWidth = 1000;
+    unobserve.screenHeight = 500;
+
+    const width = unobserve.screenWidth + 'px';
+    const height = unobserve.screenHeight + 'px';
     let elementIds = [
         'blank-div',
         'canvas',
@@ -3225,7 +3233,7 @@ export default {
         'raw_lines',
         'mouseLayer',
         'hoverLayer',
-        'axisHelper'
+        // 'axisHelper'
     ];
     for (let i of elementIds) {
       const ele = document.getElementById(i);
@@ -3287,10 +3295,11 @@ export default {
         .scaleLinear()
         .domain([minY, maxY])
         .range([this.option.height, 0]);
-    this.yScaleC = d3
-        .scaleLinear()
-        .domain([minY, maxY])
-        .range([this.option.height, 0]);
+    this.yScaleC = this.yScale.copy()
+
+    unobserve.screenXScale = this.xScale.copy().range([0, unobserve.screenWidth]);
+    unobserve.screenyScale = this.yScale.copy().range([unobserve.screenHeight, 0]);
+    unobserve.screenyScaleC = this.yScale.copy().range([unobserve.screenHeight, 0]);
 
     let result = data.map((line) => {
       let res = [];
@@ -3347,12 +3356,12 @@ export default {
         .getElementById('hoverLayer')
         .getContext("2d");
     this.svg = d3.select(document.getElementById("axisHelper"));
-    this.svg.attr('viewBox', [0, 0, this.option.width, this.option.height]);
+    // this.svg.attr('viewBox', [0, 0, this.option.width, this.option.height]);
     this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
 
-    const xAxis = d3.axisBottom(this.xScale);
-    const xAxisR = d3.axisTop(this.xScale);
-    const yAxis = d3.axisLeft(this.yScale);
+    const xAxis = d3.axisBottom(unobserve.screenXScale);
+    const xAxisR = d3.axisTop(unobserve.screenXScale);
+    const yAxis = d3.axisLeft(unobserve.screenyScale);
     unobserve.yAxis = yAxis;
     unobserve.xAxis = xAxis;
     unobserve.xAxisR = xAxisR;
@@ -3360,7 +3369,7 @@ export default {
     this.svg
         .append('g')
         .attr('id', 'xaxis')
-        .attr('transform', `translate(50,${this.option.height + 20})`)
+        .attr('transform', `translate(50,${unobserve.screenHeight + 20})`)
         .call(xAxis);
     // svg.append("g").attr("transform", "translate(50,0)").call(yAxis);
     this.svg

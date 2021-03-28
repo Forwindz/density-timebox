@@ -250,7 +250,7 @@
           <div v-else>
             <div
               style="min-height: 200px;color:red"
-              v-if="!chartConfigs.length || this.canvasWidth > 1000 || this.canvasWidth < 100 || this.canvasHeight > 500 || this.canvasHeight < 100"
+              v-if="!chartConfigs.length"
             >
               Please use a valid configuration in left panel!
             </div>
@@ -262,7 +262,11 @@
                       '#' +
                       config.timeName +
                       '#' +
-                      config.valueName
+                      config.valueName +
+                      '#' +
+                      width +
+                      '#' +
+                      height
                   "
                   :timeIndex="config.timeIndex"
                   :valueIndex="config.valueIndex"
@@ -270,7 +274,7 @@
                   :valueName="config.valueName"
                   :filter="config.filter"
                   :layers="layers"
-                  :option="{height:canvasHeight, width:canvasWidth}"
+                  :option="{height, width}"
                   @filterChange="handleFilterChange(i, $event)"
                 />
               </template>
@@ -310,6 +314,8 @@ export default {
     return {
       canvasWidth: 1000,
       canvasHeight: 500,
+      width: 1000,
+      height: 500,
       headers: [],
       inferTypes: [],
       aggregateAttr: 0,
@@ -409,6 +415,8 @@ export default {
       }
     },
     generateCharts() {
+      this.width = this.canvasWidth;
+      this.height = this.canvasHeight;
       this.$Spin.show();
       if (
         this.headers[this.aggregateAttr] !=
