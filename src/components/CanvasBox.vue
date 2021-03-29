@@ -2214,8 +2214,8 @@ export default {
                     }
                     if (lp) {
                       ang = Math.atan(
-                          (line[lp + 1].y - line[lp].y) /
-                          (line[lp + 1].x - line[lp].x)
+                          (line[lp - 1].y - line[lp].y) /
+                          (line[lp - 1].x - line[lp].x)
                       );
                       if (ang < angMin || ang > angMax) {
                         // console.log(tmpY);

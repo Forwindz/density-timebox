@@ -1054,12 +1054,10 @@ export function calculateDifference(line1, line2, diverse) {
       pos2++;
     }
     if (isNaN(sum)) {
-      console.log(line1[pos1], line2[pos2]);
+      // console.log(line1[pos1], line2[pos2]);
       return 0.001;
     }
   }
-
-  console.log(sum, cnt, sum / cnt);
 
   return cnt === 0 ? 0.0001 : sum / cnt;
   // return sum / cnt;
