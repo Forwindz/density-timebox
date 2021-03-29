@@ -187,8 +187,8 @@
             <Slider
                 v-model="diverse"
                 :min="0"
-                :max="1"
-                :step="0.002"
+                :max="maxDiverse"
+                :step="maxDiverse / 20"
                 show-tip="never"
                 style="flex-grow:1"
                 @on-change="cnt++"
@@ -531,6 +531,8 @@ export default {
       rawMode: "rep",
       repCount: 3,
       diverse: 0.1,
+      maxDiverse: 1.0,
+      calculatedMaxDiverse: false,
       cursor: "crosshair",
       mouseDown: false,
       listener: null,
@@ -691,8 +693,8 @@ export default {
         });
       }
 
-      console.log("this is unoberserve interResult");
-      console.log(unobserve.interResult);
+      // console.log("this is unoberserve interResult");
+      // console.log(unobserve.interResult);
       unobserve.interReps = this.calcRepLines(unobserve.interResult);
       res.push({
         _expanded: "$int" == this.selectedQuery,
@@ -881,8 +883,11 @@ export default {
     },
     inRadius(ids, point,  radius) {
       const r2 = radius * radius;
+      // const cache = new Set(this.getSelectedIds());
       return ids
           .filter(id => {
+            if (unobserve.cache && !unobserve.cache.has(id))
+              return false;
             const line = unobserve.result[id];
             let mx = Infinity;
             for (let i = 0; i < line.length - 1; i++) {
@@ -2303,14 +2308,17 @@ export default {
         this.renderResult([...result1], [...result2]);
       }
       console.time("begin calculate rep line and draw line");
-      this.drawLine(this.getSelectedIds());
+      const selectedIds = this.getSelectedIds();
+      unobserve.cache = new Set(selectedIds);
+      this.drawLine(selectedIds);
       console.timeEnd("begin calculate rep line and draw line");
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
 
       console.log("render boxes ended ==== \n\n");
     },
 
-    getSelectedIds() {
+    getSelectedIds(newValue) {
+      // v = newValue ? this.selectedQuery;
       return typeof this.selectedQuery === "number"
           ? [...unobserve.querys[this.selectedQuery].cache]
           : this.selectedQuery === "$int"
@@ -3026,7 +3034,8 @@ export default {
             id,
             w: this.calcLineWeight(id),
             cur: calculateCurvature(
-                unobserve.result[id].filter((point) =>
+                unobserve.result[id]
+                    .filter((point) =>
                     unobserve.querys.length <= 0 && !unobserve.preview
                         ? true
                         : (unobserve.preview
@@ -3065,6 +3074,11 @@ export default {
           .sort(
               (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
           );
+      // if (!this.calculatedMaxDiverse) {
+      //   this.maxDiverse = d3.max(lineWeights, line => d3.max(line.cur, d=>d.y));
+      //   console.log('calculated maxdiverse', this.maxDiverse, lineWeights);
+      //   this.calculatedMaxDiverse = true;
+      // }
       // const extend0 = d3.extent(lineWeights, d => d.cur[0]);
       // const extend1 = d3.extent(lineWeights, d => d.cur[1]);
       // const scale0 = d3.scaleLinear().domain(extend0).range([0, 1]);

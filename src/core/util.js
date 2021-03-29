@@ -994,13 +994,9 @@ export function calculateCurvature(points) {
   // let cnt = 0, curSum = 0, bendingEnergy = 0;
   let result = [];
   for (let i = 1; i < points.length - 1; i++) {
-    const step1 = points[i].x - points[i - 1].x,
-      step2 = points[i + 1].x - points[i].x,
-      step = Math.min(step1, step2),
-      slopeR =
-        (points[i + 1].x - points[i].x) / (points[i + 1].y - points[i].y),
-      slopeL =
-        (points[i].x - points[i - 1].x) / (points[i].y - points[i - 1].y);
+    const step1 = points[i].x - points[i - 1].x + 0.001,
+      step2 = points[i + 1].x - points[i].x + 0.001,
+      step = Math.min(step1, step2);
 
     let lstPoint = points[i - 1],
       nxtPoint = points[i + 1];
@@ -1011,6 +1007,9 @@ export function calculateCurvature(points) {
     }
     const f1 = (nxtPoint.y - lstPoint.y) / step;
     const f2 = (lstPoint.y - 2 * points[i].y + nxtPoint.y) / (step * step);
+    if (isNaN(f2)) {
+      console.log(step1, step2, points[i-1], points[i], points[i + 1])
+    }
     result.push({
       x: points[i].x,
       y: Math.abs(f2) / Math.pow(1 + f1 * f1, 1.5),
@@ -1054,7 +1053,13 @@ export function calculateDifference(line1, line2, diverse) {
       pos1++;
       pos2++;
     }
+    if (isNaN(sum)) {
+      console.log(line1[pos1], line2[pos2]);
+      return 0.001;
+    }
   }
+
+  console.log(sum, cnt, sum / cnt);
 
   return cnt === 0 ? 0.0001 : sum / cnt;
   // return sum / cnt;
