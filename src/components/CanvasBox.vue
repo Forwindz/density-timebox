@@ -17,6 +17,7 @@
           @mousemove="canvasMousemove"
           @wheel="canvasWheel"
           @contextmenu="mouseContextmenu"
+          @mouseleave="canvasMouseleave"
       ></canvas>
       <canvas
           id="selectionCanvas"
@@ -671,6 +672,7 @@ export default {
         knn: "KNN",
         rnn: "Radius",
         attr: "Attribute",
+        hover: 'Hover',
       };
       for (let i = 0; i < unobserve.querys.length; i++) {
         if (!unobserve.querys[i].reps)
@@ -841,6 +843,7 @@ export default {
       clearTimeout(unobserve.diverseChange);
       unobserve.diverseChange = setTimeout(() => {
         this.renderBoxes();
+        this.cnt++;
       }, 50);
       // this.drawLine();
     },
@@ -884,6 +887,7 @@ export default {
     inRadius(ids, point,  radius) {
       const r2 = radius * radius;
       // const cache = new Set(this.getSelectedIds());
+      console.log(unobserve.cache);
       return ids
           .filter(id => {
             if (unobserve.cache && !unobserve.cache.has(id))
@@ -952,10 +956,34 @@ export default {
       this.renderDensity();
     },
 
+    canvasMouseleave(e) {
+      if (this.filterMode === 'hover') {
+        this.initCanvas(unobserve.hoverLayer);
+      }
+    },
+
     // event handler part
     canvasMousedown(e) {
+      // if the wheel is clicked, ignore this event
       if (e.button === 2) return;
+
+      // the point represent current position
+      // convertion for convenient query
       let startPoint = this.convertPoint([e.offsetX, e.offsetY]);
+
+      // the query is added when in query mode
+      if (this.filterMode === 'hover') {
+        console.log(unobserve.querys);
+        unobserve.querys.push({
+          type: 'hover',
+          cache: unobserve.hoverCache,
+        });
+        this.renderBoxes();
+        this.cnt++;
+        console.log(unobserve.querys);
+        return;
+      }
+
       let box = this.findBox(startPoint);
       if (box) {
         this.modify = box;
@@ -1053,14 +1081,17 @@ export default {
       const point = this.convertPoint([e.offsetX, e.offsetY]);
       this.renderAxisHelper(e);
       if (this.filterMode === 'hover') {
-        this.initCanvas(unobserve.hoverLayer);
-        let radius = 5;
-        let res = [];
-        while (res.length === 0 && radius < 100) {
-          res = this.inRadius(this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]), point, 3);
-          radius *= 2;
-        }
-        this.drawLineWithLayer(res, unobserve.hoverLayer);
+        setTimeout(() => {
+          let radius = 5;
+          let res = [];
+          while (res.length === 0 && radius < 100) {
+            res = this.inRadius(this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]), point, 3);
+            radius *= 2;
+          }
+          this.initCanvas(unobserve.hoverLayer);
+          this.drawLineWithLayer(res, unobserve.hoverLayer);
+          unobserve.hoverCache = new Set(res);
+        }, 10)
         return;
       }
       if (!this.preview) {
@@ -2151,7 +2182,8 @@ export default {
                         lp = 0,
                         rp = r,
                         mid,
-                        tmpY;
+                        ang;
+                    if (line[l].x > maxX || line[r].x < minX) return false;
                     while (l <= r) {
                       mid = (l + r) >> 1;
                       if (line[mid].x >= minX) {
@@ -2159,7 +2191,6 @@ export default {
                         r = mid - 1;
                       } else l = mid + 1;
                     }
-
                     l = 0;
                     r = line.length - 1;
                     while (l <= r) {
@@ -2172,29 +2203,38 @@ export default {
                       }
                     }
                     // console.log(lp, rp);
-                    for (let i = lp; i <= rp; i++) {
-                      if (line[i].y < minY || line[i].y > maxY) {
+                    for (let i = lp; i < rp; i++) {
+                      ang = Math.atan(
+                          (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
+                      );
+                      if (ang < angMin || ang > angMax) {
                         // console.log(line[i]);
                         return false;
                       }
                     }
                     if (lp) {
-                      tmpY = mix(line[lp - 1], line[lp], minX).y;
-                      if (tmpY < minY || tmpY > maxY) {
+                      ang = Math.atan(
+                          (line[lp + 1].y - line[lp].y) /
+                          (line[lp + 1].x - line[lp].x)
+                      );
+                      if (ang < angMin || ang > angMax) {
                         // console.log(tmpY);
                         return false;
                       }
                     }
                     if (rp < line.length - 1) {
-                      tmpY = mix(line[rp], line[rp + 1], minX).y;
-                      if (tmpY < minY || tmpY > maxY) {
+                      ang = Math.atan(
+                          (line[rp + 1].y - line[rp].y) /
+                          (line[rp + 1].x - line[rp].x)
+                      );
+                      if (ang < angMin || ang > angMax) {
                         // console.log(tmpY);
                         return false;
                       }
                     }
                     return true;
                   })
-          );
+         );
           query.cache = result;
         }
       } else if (query.type === "attr") {
@@ -2309,7 +2349,7 @@ export default {
       }
       console.time("begin calculate rep line and draw line");
       const selectedIds = this.getSelectedIds();
-      unobserve.cache = new Set(selectedIds);
+      unobserve.cache = unobserve.querys.length ? new Set(selectedIds) : null;
       this.drawLine(selectedIds);
       console.timeEnd("begin calculate rep line and draw line");
       // this.drawLine(typeof this.selectedQuery === 'number' ? unobserve.querys[this.selectedQuery] : this.selectedQuery === '$int' ? unobserve.interResult : unobserve.unionResult);
