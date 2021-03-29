@@ -187,7 +187,7 @@
             <Slider
                 v-model="diverse"
                 :min="0"
-                :max="0.3"
+                :max="1"
                 :step="0.002"
                 show-tip="never"
                 style="flex-grow:1"
@@ -2319,7 +2319,6 @@ export default {
     },
 
     renderAxisHelper(e) {
-      console.log(e.offsetX, e.offsetY);
       const x = e.offsetX;
       const y = !this.upsideDown ? unobserve.screenHeight - e.offsetY : e.offsetY;
       const oriX = unobserve.screenXScale.invert(x);
@@ -2681,8 +2680,8 @@ export default {
       const ci = overlay
           ? this.colormapOverlayIndexCache
           : this.colormapIndexCache;
-      if (colorMapCache[ci]?.[Math.round(i * 100)]) {
-        return colorMapCache[ci][Math.round(i * 100)];
+      if (colorMapCache[ci]?.[Math.round(i * 10000)]) {
+        return colorMapCache[ci][Math.round(i * 10000)];
       }
       const colormap = this.getColorMap(overlay);
       const base = Math.floor(i * 10);
@@ -2695,7 +2694,7 @@ export default {
       if (!colorMapCache[ci]) {
         colorMapCache[ci] = {};
       }
-      colorMapCache[ci][Math.round(i * 100)] = result;
+      colorMapCache[ci][Math.round(i * 10000)] = result;
       return result;
     },
 
@@ -2811,13 +2810,14 @@ export default {
       const colorCache = {};
       for (let i = 0; i < this.option.width; i++) {
         for (let j = 0; j < this.option.height; j++) {
-          const ratio = Math.round((tempBuffer[i * this.option.height + j] / maxWeight) * 100);
+          const ratio = Math.round((tempBuffer[i * this.option.height + j] / maxWeight) * 10000);
           if (!colorCache[ratio]) {
-            colorCache[ratio] = this.rgb(ratio / 100);
+            colorCache[ratio] = this.rgb(ratio / 10000);
           }
           const color = colorCache[ratio];
           tempImageBuffer.set(color, (j * this.option.width + i) * 4);
           tempImageBuffer[(j * this.option.width + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          // if (pixelCache.length > 0 && ratio <= 0) console.log(weight, ratio, maxWeight);
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
@@ -2936,6 +2936,7 @@ export default {
         "rep_layer",
         "raw_lines",
         "mouseLayer",
+        "hoverLayer",
       ];
       for (let id of canvasList) {
         document.getElementById(id).style.transform = scaleY;
