@@ -20,7 +20,7 @@
               <MenuItem name="1-2">Airline(10.6MB)</MenuItem>
               <MenuItem name="1-3">Weather(29.6MB)</MenuItem>
               <MenuItem name="1-4">Reading(18.5MB)</MenuItem>
-              <MenuItem name="1-5">HardDrive(67.2MB)</MenuItem>
+              <MenuItem name="1-5">HardDrive(66.3MB)</MenuItem>
             </Submenu>
             <MenuItem name="2">
               <Icon type="ios-cloud-upload-outline"></Icon>
@@ -63,7 +63,7 @@
                   >Reading(18.5MB)</Button
                 >
                 <Button style="width: 200px" @click="eventHandler('1-5')"
-                  >HardDrive(67.2MB)</Button
+                  >HardDrive(66.3MB)</Button
                 >
               </div>
             </Poptip>
@@ -226,7 +226,7 @@
               type="primary"
               icon="ios-archive"
               style="margin:0 12px"
-              >Example HardDrive(67.2MB)
+              >Example HardDrive(66.3MB)
             </Button>
             <Button
               @click="eventHandler('2')"
