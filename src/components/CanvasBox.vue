@@ -3056,50 +3056,15 @@ export default {
     },
 
     calcRepLines(ids) {
+      console.time('calc line weight')
       const lineCount = this.repCount;
       const lineWeights = ids
           .map((id) => ({
             id,
             w: this.calcLineWeight(id),
-            cur: calculateCurvature(
-                unobserve.result[id]
-                    .filter((point) =>
-                    unobserve.querys.length <= 0 && !unobserve.preview
-                        ? true
-                        : (unobserve.preview
-                            ? [unobserve.preview]
-                            : unobserve.querys
-                        ).find((query) => {
-                          if (query.type === "knn") {
-                            return true; // TODO: only line in knn
-                          } else if (query.type === "rnn") {
-                            return (
-                                Math.sqrt(
-                                    Math.pow(point.x - query.start[0], 2) +
-                                    Math.pow(point.y - query.start[1], 2)
-                                ) <= query.n
-                            );
-                          } else if (query.type === "brush") {
-                            const startX = Math.min(query.start[0], query.end[0]);
-                            const startY = Math.min(query.start[1], query.end[1]);
-                            const endX = Math.max(query.start[0], query.end[0]);
-                            const endY = Math.max(query.start[1], query.end[1]);
-                            return (
-                                point.x >= startX &&
-                                point.y >= startY &&
-                                point.x <= endX &&
-                                point.y <= endY
-                            );
-                          } else if (query.type === "ang") {
-                            const startX = Math.min(query.start[0], query.end[0]);
-                            const endX = Math.max(query.start[0], query.end[0]);
-                            return point.x >= startX && point.x <= endX;
-                          }
-                        })
-                )
-            ),
           }))
-          .sort(
+      console.timeEnd('calc line weight')
+      lineWeights.sort(
               (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
           );
       // if (!this.calculatedMaxDiverse) {
@@ -3123,11 +3088,50 @@ export default {
                 //   p.push(v);
                 //   return p;
                 // }
+                
                 if (
                     p.length >= lineCount ||
-                    v.w[1] < this.option.width / 3 ||
-                    p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-                ) {
+                    v.w[1] < this.option.width / 3) {
+                  return p;
+                } 
+                v.cur = calculateCurvature(
+                    unobserve.result[v.id]
+                        .filter((point) =>
+                        unobserve.querys.length <= 0 && !unobserve.preview
+                            ? true
+                            : (unobserve.preview
+                                ? [unobserve.preview]
+                                : unobserve.querys
+                            ).find((query) => {
+                              if (query.type === "knn") {
+                                return true; // TODO: only line in knn
+                              } else if (query.type === "rnn") {
+                                return (
+                                    Math.sqrt(
+                                        Math.pow(point.x - query.start[0], 2) +
+                                        Math.pow(point.y - query.start[1], 2)
+                                    ) <= query.n
+                                );
+                              } else if (query.type === "brush") {
+                                const startX = Math.min(query.start[0], query.end[0]);
+                                const startY = Math.min(query.start[1], query.end[1]);
+                                const endX = Math.max(query.start[0], query.end[0]);
+                                const endY = Math.max(query.start[1], query.end[1]);
+                                return (
+                                    point.x >= startX &&
+                                    point.y >= startY &&
+                                    point.x <= endX &&
+                                    point.y <= endY
+                                );
+                              } else if (query.type === "ang") {
+                                const startX = Math.min(query.start[0], query.end[0]);
+                                const endX = Math.max(query.start[0], query.end[0]);
+                                return point.x >= startX && point.x <= endX;
+                              }
+                            })
+                    )
+                );
+                if(p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)) {
                   return p;
                 }
                 p.push(v);
@@ -3190,6 +3194,9 @@ export default {
           ]);
       // if (unobserve.weightCache[id] !== undefined && !hasBrush) return unobserve.weightCache[id];
       const line = unobserve.result[id];
+      const width = this.option.width;
+      const height = this.option.height;
+      const cache = this.initDensityBufferCache;
 
       for (let i = 0; i < line.length - 1; i++) {
         let xx = Math.floor(line[i + 1].x);
@@ -3215,11 +3222,11 @@ export default {
                       (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
                   )) &&
               x1 >= 0 &&
-              x1 < this.option.width &&
+              x1 < width &&
               y1 >= 0 &&
-              y1 < this.option.height
+              y1 < height
           ) {
-            weight += this.initDensityBufferCache[x1 * this.option.height + y1];
+            weight += cache[x1 * height + y1];
             passedPixels++;
             if (x1 !== px) {
               px = x1;
@@ -3380,6 +3387,7 @@ export default {
 
     this.tr = {}; // Avoid tracking properties in tree
     this.tr.ee = new KDTree(result);
+    console.log(this.tr.ee);
     // this.tr.ee.buildKDTree();
 
     // tree.render(

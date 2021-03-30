@@ -255,51 +255,53 @@ export default class CCHTree {
       // const startDim = 0;
       // const endDim = 2;
 
-      for (let dimIndex = startDim; dimIndex <= endDim; dimIndex++) {
-        if (delta[dim2xyz(dim)] < kdparam.r * 2) {
-          continue;
-        }
-        dim = dimIndex;
-
-        let candidates = [];
-        // let totalWeight = 0;
-        for (let ci of si[0]) {
-          for (let i = ci.from + 1; i < ci.to; i++) {
-            const candidatePos = tsrd.pos[i][dim2xyz(dim)] ?? 0;
-            // candidates.push([candidatePos, weights[i]]);
-            candidates.push([candidatePos]);
-            // totalWeight += weights[i];
+      if(level < 10){
+        for (let dimIndex = startDim; dimIndex <= endDim; dimIndex++) {
+          if (delta[dim2xyz(dim)] < kdparam.r * 2) {
+            continue;
           }
-          let cpos1 = tsrd.pos[ci.from][dim2xyz(dim)] ?? 0;
-          let cpos2 = tsrd.pos[ci.to][dim2xyz(dim)] ?? 0;
-          // candidates.push([cpos1, defaultWeight + weights[ci.from]]);
-          // candidates.push([cpos2, defaultWeight + weights[ci.to]]);
-          candidates.push([cpos1]);
-          candidates.push([cpos2]);
-          // totalWeight += defaultWeight * 2;
-        }
+          dim = dimIndex;
 
-        expectPos = getMidWeightedVal(candidates, 0.5);
+          let candidates = [];
+          // let totalWeight = 0;
+          for (let ci of si[0]) {
+            for (let i = ci.from + 1; i < ci.to; i++) {
+              const candidatePos = tsrd.pos[i][dim2xyz(dim)] ?? 0;
+              // candidates.push([candidatePos, weights[i]]);
+              candidates.push([candidatePos]);
+              // totalWeight += weights[i];
+            }
+            let cpos1 = tsrd.pos[ci.from][dim2xyz(dim)] ?? 0;
+            let cpos2 = tsrd.pos[ci.to][dim2xyz(dim)] ?? 0;
+            // candidates.push([cpos1, defaultWeight + weights[ci.from]]);
+            // candidates.push([cpos2, defaultWeight + weights[ci.to]]);
+            candidates.push([cpos1]);
+            candidates.push([cpos2]);
+            // totalWeight += defaultWeight * 2;
+          }
 
-        leftResult = [];
-        rightResult = [];
-        splitCurves(dim, expectPos, si[0], leftResult, rightResult, tsrd);
-        const leftC2 = countSegs(leftResult);
-        const rightC2 = countSegs(rightResult);
-        const leftCurveCount = leftResult.length;
-        const rightCurveCount = rightResult.length;
-        const p = (expectPos - minv[dim2xyz(dim)]) / delta[dim2xyz(dim)];
-        const cost = computeCost(leftC2, rightC2, allc2, p, 0, 0);
+          expectPos = getMidWeightedVal(candidates, 0.5);
 
-        if (
-          cost < allc2 &&
-          leftCurveCount >= kdparam.k &&
-          rightCurveCount >= kdparam.k &&
-          delta[dim2xyz(dim)] * p > kdparam.r &&
-          delta[dim2xyz(dim)] * (1 - p) > kdparam.r
-        ) {
-          pass = true;
-          break;
+          leftResult = [];
+          rightResult = [];
+          splitCurves(dim, expectPos, si[0], leftResult, rightResult, tsrd);
+          const leftC2 = countSegs(leftResult);
+          const rightC2 = countSegs(rightResult);
+          const leftCurveCount = leftResult.length;
+          const rightCurveCount = rightResult.length;
+          const p = (expectPos - minv[dim2xyz(dim)]) / delta[dim2xyz(dim)];
+          const cost = computeCost(leftC2, rightC2, allc2, p, 0, 0);
+
+          if (
+            cost < allc2 &&
+            leftCurveCount >= kdparam.k &&
+            rightCurveCount >= kdparam.k &&
+            delta[dim2xyz(dim)] * p > kdparam.r &&
+            delta[dim2xyz(dim)] * (1 - p) > kdparam.r
+          ) {
+            pass = true;
+            break;
+          }
         }
       }
 
