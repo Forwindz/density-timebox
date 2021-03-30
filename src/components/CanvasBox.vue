@@ -3382,6 +3382,7 @@ export default {
 
     this.tr = {}; // Avoid tracking properties in tree
     this.tr.ee = new KDTree(result);
+    console.log(this.tr.ee);
     // this.tr.ee.buildKDTree();
 
     // tree.render(
