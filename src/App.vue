@@ -119,6 +119,17 @@
             </Select>
             <br />
             <br />
+            <div style="margin-bottom: 20px">
+              <InputNumber
+                  v-model="canvasWidth"
+              >
+              </InputNumber>
+              <Icon type="ios-close"></Icon>
+              <InputNumber
+                  v-model="canvasHeight"
+              >
+              </InputNumber>
+            </div>
             <Button
               @click="generateCharts"
               type="primary"
@@ -251,7 +262,11 @@
                       '#' +
                       config.timeName +
                       '#' +
-                      config.valueName
+                      config.valueName +
+                      '#' +
+                      width +
+                      '#' +
+                      height
                   "
                   :timeIndex="config.timeIndex"
                   :valueIndex="config.valueIndex"
@@ -259,6 +274,7 @@
                   :valueName="config.valueName"
                   :filter="config.filter"
                   :layers="layers"
+                  :option="{height, width}"
                   @filterChange="handleFilterChange(i, $event)"
                 />
               </template>
@@ -296,6 +312,10 @@ export default {
   },
   data() {
     return {
+      canvasWidth: 1000,
+      canvasHeight: 500,
+      width: 1000,
+      height: 500,
       headers: [],
       inferTypes: [],
       aggregateAttr: 0,
@@ -395,6 +415,8 @@ export default {
       }
     },
     generateCharts() {
+      this.width = this.canvasWidth;
+      this.height = this.canvasHeight;
       this.$Spin.show();
       if (
         this.headers[this.aggregateAttr] !=
@@ -544,6 +566,7 @@ export default {
   position: relative;
   left: 20px;
   color: white;
+  z-index: 999;
 }
 
 .layout-nav {
