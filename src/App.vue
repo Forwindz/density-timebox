@@ -119,6 +119,7 @@
             </Select>
             <br />
             <br />
+            <p>Resolution:</p>
             <div style="margin-bottom: 20px">
               <InputNumber
                   v-model="canvasWidth"
