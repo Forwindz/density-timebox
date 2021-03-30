@@ -1918,7 +1918,6 @@ export default {
         // } else {
         const st = this.reconvertPoint(query.start);
         const ed = this.reconvertPoint(query.end);
-        console.log('this is st and ed', st, ed, query.start, this.xScale.invert(query.start[0]));
         unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.fillRect(
             ...st.map((v, i) => Math.min(v, ed[i])),
@@ -3163,6 +3162,7 @@ export default {
       }
       if (!this.preview) {
         this.drawLineWithLayer(ids, unobserve.selectionLayerContext);
+        unobserve.selectedLines = ids;
       }
 
       // REP PART =====================
@@ -3178,6 +3178,7 @@ export default {
         unobserve.globalRep = topIds;
       }
       this.drawLineWithLayer(topIds, unobserve.repLayerContext);
+      unobserve.repIds = topIds;
     },
     calcLineWeight(id) {
       let weight = 0;
