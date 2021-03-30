@@ -43,9 +43,6 @@ export default {
       ],
     };
   },
-  mounted() {
-    console.log('this is rows', this.row);
-  },
   methods: {
     showData(row) {
       const aggIndex = unobserve.headers.indexOf(unobserve.aggregateName);
@@ -100,7 +97,7 @@ export default {
           .attr(
             'd',
             d3.line()(
-              unobserve.result[row.id].map(({ x, y }) => [
+              unobserve.screenResult[row.id].map(({ x, y }) => [
                 x,
                 unobserve.upsideDown ? 500 - y : y,
               ])

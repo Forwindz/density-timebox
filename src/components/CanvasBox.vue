@@ -21,15 +21,15 @@
       ></canvas>
       <canvas
           id="selectionCanvas"
-          :width="option.width"
-          :height="option.height"
+          width="1000"
+          height="500"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
           id="selectionLayer"
-          :width="option.width"
-          :height="option.height"
+          width="1000"
+          height="500"
           style="
           transform: scaleY(1);
           position: absolute;
@@ -40,22 +40,22 @@
       ></canvas>
       <canvas
           id="rep_layer"
-          :width="option.width"
-          :height="option.height"
+          width="1000"
+          height="500"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
           id="raw_lines"
-          :width="option.width"
-          :height="option.height"
+          width="1000"
+          height="500"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
           id="mouseLayer"
-          :width="option.width"
-          :height="option.height"
+          width="1000"
+          height="500"
           style="
           transform: scaleY(1);
           position: absolute;
@@ -67,8 +67,8 @@
       ></canvas>
       <canvas
           id="hoverLayer"
-          :width="option.width"
-          :height="option.height"
+          width="1000"
+          height="500"
           style="
           transform: scaleY(1);
           position: absolute;
@@ -737,8 +737,6 @@ export default {
           }),
         });
       }
-      console.log(res);
-
       return res;
     },
   },
@@ -882,15 +880,18 @@ export default {
   },
   methods: {
     convertPoint(point) {
-      return [this.xScale(unobserve.screenXScale.invert(point[0])), this.yScale(unobserve.screenyScale.invert(point[1]))];
+      return [this.xScale(unobserve.axisXScle.invert(point[0])), this.yScale(unobserve.screenyScale.invert(point[1]))];
     },
-    inRadius(ids, point,  radius) {
+    reconvertPoint(point) {
+      return [unobserve.axisXScle(this.xScale.invert(point[0])), unobserve.screenyScale(this.yScale.invert(point[1]))];
+    },
+    inRadius(ids, point,  radius, inCurrent = false) {
       const r2 = radius * radius;
       // const cache = new Set(this.getSelectedIds());
       console.log(unobserve.cache);
       return ids
           .filter(id => {
-            if (unobserve.cache && !unobserve.cache.has(id))
+            if (inCurrent && unobserve.cache && !unobserve.cache.has(id))
               return false;
             const line = unobserve.result[id];
             let mx = Infinity;
@@ -970,6 +971,7 @@ export default {
       // the point represent current position
       // convertion for convenient query
       let startPoint = this.convertPoint([e.offsetX, e.offsetY]);
+      let screenPoint = [e.offsetX, e.offsetY];
 
       // the query is added when in query mode
       if (this.filterMode === 'hover') {
@@ -1071,9 +1073,8 @@ export default {
         clearTimeout(unobserve.async);
         unobserve.async = setTimeout(() => {
           this.renderBoxes();
+          this.cnt++;
         }, 10);
-        // this.renderBoxes();
-        this.cnt++;
       }
     },
 
@@ -1085,7 +1086,7 @@ export default {
           let radius = 5;
           let res = [];
           while (res.length === 0 && radius < 100) {
-            res = this.inRadius(this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]), point, 3);
+            res = this.inRadius(this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]), point, 3, true);
             radius *= 2;
           }
           this.initCanvas(unobserve.hoverLayer);
@@ -1635,24 +1636,11 @@ export default {
     drawRawLines() {
       const shuffle = unobserve.result
           .slice()
-          .map((line, id) => ({line, id}));
+          .map((_, id) => id);
+
       shuffle.sort(() => (Math.random() > 0.5 ? 1 : -1));
-      for (let sid in shuffle) {
-        const {line, id} = shuffle[sid];
-        unobserve.rawLinesLayerContext.strokeStyle = `rgb(${this.getColor(
-            id
-        ).join(",")})`;
-        unobserve.rawLinesLayerContext.beginPath();
-        // for (let seg of line) {
-        //   unobserve.rawLinesLayerContext.moveTo(seg[0].x, seg[0].y);
-        //   unobserve.rawLinesLayerContext.lineTo(seg[1].x, seg[1].y);
-        // }
-        unobserve.rawLinesLayerContext.moveTo(line[0].x, line[0].y);
-        for (let point of line) {
-          unobserve.rawLinesLayerContext.lineTo(point.x, point.y);
-        }
-        unobserve.rawLinesLayerContext.stroke();
-      }
+
+      this.drawLineWithLayer(shuffle, unobserve.rawLinesLayerContext);
     },
 
     renderQuerys() {
@@ -1883,9 +1871,12 @@ export default {
     },
 
     renderBox(query) {
+      const st = query.start && this.reconvertPoint(query.start);
+      const ed = query.end && this.reconvertPoint(query.end);
+
       if (query.type === "knn") {
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
+        unobserve.mouseLayerContext.arc(...this.reconvertPoint(query.start), 6, 0, 2 * Math.PI);
         unobserve.mouseLayerContext.fillStyle = "deepskyblue";
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
@@ -1902,7 +1893,7 @@ export default {
       } else if (query.type === "rnn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
-            ...query.start,
+            ...st,
             query.n,
             0,
             2 * Math.PI
@@ -1911,7 +1902,7 @@ export default {
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-              this.inRadius( this.tr.ee.rnn(query.start, query.n * 2+ 5).map(({id}) => id), query.start, query.n)
+              this.inRadius( this.tr.ee.rnn(query.start, query.n).map(({id}) => id), query.start, query.n)
           );
           query.cache = result;
         }
@@ -1925,10 +1916,13 @@ export default {
         //       ...query.end.map((v, i) => Math.abs(v - query.start[i]))
         //   );
         // } else {
+        const st = this.reconvertPoint(query.start);
+        const ed = this.reconvertPoint(query.end);
+        console.log('this is st and ed', st, ed, query.start, this.xScale.invert(query.start[0]));
         unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.fillRect(
-            ...query.start.map((v, i) => Math.min(v, query.end[i])),
-            ...query.end.map((v, i) => Math.abs(v - query.start[i]))
+            ...st.map((v, i) => Math.min(v, ed[i])),
+            ...ed.map((v, i) => Math.abs(v - st[i]))
         );
         // }
         if (!query.cache) {
@@ -2107,59 +2101,32 @@ export default {
                         )
                 )
                 .forEach(({raw}) => result.delete(raw[5]));
-            // this.tr.ee
-            //     .brush(
-            //         [
-            //           Math.min(query.start[0], query.end[0]),
-            // Math.max(query.start[1], query.end[1]),
-            // ],
-            // [
-            //   Math.max(query.start[0], query.end[0]),
-            //   Math.max(query.start[1], query.end[1]) + 1,
-            // ]
-            // )
-            // .filter(({raw}) =>
-            //     lineRectCollide(
-            //         {
-            //           x1: raw[0],
-            //           x2: raw[1],
-            //           y1: raw[2],
-            //           y2: raw[3],
-            //         },
-            //         {
-            //           x: Math.min(query.start[0], query.end[0]),
-            //           y: Math.min(query.start[1], query.end[1]),
-            //           width: Math.abs(query.start[0] - query.end[0]),
-            //           height: Math.abs(query.start[1] - query.end[1]),
-            //         }
-            //     )
-            // )
-            // .forEach(({raw}) => result1.delete(raw[5]));
+
             query.cache = result;
           }
         }
       } else if (query.type === "ang") {
-        const endX = Math.max(query.start[0] + 1, query.end[0]);
-        const minX = query.start[0],
+        let endX = Math.max(st[0] + 1, ed[0]);
+        let minX = st[0],
             maxX = endX;
-        const slopeBase =
-            (query.end[1] - query.start[1]) / (endX - query.start[0]);
-        const angBase = Math.atan(slopeBase);
-        const angMax = Math.min(
+        let slopeBase =
+            (ed[1] - st[1]) / (endX - st[0]);
+        let angBase = Math.atan(slopeBase);
+        let angMax = Math.min(
             (1 / 2) * Math.PI - 0.0001,
             angBase + (query.n / 180) * Math.PI
         );
-        const angMin = Math.max(
+        let angMin = Math.max(
             -(1 / 2) * Math.PI + 0.0001,
             angBase - (query.n / 180) * Math.PI
         );
-        const slopeMax = Math.tan(angMax);
-        const slopeMin = Math.tan(angMin);
-        const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
-        const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
+        let slopeMax = Math.tan(angMax);
+        let slopeMin = Math.tan(angMin);
+        let endYMax = st[1] + slopeMax * (endX - st[0]);
+        let endYMin = st[1] + slopeMin * (endX - st[0]);
         unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
+        unobserve.mouseLayerContext.moveTo(st[0], st[1]);
         unobserve.mouseLayerContext.lineTo(endX, endYMin);
         unobserve.mouseLayerContext.lineTo(endX, endYMax);
         unobserve.mouseLayerContext.closePath();
@@ -2167,9 +2134,28 @@ export default {
         unobserve.mouseLayerContext.lineWidth = 1;
         unobserve.mouseLayerContext.strokeStyle = "black";
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
-        unobserve.mouseLayerContext.lineTo(endX, query.end[1]);
+        unobserve.mouseLayerContext.moveTo(st[0], st[1]);
+        unobserve.mouseLayerContext.lineTo(endX, ed[1]);
         unobserve.mouseLayerContext.stroke();
+
+        endX = Math.max(query.start[0] + 1, query.end[0]);
+        minX = query.start[0];
+        maxX = endX;
+        slopeBase =
+            (query.end[1] - query.start[1]) / (endX - query.start[0]);
+        angBase = Math.atan(slopeBase);
+        angMax = Math.min(
+            (1 / 2) * Math.PI - 0.0001,
+            angBase + (query.n / 180) * Math.PI
+        );
+        angMin = Math.max(
+            -(1 / 2) * Math.PI + 0.0001,
+            angBase - (query.n / 180) * Math.PI
+        );
+        slopeMax = Math.tan(angMax);
+        slopeMin = Math.tan(angMin);
+        endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
+        endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
         if (!query.cache) {
           const result = new Set(
               this.tr.ee
@@ -2256,15 +2242,17 @@ export default {
 
     hoverBox(query) {
       unobserve.mouseLayerContext.lineWidth = 2;
+      const st = query.start && this.reconvertPoint(query.start);
+      const ed = query.end && this.reconvertPoint(query.end);
       if (query.type === "knn") {
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(...query.start, 6, 0, 2 * Math.PI);
+        unobserve.mouseLayerContext.arc(...this.reconvertPoint(query.start), 6, 0, 2 * Math.PI);
         unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.stroke();
       } else if (query.type === "rnn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
-            ...query.start,
+            ...this.reconvertPoint(query.start),
             query.n,
             0,
             2 * Math.PI
@@ -2274,13 +2262,13 @@ export default {
       } else if (query.type === "brush") {
         unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.strokeRect(
-            ...query.start.map((v, i) => Math.min(v, query.end[i])),
-            ...query.end.map((v, i) => Math.abs(v - query.start[i]))
+            ...st.map((v, i) => Math.min(v, ed[i])),
+            ...ed.map((v, i) => Math.abs(v - st[i]))
         );
       } else if (query.type === "ang") {
-        const endX = Math.max(query.start[0] + 1, query.end[0]);
+        const endX = Math.max(st[0] + 1, ed[0]);
         const slopeBase =
-            (query.end[1] - query.start[1]) / (endX - query.start[0]);
+            (ed[1] - st[1]) / (endX - st[0]);
         const angBase = Math.atan(slopeBase);
         const angMax = Math.min(
             (1 / 2) * Math.PI - 0.0001,
@@ -2292,11 +2280,11 @@ export default {
         );
         const slopeMax = Math.tan(angMax);
         const slopeMin = Math.tan(angMin);
-        const endYMax = query.start[1] + slopeMax * (endX - query.start[0]);
-        const endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
+        const endYMax = st[1] + slopeMax * (endX - st[0]);
+        const endYMin = st[1] + slopeMin * (endX - st[0]);
         unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.moveTo(query.start[0], query.start[1]);
+        unobserve.mouseLayerContext.moveTo(st[0], st[1]);
         unobserve.mouseLayerContext.lineTo(endX, endYMin);
         unobserve.mouseLayerContext.lineTo(endX, endYMax);
         unobserve.mouseLayerContext.closePath();
@@ -2310,10 +2298,12 @@ export default {
             .getContext("2d");
       if (!context)
         return;
+      const width = Math.max(this.option.width, unobserve.screenWidth);
+      const height = Math.max(this.option.height, unobserve.screenHeight);
       context.fillStyle = "black";
       context.globalAlpha = 1;
-      context.fillRect(0, 0, this.option.width, this.option.height);
-      context.clearRect(0, 0, this.option.width, this.option.height);
+      context.fillRect(0, 0, width, height);
+      context.clearRect(0, 0, width, height);
     },
 
     renderBoxes(type = "all") {
@@ -2324,9 +2314,7 @@ export default {
         tmpQueries.push(this.preview);
         // drawLine([...preview.cache]);
       }
-      console.time("update brush");
       tmpQueries.forEach(this.renderBox);
-      console.timeEnd("update brush");
 
       if (type === "mouseLayer") return;
 
@@ -2369,7 +2357,7 @@ export default {
     renderAxisHelper(e) {
       const x = e.offsetX;
       const y = !this.upsideDown ? unobserve.screenHeight - e.offsetY : e.offsetY;
-      const oriX = unobserve.screenXScale.invert(x);
+      const oriX = unobserve.axisXScle.invert(x);
       const oriY = unobserve.screenyScale.invert(unobserve.screenHeight - y);
 
       const date =
@@ -3128,9 +3116,6 @@ export default {
       //   d.cur[0] = scale0(d.cur[0]);
       //   d.cur[1] = scale1(d.cur[1]);
       // })
-      console.log("this is line weight");
-      console.log(lineWeights);
-
       return (
           lineWeights
               .reduce((p, v) => {
@@ -3153,8 +3138,11 @@ export default {
       );
     },
     drawLineWithLayer(ids, layer) {
+      const width = Math.max(1, unobserve.screenHeight /  this.option.height);
+      layer.lineWidth = width;
       for (let id of ids) {
-        const line = unobserve.result[id];
+        const line = unobserve.screenResult[id];
+        // console.log(JSON.stringify(line), JSON.stringify(unobserve.screenResult[id]));
         layer.strokeStyle = `rgb(${this.getColor(id).join(',')})`;
         layer.beginPath();
         layer.moveTo(line[0].x, line[0].y);
@@ -3258,7 +3246,6 @@ export default {
       weight /= passedPixels;
 
       if (!isFinite(weight) || isNaN(weight)) {
-        console.log(weight, passedPixels, oldWeight);
         weight = 0.00001;
       }
 
@@ -3282,12 +3269,12 @@ export default {
     let elementIds = [
         'blank-div',
         'canvas',
-        'selectionCanvas',
-        'selectionLayer',
-        'rep_layer',
-        'raw_lines',
-        'mouseLayer',
-        'hoverLayer',
+        // 'selectionCanvas',
+        // 'selectionLayer',
+        // 'rep_layer',
+        // 'raw_lines',
+        // 'mouseLayer',
+        // 'hoverLayer',
         // 'axisHelper'
     ];
     for (let i of elementIds) {
@@ -3352,13 +3339,18 @@ export default {
         .range([this.option.height, 0]);
     this.yScaleC = this.yScale.copy()
 
-    unobserve.screenXScale = this.xScale.copy().range([0, unobserve.screenWidth]);
+    unobserve.screenXScale = xScaleData.copy().range([0, unobserve.screenWidth]);
+    unobserve.axisXScle = this.xScale.copy().range([0, unobserve.screenWidth]);
     unobserve.screenyScale = this.yScale.copy().range([unobserve.screenHeight, 0]);
     unobserve.screenyScaleC = this.yScale.copy().range([unobserve.screenHeight, 0]);
+
+    const conversion = [];
+    const conversion2 = [];
 
     let result = data.map((line) => {
       let res = [];
       line[this.timeIndex].forEach((d, i) => {
+        conversion2.push([d, xScaleData(d)]);
         res.push({
           x: xScaleData(d),
           y: this.yScale(line[this.valueIndex][i]),
@@ -3366,7 +3358,20 @@ export default {
       });
       return res;
     });
+
+    let screenResult = data.map((line) => {
+      const res = []
+      line[this.timeIndex].forEach((d, i) => {
+        conversion.push([d, unobserve.screenXScale(d)]);
+        res.push({
+          x: unobserve.screenXScale(d),
+          y: unobserve.screenyScale(line[this.valueIndex][i]),
+        });
+      });
+      return res;
+    });
     unobserve.result = result;
+    unobserve.screenResult = screenResult;
     let drawMode = "all";
     let reverseY = false;
     //#endregion
