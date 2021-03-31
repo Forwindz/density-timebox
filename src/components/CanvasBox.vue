@@ -21,8 +21,8 @@
       ></canvas>
       <canvas
           id="selectionCanvas"
-          width="1000"
-          height="500"
+          :width="option.width"
+          :height="option.height"
           style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
@@ -888,12 +888,13 @@ export default {
     inRadius(ids, point,  radius, inCurrent = false) {
       const r2 = radius * radius;
       // const cache = new Set(this.getSelectedIds());
+      point = this.reconvertPoint(point);
       console.log(unobserve.cache);
       return ids
           .filter(id => {
             if (inCurrent && unobserve.cache && !unobserve.cache.has(id))
               return false;
-            const line = unobserve.result[id];
+            const line = unobserve.screenResult[id];
             let mx = Infinity;
             for (let i = 0; i < line.length - 1; i++) {
               let dis = distToSegmentSquared(point, [line[i].x, line[i].y], [line[i+1].x, line[i+1].y]);
@@ -959,7 +960,10 @@ export default {
 
     canvasMouseleave(e) {
       if (this.filterMode === 'hover') {
-        this.initCanvas(unobserve.hoverLayer);
+        setTimeout(() => {
+          clearTimeout(unobserve.hoverEvent);
+          this.initCanvas(unobserve.hoverLayer);
+        }, 100);
       }
     },
 
@@ -1082,7 +1086,7 @@ export default {
       const point = this.convertPoint([e.offsetX, e.offsetY]);
       this.renderAxisHelper(e);
       if (this.filterMode === 'hover') {
-        setTimeout(() => {
+        unobserve.hoverEvent = setTimeout(() => {
           let radius = 5;
           let res = [];
           while (res.length === 0 && radius < 100) {
@@ -1090,7 +1094,8 @@ export default {
             radius *= 2;
           }
           this.initCanvas(unobserve.hoverLayer);
-          this.drawLineWithLayer(res, unobserve.hoverLayer);
+          if(unobserve.hoverEvent)
+            this.drawLineWithLayer(res, unobserve.hoverLayer);
           unobserve.hoverCache = new Set(res);
         }, 10)
         return;
@@ -2161,7 +2166,7 @@ export default {
                   .angular([query.start[0], slopeMin], [endX, slopeMax])
                   .filter((id) => {
                     // return true;
-                    const line = unobserve.result[id];
+                    const line = unobserve.screenResult[id];
                     let l = 0,
                         r = line.length - 1,
                         lp = 0,
@@ -3089,8 +3094,7 @@ export default {
                 // }
                 
                 if (
-                    p.length >= lineCount ||
-                    v.w[1] < this.option.width / 3) {
+                    p.length >= lineCount) {
                   return p;
                 } 
                 v.cur = calculateCurvature(
@@ -3141,7 +3145,7 @@ export default {
       );
     },
     drawLineWithLayer(ids, layer) {
-      const width = Math.max(1, unobserve.screenHeight /  this.option.height);
+      const width = Math.min(Math.max(1, unobserve.screenHeight /  this.option.height), 5);
       layer.lineWidth = width;
       for (let id of ids) {
         const line = unobserve.screenResult[id];
@@ -3277,7 +3281,7 @@ export default {
     let elementIds = [
         'blank-div',
         'canvas',
-        // 'selectionCanvas',
+        'selectionCanvas',
         // 'selectionLayer',
         // 'rep_layer',
         // 'raw_lines',
@@ -3428,8 +3432,8 @@ export default {
     // this.svg.attr('viewBox', [0, 0, this.option.width, this.option.height]);
     this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
 
-    const xAxis = d3.axisBottom(unobserve.screenXScale);
-    const xAxisR = d3.axisTop(unobserve.screenXScale);
+    const xAxis = d3.axisBottom(unobserve.axisXScle);
+    const xAxisR = d3.axisTop(unobserve.axisXScle);
     const yAxis = d3.axisLeft(unobserve.screenyScale);
     unobserve.yAxis = yAxis;
     unobserve.xAxis = xAxis;
