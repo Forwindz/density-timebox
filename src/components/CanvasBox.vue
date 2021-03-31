@@ -609,8 +609,8 @@ export default {
           opacity: 0,
         },
       ],
-      colormapIndexCache: 1,
-      colormapOverlayIndexCache: 1,
+      colormapIndexCache: 17,
+      colormapOverlayIndexCache: 20,
       initDensityCache: null,
       initDensityBufferCache: null,
       initDensityMaxCache: 0,
@@ -3459,7 +3459,7 @@ export default {
     this.rearrangeLayer(this.layers);
     this.cnt++;
     // console.log(this.layers);
-    this.colormapIndexCache = 1;
+    // this.colormapIndexCache = 1;
     this.renderColorMap();
     this.renderColorMapOverlay();
     // const colormapList = document.querySelector('#colormap > div.ivu-select-dropdown > ul.ivu-select-dropdown-list');
