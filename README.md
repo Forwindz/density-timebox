@@ -1,4 +1,4 @@
-# iDensityBox: Density-based Timebox for Interactive Exploration of Many Time Series
+# KD-Box: Line-segment-based KD-tree for Interactive Exploration of Large-scale Time-Series Data
 
-> online version: https://density-timebox.github.io/
+> online version: https://kd-box.github.io/
 

@@ -170,7 +170,7 @@
         </RadioGroup> -->
         </div>
         <div v-if="rawMode == 'rep'" style="margin-left:2em">
-          <div style="display:flex;align-items:center">
+          <div style="align-items:center">
             <span style="margin-right:8px">Line count</span>
             <Slider
               v-model="repCount"
@@ -187,11 +187,12 @@
               v-model="diverse"
               :min="0"
               :max="maxDiverse"
-              :step="maxDiverse / 20"
+              :step="maxDiverse / 100"
               show-tip="never"
               style="flex-grow:1"
               @on-change="cnt++"
             />
+            {{ diverse }}
           </div>
           <div style="display:flex;align-items:center"></div>
         </div>
@@ -531,8 +532,8 @@ export default {
       brushMethod: "tree",
       rawMode: "rep",
       repCount: 3,
-      diverse: 0,
-      maxDiverse: 1.0,
+      diverse: 0.0,
+      maxDiverse: 0.03,
       calculatedMaxDiverse: false,
       cursor: "crosshair",
       mouseDown: false,
@@ -3221,45 +3222,45 @@ export default {
             if (p.length >= lineCount) {
               return p;
             }
-            v.cur = calculateCurvature(
-              unobserve.result[v.id].filter((point) =>
-                unobserve.querys.length <= 0 && !unobserve.preview
-                  ? true
-                  : (unobserve.preview
-                      ? [unobserve.preview]
-                      : unobserve.querys
-                    ).find((query) => {
-                      if (query.type === "knn") {
-                        return true; // TODO: only line in knn
-                      } else if (query.type === "rnn") {
-                        return (
-                          Math.sqrt(
-                            Math.pow(point.x - query.start[0], 2) +
-                              Math.pow(point.y - query.start[1], 2)
-                          ) <= query.n
-                        );
-                      } else if (query.type === "brush") {
-                        const startX = Math.min(query.start[0], query.end[0]);
-                        const startY = Math.min(query.start[1], query.end[1]);
-                        const endX = Math.max(query.start[0], query.end[0]);
-                        const endY = Math.max(query.start[1], query.end[1]);
-                        return (
-                          point.x >= startX &&
-                          point.y >= startY &&
-                          point.x <= endX &&
-                          point.y <= endY
-                        );
-                      } else if (query.type === "ang") {
-                        const startX = Math.min(query.start[0], query.end[0]);
-                        const endX = Math.max(query.start[0], query.end[0]);
-                        return point.x >= startX && point.x <= endX;
-                      }
-                    })
-              )
-            );
-            if (
-              p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
-            ) {
+            if (!v.cur) {
+              v.cur = calculateCurvature(
+                unobserve.result[v.id].filter((point) =>
+                  unobserve.querys.length <= 0 && !unobserve.preview
+                    ? true
+                    : (unobserve.preview
+                        ? [unobserve.preview]
+                        : unobserve.querys
+                      ).find((query) => {
+                        if (query.type === "knn") {
+                          return true; // TODO: only line in knn
+                        } else if (query.type === "rnn") {
+                          return (
+                            Math.sqrt(
+                              Math.pow(point.x - query.start[0], 2) +
+                                Math.pow(point.y - query.start[1], 2)
+                            ) <= query.n
+                          );
+                        } else if (query.type === "brush") {
+                          const startX = Math.min(query.start[0], query.end[0]);
+                          const startY = Math.min(query.start[1], query.end[1]);
+                          const endX = Math.max(query.start[0], query.end[0]);
+                          const endY = Math.max(query.start[1], query.end[1]);
+                          return (
+                            point.x >= startX &&
+                            point.y >= startY &&
+                            point.x <= endX &&
+                            point.y <= endY
+                          );
+                        } else if (query.type === "ang") {
+                          const startX = Math.min(query.start[0], query.end[0]);
+                          const endX = Math.max(query.start[0], query.end[0]);
+                          return point.x >= startX && point.x <= endX;
+                        }
+                      })
+                )
+              );
+            }
+            if (p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)) {
               return p;
             }
             p.push(v);
