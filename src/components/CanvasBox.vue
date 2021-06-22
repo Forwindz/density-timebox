@@ -1,36 +1,36 @@
 <template>
   <div>
     <div
-        style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
+      style="display:flex;flex-direction:row;align-items:center;margin:15px 0 15px 20px;position:relative"
     >
       <div
-          id="blank-div"
-          style="width: 1000px; height: 500px; opacity: 0; pointer-events: none;"
+        id="blank-div"
+        style="width: 1000px; height: 500px; opacity: 0; pointer-events: none;"
       ></div>
       <canvas
-          id="canvas"
-          :width="option.width"
-          :height="option.height"
-          style="transform: scaleY(1); position: absolute; left: 0; top: 0;"
-          @mousedown="canvasMousedown"
-          @mouseup="canvasMouseup"
-          @mousemove="canvasMousemove"
-          @wheel="canvasWheel"
-          @contextmenu="mouseContextmenu"
-          @mouseleave="canvasMouseleave"
+        id="canvas"
+        :width="option.width"
+        :height="option.height"
+        style="transform: scaleY(1); position: absolute; left: 0; top: 0;"
+        @mousedown="canvasMousedown"
+        @mouseup="canvasMouseup"
+        @mousemove="canvasMousemove"
+        @wheel="canvasWheel"
+        @contextmenu="mouseContextmenu"
+        @mouseleave="canvasMouseleave"
       ></canvas>
       <canvas
-          id="selectionCanvas"
-          :width="option.width"
-          :height="option.height"
-          style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
+        id="selectionCanvas"
+        :width="option.width"
+        :height="option.height"
+        style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
-          id="selectionLayer"
-          width="1000"
-          height="500"
-          style="
+        id="selectionLayer"
+        width="1000"
+        height="500"
+        style="
           transform: scaleY(1);
           position: absolute;
           left: 0;
@@ -39,24 +39,24 @@
         "
       ></canvas>
       <canvas
-          id="rep_layer"
-          width="1000"
-          height="500"
-          style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
+        id="rep_layer"
+        width="1000"
+        height="500"
+        style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
-          id="raw_lines"
-          width="1000"
-          height="500"
-          style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
+        id="raw_lines"
+        width="1000"
+        height="500"
+        style="transform: scaleY(1); position: absolute; left: 0; top: 0; pointer-events: none;"
       >
       </canvas>
       <canvas
-          id="mouseLayer"
-          width="1000"
-          height="500"
-          style="
+        id="mouseLayer"
+        width="1000"
+        height="500"
+        style="
           transform: scaleY(1);
           position: absolute;
           left: 0;
@@ -66,10 +66,10 @@
         "
       ></canvas>
       <canvas
-          id="hoverLayer"
-          width="1000"
-          height="500"
-          style="
+        id="hoverLayer"
+        width="1000"
+        height="500"
+        style="
           transform: scaleY(1);
           position: absolute;
           left: 0;
@@ -79,10 +79,10 @@
         "
       ></canvas>
       <svg
-          id="axisHelper"
-          :width="1050"
-          :height="550"
-          style="
+        id="axisHelper"
+        :width="1050"
+        :height="550"
+        style="
           position: absolute;
           left: -50px;
           top: -20px;
@@ -100,16 +100,16 @@
         </g>
       </svg>
       <div
-          ref="axisTop"
-          style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
+        ref="axisTop"
+        style="width:1000px;height:30px;position:absolute;top:-30px;left:0"
       ></div>
       <div
-          ref="axisBottom"
-          style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
+        ref="axisBottom"
+        style="width:1000px;height:30px;position:absolute;bottom:-30px;left:0"
       ></div>
       <div
-          ref="axisLeft"
-          style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
+        ref="axisLeft"
+        style="width:30px;height:500px;position:absolute;top:0px;left:-30px"
       ></div>
       <div class="control-panel">
         <div>
@@ -135,29 +135,27 @@
           <Form>
             <FormItem label="Attribute Column">
               <Select
-                  v-model="attributeColumn"
-                  placeholder="Choose a column for attribute filtering"
+                v-model="attributeColumn"
+                placeholder="Choose a column for attribute filtering"
               >
                 <Option
-                    v-for="header in headers"
-                    :value="header.key"
-                    :key="header.title"
-                >{{ header.title }}
-                </Option
-                >
+                  v-for="header in headers"
+                  :value="header.key"
+                  :key="header.title"
+                  >{{ header.title }}
+                </Option>
               </Select>
             </FormItem>
             <FormItem label="Value">
               <AutoComplete
-                  v-model="attributeValue"
-                  :data="attributeData"
-                  @on-search="handleSearch"
+                v-model="attributeValue"
+                :data="attributeData"
+                @on-search="handleSearch"
               ></AutoComplete>
             </FormItem>
             <Button type="info" style="float: right" @click="addAttrQuery"
-            >add attribute query
-            </Button
-            >
+              >add attribute query
+            </Button>
           </Form>
           <!--          <span>Column Name</span>-->
           <!--          <span>Attribute Value</span>-->
@@ -175,24 +173,24 @@
           <div style="display:flex;align-items:center">
             <span style="margin-right:8px">Line count</span>
             <Slider
-                v-model="repCount"
-                :min="1"
-                :max="20"
-                :step="1"
-                show-tip="never"
-                style="flex-grow:1"
+              v-model="repCount"
+              :min="1"
+              :max="20"
+              :step="1"
+              show-tip="never"
+              style="flex-grow:1"
             />
             <span style="margin-left:8px">{{ repCount }}</span>
 
             <span style="margin-right:8px; margin-left: 12px;">Diverse</span>
             <Slider
-                v-model="diverse"
-                :min="0"
-                :max="maxDiverse"
-                :step="maxDiverse / 20"
-                show-tip="never"
-                style="flex-grow:1"
-                @on-change="cnt++"
+              v-model="diverse"
+              :min="0"
+              :max="maxDiverse"
+              :step="maxDiverse / 20"
+              show-tip="never"
+              style="flex-grow:1"
+              @on-change="cnt++"
             />
           </div>
           <div style="display:flex;align-items:center"></div>
@@ -222,9 +220,9 @@
           <div class="select-colormap">
             <span style="margin:0">Colormap:</span>
             <Select
-                id="colormap"
-                placeholder="Choose colormap"
-                v-model="colormapIndexCache"
+              id="colormap"
+              placeholder="Choose colormap"
+              v-model="colormapIndexCache"
             >
               <Option value="0">viridis</Option>
               <Option value="1" selected>magma</Option>
@@ -252,10 +250,10 @@
           <span>1</span>
           <span class="color-map" id="color-map"></span>
           <InputNumber
-              :min="1"
-              v-model="maxDensity"
-              :active-change="false"
-              style="width: 50px"
+            :min="1"
+            v-model="maxDensity"
+            :active-change="false"
+            style="width: 50px"
           />
         </div>
 
@@ -269,11 +267,11 @@
         <div style="margin-left:2em">
           <draggable v-model="layers">
             <div
-                v-for="layer in layers"
-                :key="layer.id"
-                style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
+              v-for="layer in layers"
+              :key="layer.id"
+              style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
             >
-              <Icon type="md-menu" style="cursor:move"/>
+              <Icon type="md-menu" style="cursor:move" />
               <!-- <Poptip
                 v-if="layer.id == 'selectionCanvas'"
                 :width="340"
@@ -330,29 +328,29 @@
                     {{ layer.name }}
                   </p>
                   <Icon
-                      :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
-                      :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
-                      @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
+                    :type="layer.opacity === 0 ? 'md-eye-off' : 'md-eye'"
+                    :style="{ opacity: layer.opacity * 0.7 + 0.3 }"
+                    @click="layer.opacity = layer.opacity === 0 ? 1 : 0"
                   />
                   <Slider
-                      v-model="layer.opacity"
-                      :min="0"
-                      :max="1"
-                      :step="0.01"
-                      show-tip="never"
-                      style="flex-grow:1; margin-left:12px;margin-right:8px"
+                    v-model="layer.opacity"
+                    :min="0"
+                    :max="1"
+                    :step="0.01"
+                    show-tip="never"
+                    style="flex-grow:1; margin-left:12px;margin-right:8px"
                   />
                 </div>
                 <div
-                    v-if="layer.id == 'selectionCanvas'"
-                    style="display:flex;align-items:center;margin:0 12px 8px;position:relative"
+                  v-if="layer.id == 'selectionCanvas'"
+                  style="display:flex;align-items:center;margin:0 12px 8px;position:relative"
                 >
                   <div class="select-colormap">
                     <span style="margin:0">Colormap:</span>
                     <Select
-                        id="colormapOverlay"
-                        placeholder="Choose colormap"
-                        v-model="colormapOverlayIndexCache"
+                      id="colormapOverlay"
+                      placeholder="Choose colormap"
+                      v-model="colormapOverlayIndexCache"
                     >
                       <Option value="0">viridis</Option>
                       <Option value="1" selected>magma</Option>
@@ -380,10 +378,10 @@
                   <span>1</span>
                   <span class="color-map" id="color-map-overlay"></span>
                   <InputNumber
-                      :min="1"
-                      v-model="maxOverlayDensity"
-                      :active-change="false"
-                      style="width: 50px"
+                    :min="1"
+                    v-model="maxOverlayDensity"
+                    :active-change="false"
+                    style="width: 50px"
                   />
                 </div>
               </div>
@@ -397,35 +395,35 @@
 
         <div>
           <span>Show value of cursor:</span>
-          <iSwitch style="margin-left:12px" v-model="showCursorValue"/>
+          <iSwitch style="margin-left:12px" v-model="showCursorValue" />
         </div>
         <div>
           <span>Reverse y-axis:</span>
-          <iSwitch style="margin-left:12px" v-model="upsideDown"/>
+          <iSwitch style="margin-left:12px" v-model="upsideDown" />
         </div>
         <div>
           <span>Normalize density:</span>
-          <iSwitch style="margin-left:12px" v-model="normalizeDensity"/>
+          <iSwitch style="margin-left:12px" v-model="normalizeDensity" />
         </div>
         <div>
           <span>Enlarge Axis Font Size:</span>
-          <iSwitch style="margin-left:12px" v-model="enlargeFont"/>
+          <iSwitch style="margin-left:12px" v-model="enlargeFont" />
         </div>
       </div>
     </div>
     <Table
-        :row-class-name="calClassName"
-        border
-        :columns="tableColumns"
-        :data="cnt + 1 && tableData"
-        :on-current-change="hoveringQuery"
-        id="informationTable"
-        style="margin-top: 30px"
+      :row-class-name="calClassName"
+      border
+      :columns="tableColumns"
+      :data="cnt + 1 && tableData"
+      :on-current-change="hoveringQuery"
+      id="informationTable"
+      style="margin-top: 30px"
     >
       <template slot-scope="{ row, index }" slot="name">
         <p
-            v-if="index >= tableData.length - 2"
-            style="font-style:italic;font-weight:700"
+          v-if="index >= tableData.length - 2"
+          style="font-style:italic;font-weight:700"
         >
           {{ row.name }}
         </p>
@@ -433,12 +431,12 @@
       </template>
       <template slot-scope="{ row, index }" slot="op">
         <Button
-            ghost
-            :type="row.query === selectedQuery ? 'primary' : 'default'"
-            size="small"
-            style="margin-right: 5px"
-            @click="selectedQuery = row.query"
-        >Explore
+          ghost
+          :type="row.query === selectedQuery ? 'primary' : 'default'"
+          size="small"
+          style="margin-right: 5px"
+          @click="selectedQuery = row.query"
+          >Explore
         </Button>
         <!-- <Button
           type="warning"
@@ -448,19 +446,19 @@
           >Invisible
         </Button> -->
         <Button
-            type="error"
-            size="small"
-            v-if="index < tableData.length - 2"
-            @click="deleteQuery(index)"
-        >Delete
+          type="error"
+          size="small"
+          v-if="index < tableData.length - 2"
+          @click="deleteQuery(index)"
+          >Delete
         </Button>
       </template>
     </Table>
     <Button
-        type="error"
-        size="small"
-        style="float: right; margin: 20px"
-        @click="deleteAllQuery"
+      type="error"
+      size="small"
+      style="float: right; margin: 20px"
+      @click="deleteAllQuery"
     >
       Delete all Querys
     </Button>
@@ -472,9 +470,8 @@
       <Table border :columns="repColumns" :data="repStaticInformation"></Table>
       <div slot="footer">
         <Button type="primary" size="large" long @click="repModal = false"
-        >Confirm
-        </Button
-        >
+          >Confirm
+        </Button>
       </div>
     </Modal>
   </div>
@@ -482,7 +479,7 @@
 
 <script>
 import draggable from "vuedraggable";
-import {exportCanvas} from "../core/utils";
+import { exportCanvas } from "../core/utils";
 import unobserve from "../store";
 import render from "../core";
 import * as d3 from "d3";
@@ -490,7 +487,9 @@ import expandRow from "@/components/expandRow";
 import {
   calculateCurvature,
   calculateDifference,
-  dist2, distToSegment, distToSegmentSquared,
+  dist2,
+  distToSegment,
+  distToSegmentSquared,
   eq,
   getAngle2,
   lineRectCollide,
@@ -503,7 +502,7 @@ import {
 import KDTree from "../core/kdtree";
 import seedrandom from "seedrandom";
 import moment from "moment";
-import {brensenham, brensenhamArr} from "../core/util";
+import { brensenham, brensenhamArr } from "../core/util";
 
 const colorMapCache = {};
 
@@ -523,6 +522,7 @@ export default {
   },
   data() {
     return {
+      blockDensityCallback: false,
       canvas: null,
       contextHandler: null,
       canvasContext: null,
@@ -531,7 +531,7 @@ export default {
       brushMethod: "tree",
       rawMode: "rep",
       repCount: 3,
-      diverse: 0.1,
+      diverse: 0,
       maxDiverse: 1.0,
       calculatedMaxDiverse: false,
       cursor: "crosshair",
@@ -557,30 +557,30 @@ export default {
           type: "expand",
           width: 50,
           render: (h, params) =>
-              h(expandRow, {
-                props: {
-                  row: params.row.reps,
-                },
-              }),
+            h(expandRow, {
+              props: {
+                row: params.row.reps,
+              },
+            }),
         },
-        {title: "Query", align: "center", slot: "name"},
+        { title: "Query", align: "center", slot: "name" },
         // { title: 'Min start time', align: 'center', key: 'minT' },
         // { title: 'Max start time', align: 'center', key: 'maxT' },
-        {title: "Line series count", align: "center", key: "count"},
-        {title: "Time points count", align: "center", key: "points"},
-        {title: "Min value", align: "center", key: "minV"},
-        {title: "Max value", align: "center", key: "maxV"},
-        {title: "Mean value", align: "center", key: "mean"},
-        {title: "Variance", align: "center", key: "var"},
-        {title: "Operations", align: "center", slot: "op", width: 250},
+        { title: "Line series count", align: "center", key: "count" },
+        { title: "Time points count", align: "center", key: "points" },
+        { title: "Min value", align: "center", key: "minV" },
+        { title: "Max value", align: "center", key: "maxV" },
+        { title: "Mean value", align: "center", key: "mean" },
+        { title: "Variance", align: "center", key: "var" },
+        { title: "Operations", align: "center", slot: "op", width: 250 },
       ],
       repColumns: [
-        {title: "Index num.", align: "center", key: "name"},
-        {title: "Min start time", align: "center", key: "minT"},
-        {title: "Max start time", align: "center", key: "maxT"},
-        {title: "Min value", align: "center", key: "minV"},
-        {title: "Max value", align: "center", key: "maxV"},
-        {title: "Mean value", align: "center", key: "mean"},
+        { title: "Index num.", align: "center", key: "name" },
+        { title: "Min start time", align: "center", key: "minT" },
+        { title: "Max start time", align: "center", key: "maxT" },
+        { title: "Min value", align: "center", key: "minV" },
+        { title: "Max value", align: "center", key: "maxV" },
+        { title: "Mean value", align: "center", key: "mean" },
       ],
       layers: [
         {
@@ -656,10 +656,10 @@ export default {
     previewData() {
       if (this.previewIndex < 0) return [];
       return [...unobserve.aggregatedData[this.previewIndex].ref]
-          .slice(0, 6)
-          .map((i, ii) =>
-              ii == 5 ? this.headers.map((_) => "...") : unobserve.data[i]
-          );
+        .slice(0, 6)
+        .map((i, ii) =>
+          ii == 5 ? this.headers.map((_) => "...") : unobserve.data[i]
+        );
     },
     tableData() {
       if (!this.cnt) {
@@ -672,7 +672,7 @@ export default {
         knn: "KNN",
         rnn: "Radius",
         attr: "Attribute",
-        hover: 'Hover',
+        hover: "Hover",
       };
       for (let i = 0; i < unobserve.querys.length; i++) {
         if (!unobserve.querys[i].reps)
@@ -703,13 +703,13 @@ export default {
         query: "$int",
         name: unobserve.querys.length ? "intersection" : "global",
         ...this.getStaticInformation(
-            unobserve.querys.length
-                ? unobserve.interResult
-                : new Array(unobserve.aggregatedData.length).fill().map((_, i) => i)
+          unobserve.querys.length
+            ? unobserve.interResult
+            : new Array(unobserve.aggregatedData.length).fill().map((_, i) => i)
         ),
         reps: (unobserve.querys.length
-                ? unobserve.interReps
-                : unobserve.globalRep
+          ? unobserve.interReps
+          : unobserve.globalRep
         ).map((id) => {
           return {
             id,
@@ -743,15 +743,15 @@ export default {
   watch: {
     enlargeFont(newValue) {
       if (newValue) {
-        this.svg.select('#xaxis').attr('font-size', '16px');
-        this.svg.select('#yaxis').attr('font-size', '16px');
-        this.svg.select('#xaxis').attr('stroke-width', '2px');
-        this.svg.select('#yaxis').attr('stroke-width', '2px');
+        this.svg.select("#xaxis").attr("font-size", "16px");
+        this.svg.select("#yaxis").attr("font-size", "16px");
+        this.svg.select("#xaxis").attr("stroke-width", "2px");
+        this.svg.select("#yaxis").attr("stroke-width", "2px");
       } else {
-        this.svg.select('#xaxis').attr('font-size', '12px');
-        this.svg.select('#yaxis').attr('font-size', '12px');
-        this.svg.select('#xaxis').attr('stroke-width', '1px');
-        this.svg.select('#yaxis').attr('stroke-width', '1px');
+        this.svg.select("#xaxis").attr("font-size", "12px");
+        this.svg.select("#yaxis").attr("font-size", "12px");
+        this.svg.select("#xaxis").attr("stroke-width", "1px");
+        this.svg.select("#yaxis").attr("stroke-width", "1px");
       }
     },
     colormapIndexCache(value) {
@@ -783,34 +783,34 @@ export default {
     },
     showCursorValue() {
       this.svg
-          .select("#cursorHelper")
-          .selectAll("line")
-          .attr("x1", 0)
-          .attr("y1", 0)
-          .attr("x2", 0)
-          .attr("y2", 0);
+        .select("#cursorHelper")
+        .selectAll("line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", 0)
+        .attr("y2", 0);
       this.svg
-          .select("#cursorHelper")
-          .selectAll("text")
-          .attr("x", 0)
-          .attr("y", 0)
-          .text("");
+        .select("#cursorHelper")
+        .selectAll("text")
+        .attr("x", 0)
+        .attr("y", 0)
+        .text("");
     },
     upsideDown(value) {
       unobserve.upsideDown = value;
       this.svg
-          .select("#cursorHelper")
-          .selectAll("line")
-          .attr("x1", 0)
-          .attr("y1", 0)
-          .attr("x2", 0)
-          .attr("y2", 0);
+        .select("#cursorHelper")
+        .selectAll("line")
+        .attr("x1", 0)
+        .attr("y1", 0)
+        .attr("x2", 0)
+        .attr("y2", 0);
       this.svg
-          .select("#cursorHelper")
-          .selectAll("text")
-          .attr("x", 0)
-          .attr("y", 0)
-          .text("");
+        .select("#cursorHelper")
+        .selectAll("text")
+        .attr("x", 0)
+        .attr("y", 0)
+        .text("");
       this.setReverseY(value);
     },
     filter(value) {
@@ -823,7 +823,7 @@ export default {
       }
     },
     filterMode(newV, oldV) {
-      if (oldV === 'hover') {
+      if (oldV === "hover") {
         this.initCanvas(unobserve.hoverLayer);
       }
     },
@@ -831,7 +831,9 @@ export default {
       this.getTopK();
     },
     maxDensity() {
-      this.renderAllDensity();
+      if (!this.blockDensityCallback) {
+        this.renderAllDensity();
+      }
     },
     maxOverlayDensity() {
       this.renderDensity();
@@ -852,7 +854,12 @@ export default {
     },
     colorMap() {
       const kArray = this.rawLines;
-      this.rawLineContext.clearRect(0, 0, this.option.width, this.option.height);
+      this.rawLineContext.clearRect(
+        0,
+        0,
+        this.option.width,
+        this.option.height
+      );
       const colorMap = this.colorMap;
       for (let i = 0; i < kArray.length; i++) {
         const data = unobserve.aggregatedData[kArray[i]];
@@ -861,13 +868,19 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-            (data[this.timeIndex][0] / this.contextHandler.maxX) * this.option.width,
-            this.option.height - (data[this.valueIndex][0] / this.contextHandler.maxY) * this.option.height
+          (data[this.timeIndex][0] / this.contextHandler.maxX) *
+            this.option.width,
+          this.option.height -
+            (data[this.valueIndex][0] / this.contextHandler.maxY) *
+              this.option.height
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-              (data[this.timeIndex][j] / this.contextHandler.maxX) * this.option.width,
-              this.option.height - (data[this.valueIndex][j] / this.contextHandler.maxY) * this.option.height
+            (data[this.timeIndex][j] / this.contextHandler.maxX) *
+              this.option.width,
+            this.option.height -
+              (data[this.valueIndex][j] / this.contextHandler.maxY) *
+                this.option.height
           );
         }
         this.rawLineContext.stroke();
@@ -880,29 +893,37 @@ export default {
   },
   methods: {
     convertPoint(point) {
-      return [this.xScale(unobserve.axisXScle.invert(point[0])), this.yScale(unobserve.screenyScale.invert(point[1]))];
+      return [
+        this.xScale(unobserve.axisXScle.invert(point[0])),
+        this.yScale(unobserve.screenyScale.invert(point[1])),
+      ];
     },
     reconvertPoint(point) {
-      return [unobserve.axisXScle(this.xScale.invert(point[0])), unobserve.screenyScale(this.yScale.invert(point[1]))];
+      return [
+        unobserve.axisXScle(this.xScale.invert(point[0])),
+        unobserve.screenyScale(this.yScale.invert(point[1])),
+      ];
     },
-    inRadius(ids, point,  radius, inCurrent = false) {
+    inRadius(ids, point, radius, inCurrent = false) {
       const r2 = radius * radius;
       // const cache = new Set(this.getSelectedIds());
       point = this.reconvertPoint(point);
       console.log(unobserve.cache);
-      return ids
-          .filter(id => {
-            if (inCurrent && unobserve.cache && !unobserve.cache.has(id))
-              return false;
-            const line = unobserve.screenResult[id];
-            let mx = Infinity;
-            for (let i = 0; i < line.length - 1; i++) {
-              let dis = distToSegmentSquared(point, [line[i].x, line[i].y], [line[i+1].x, line[i+1].y]);
-              if (dis < mx)
-                mx = dis;
-            }
-            return mx <= r2;
-          })
+      return ids.filter((id) => {
+        if (inCurrent && unobserve.cache && !unobserve.cache.has(id))
+          return false;
+        const line = unobserve.screenResult[id];
+        let mx = Infinity;
+        for (let i = 0; i < line.length - 1; i++) {
+          let dis = distToSegmentSquared(
+            point,
+            [line[i].x, line[i].y],
+            [line[i + 1].x, line[i + 1].y]
+          );
+          if (dis < mx) mx = dis;
+        }
+        return mx <= r2;
+      });
     },
     leaveQuery(index) {
       this.mark = false;
@@ -919,8 +940,8 @@ export default {
       console.log(unobserve.headerMap);
       console.log(name, datas, this.attributeValue);
       this.attributeData = datas
-          .filter((str) => str.slice(0, value.length) === value)
-          .slice(0, 10);
+        .filter((str) => str.slice(0, value.length) === value)
+        .slice(0, 10);
     },
     hoveringQuery(index) {
       console.log(index);
@@ -959,7 +980,7 @@ export default {
     },
 
     canvasMouseleave(e) {
-      if (this.filterMode === 'hover') {
+      if (this.filterMode === "hover") {
         setTimeout(() => {
           clearTimeout(unobserve.hoverEvent);
           this.initCanvas(unobserve.hoverLayer);
@@ -978,10 +999,10 @@ export default {
       let screenPoint = [e.offsetX, e.offsetY];
 
       // the query is added when in query mode
-      if (this.filterMode === 'hover') {
+      if (this.filterMode === "hover") {
         console.log(unobserve.querys);
         unobserve.querys.push({
-          type: 'hover',
+          type: "hover",
           cache: unobserve.hoverCache,
         });
         this.renderBoxes();
@@ -1031,8 +1052,8 @@ export default {
         if (this.preview.type === "knn" || this.preview.type === "rnn") {
           this.preview.start = point;
         } else if (
-            this.preview.type === "brush" ||
-            this.preview.type === "ang"
+          this.preview.type === "brush" ||
+          this.preview.type === "ang"
         ) {
           this.preview.end = point;
         }
@@ -1062,9 +1083,9 @@ export default {
         const query = res.instance;
         const sign = Math.sign(e.deltaY);
         if (
-            query.type === "knn" ||
-            query.type === "rnn" ||
-            query.type === "ang"
+          query.type === "knn" ||
+          query.type === "rnn" ||
+          query.type === "ang"
         ) {
           if (query.type === "ang")
             query.n = Math.min(Math.max(1, query.n - sign), 180);
@@ -1085,19 +1106,27 @@ export default {
     canvasMousemove(e) {
       const point = this.convertPoint([e.offsetX, e.offsetY]);
       this.renderAxisHelper(e);
-      if (this.filterMode === 'hover') {
+      if (this.filterMode === "hover") {
         unobserve.hoverEvent = setTimeout(() => {
           let radius = 5;
           let res = [];
           while (res.length === 0 && radius < 100) {
-            res = this.inRadius(this.tr.ee.brush([point[0] - radius, point[1] - radius], [point[0] + radius, point[1] + radius]), point, 3, true);
+            res = this.inRadius(
+              this.tr.ee.brush(
+                [point[0] - radius, point[1] - radius],
+                [point[0] + radius, point[1] + radius]
+              ),
+              point,
+              3,
+              true
+            );
             radius *= 2;
           }
           this.initCanvas(unobserve.hoverLayer);
-          if(unobserve.hoverEvent)
+          if (unobserve.hoverEvent)
             this.drawLineWithLayer(res, unobserve.hoverLayer);
           unobserve.hoverCache = new Set(res);
-        }, 10)
+        }, 10);
         return;
       }
       if (!this.preview) {
@@ -1115,7 +1144,7 @@ export default {
           }
         } else {
           const offsetX = point[0] - this.modify.lastPos[0],
-              offsetY = point[1] - this.modify.lastPos[1];
+            offsetY = point[1] - this.modify.lastPos[1];
 
           if (this.preview.type === "brush" || this.preview.type === "ang") {
             movePoint(this.preview.end, offsetX, offsetY);
@@ -1128,8 +1157,8 @@ export default {
         if (this.preview.type === "knn" || this.preview.type === "rnn") {
           this.preview.start = point;
         } else if (
-            this.preview.type === "brush" ||
-            this.preview.type === "ang"
+          this.preview.type === "brush" ||
+          this.preview.type === "ang"
         ) {
           this.preview.end = point;
         }
@@ -1152,15 +1181,20 @@ export default {
       const x = e.offsetX;
       const y = e.offsetY;
       const kArray = this.contextHandler
-          .filterRange(
-              (x - 5) / this.option.width,
-              (x + 5) / this.option.width,
-              1 - (y + 5) / this.option.height,
-              1 - (y - 5) / this.option.height
-          )
-          .filter((x) => !this.filter || this.filter.includes(x))
-          .slice(0, 3);
-      this.rawLineContext.clearRect(0, 0, this.option.width, this.option.height);
+        .filterRange(
+          (x - 5) / this.option.width,
+          (x + 5) / this.option.width,
+          1 - (y + 5) / this.option.height,
+          1 - (y - 5) / this.option.height
+        )
+        .filter((x) => !this.filter || this.filter.includes(x))
+        .slice(0, 3);
+      this.rawLineContext.clearRect(
+        0,
+        0,
+        this.option.width,
+        this.option.height
+      );
       const colorMap = this.colorMap;
       for (let i = kArray.length - 1; i >= 0; i--) {
         const data = unobserve.aggregatedData[kArray[i]];
@@ -1169,13 +1203,19 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-            (data[this.timeIndex][0] / this.contextHandler.maxX) * this.option.width,
-            this.option.height - (data[this.valueIndex][0] / this.contextHandler.maxY) * this.option.height
+          (data[this.timeIndex][0] / this.contextHandler.maxX) *
+            this.option.width,
+          this.option.height -
+            (data[this.valueIndex][0] / this.contextHandler.maxY) *
+              this.option.height
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-              (data[this.timeIndex][j] / this.contextHandler.maxX) * this.option.width,
-              this.option.height - (data[this.valueIndex][j] / this.contextHandler.maxY) * this.option.height
+            (data[this.timeIndex][j] / this.contextHandler.maxX) *
+              this.option.width,
+            this.option.height -
+              (data[this.valueIndex][j] / this.contextHandler.maxY) *
+                this.option.height
           );
         }
         this.rawLineContext.stroke();
@@ -1199,7 +1239,12 @@ export default {
           kArray = this.contextHandler.findKTop(true, this.diverse);
           break;
       }
-      this.rawLineContext.clearRect(0, 0, this.option.width, this.option.height);
+      this.rawLineContext.clearRect(
+        0,
+        0,
+        this.option.width,
+        this.option.height
+      );
       const colorMap = this.colorMap;
       for (let i = kArray.length - 1; i >= 0; i--) {
         const data = unobserve.aggregatedData[kArray[i]];
@@ -1208,13 +1253,19 @@ export default {
         this.rawLineContext.lineWidth = 2;
         this.rawLineContext.beginPath();
         this.rawLineContext.moveTo(
-            (data[this.timeIndex][0] / this.contextHandler.maxX) * this.option.width,
-            this.option.height - (data[this.valueIndex][0] / this.contextHandler.maxY) * this.option.height
+          (data[this.timeIndex][0] / this.contextHandler.maxX) *
+            this.option.width,
+          this.option.height -
+            (data[this.valueIndex][0] / this.contextHandler.maxY) *
+              this.option.height
         );
         for (let j = 0; j < data[this.timeIndex].length; j++) {
           this.rawLineContext.lineTo(
-              (data[this.timeIndex][j] / this.contextHandler.maxX) * this.option.width,
-              this.option.height - (data[this.valueIndex][j] / this.contextHandler.maxY) * this.option.height
+            (data[this.timeIndex][j] / this.contextHandler.maxX) *
+              this.option.width,
+            this.option.height -
+              (data[this.valueIndex][j] / this.contextHandler.maxY) *
+                this.option.height
           );
         }
         this.rawLineContext.stroke();
@@ -1232,16 +1283,16 @@ export default {
       if (this.mouseDown) return;
       this.mouseDown = true;
       let x = e.offsetX,
-          y = e.offsetY,
-          flag = false;
+        y = e.offsetY,
+        flag = false;
       if (this.filterMode == "rect") {
         x /= this.option.width;
         y = 1 - y / this.option.height;
         for (let box of this.boxes) {
           if (
-              (Math.abs(x - box[0]) <= 0.002 || Math.abs(x - box[1]) <= 0.002) &&
-              y > box[2] &&
-              y < box[3]
+            (Math.abs(x - box[0]) <= 0.002 || Math.abs(x - box[1]) <= 0.002) &&
+            y > box[2] &&
+            y < box[3]
           ) {
             if (Math.abs(x - box[0]) <= 0.002) {
               this.mouseDown = "left";
@@ -1250,9 +1301,9 @@ export default {
             }
             flag = true;
           } else if (
-              (Math.abs(y - box[2]) <= 0.004 || Math.abs(y - box[3]) <= 0.004) &&
-              x > box[0] &&
-              x < box[1]
+            (Math.abs(y - box[2]) <= 0.004 || Math.abs(y - box[3]) <= 0.004) &&
+            x > box[0] &&
+            x < box[1]
           ) {
             if (Math.abs(y - box[2]) <= 0.004) {
               this.mouseDown = "bottom";
@@ -1280,7 +1331,7 @@ export default {
                 filterResult = tmpResult;
               } else {
                 filterResult = filterResult.filter((x) =>
-                    tmpResult.includes(x)
+                  tmpResult.includes(x)
                 );
               }
             });
@@ -1290,32 +1341,32 @@ export default {
         }
       } else {
         if (
-            Math.abs(x - this.coord[0]) <= 2 &&
-            Math.abs(y - this.coord[1]) <= 2
+          Math.abs(x - this.coord[0]) <= 2 &&
+          Math.abs(y - this.coord[1]) <= 2
         ) {
           this.mouseDown = "move";
           flag = true;
         } else if (
-            Math.abs(x - this.coord[2]) <= 2 &&
-            Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
+          Math.abs(x - this.coord[2]) <= 2 &&
+          Math.abs(y - this.coord[3]) <= Math.abs(this.coord[4] - this.coord[3])
         ) {
           this.mouseDown = "time";
           flag = true;
         } else if (
-            x > this.coord[0] &&
-            x < this.coord[2] &&
-            y >
+          x > this.coord[0] &&
+          x < this.coord[2] &&
+          y >
             (this.coord[1] * (this.coord[2] - x)) /
-            (this.coord[2] - this.coord[0]) +
-            ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
+              (this.coord[2] - this.coord[0]) +
+              ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
                 (x - this.coord[0])) /
-            (this.coord[2] - this.coord[0]) &&
-            y <
+                (this.coord[2] - this.coord[0]) &&
+          y <
             (this.coord[1] * (this.coord[2] - x)) /
-            (this.coord[2] - this.coord[0]) +
-            ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
+              (this.coord[2] - this.coord[0]) +
+              ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
                 (x - this.coord[0])) /
-            (this.coord[2] - this.coord[0])
+                (this.coord[2] - this.coord[0])
         ) {
           this.mouseDown = "angular";
           flag = true;
@@ -1332,16 +1383,16 @@ export default {
     drawBoxes() {
       for (let box of this.boxes) {
         this.canvasContext.fillRect(
-            box[0] * this.option.width,
-            this.option.height - box[3] * this.option.height,
-            (box[1] - box[0]) * this.option.width,
-            (box[3] - box[2]) * this.option.height
+          box[0] * this.option.width,
+          this.option.height - box[3] * this.option.height,
+          (box[1] - box[0]) * this.option.width,
+          (box[3] - box[2]) * this.option.height
         );
       }
     },
     cursorShape(e) {
       let x = e.offsetX,
-          y = e.offsetY;
+        y = e.offsetY;
       switch (this.mouseDown) {
         case "move":
           this.cursor = "grabbing";
@@ -1367,19 +1418,19 @@ export default {
             y = 1 - y / this.option.height;
             for (let box of this.boxes) {
               if (
-                  (Math.abs(x - box[0]) <= 0.002 ||
-                      Math.abs(x - box[1]) <= 0.002) &&
-                  y > box[2] &&
-                  y < box[3]
+                (Math.abs(x - box[0]) <= 0.002 ||
+                  Math.abs(x - box[1]) <= 0.002) &&
+                y > box[2] &&
+                y < box[3]
               ) {
                 this.cursor = "ew-resize";
                 return;
               }
               if (
-                  (Math.abs(y - box[2]) <= 0.004 ||
-                      Math.abs(y - box[3]) <= 0.004) &&
-                  x > box[0] &&
-                  x < box[1]
+                (Math.abs(y - box[2]) <= 0.004 ||
+                  Math.abs(y - box[3]) <= 0.004) &&
+                x > box[0] &&
+                x < box[1]
               ) {
                 this.cursor = "ns-resize";
                 return;
@@ -1391,35 +1442,35 @@ export default {
             }
           } else {
             if (
-                Math.abs(x - this.coord[0]) <= 2 &&
-                Math.abs(y - this.coord[1]) <= 2
+              Math.abs(x - this.coord[0]) <= 2 &&
+              Math.abs(y - this.coord[1]) <= 2
             ) {
               this.cursor = "move";
               return;
             }
             if (
-                Math.abs(x - this.coord[2]) <= 2 &&
-                Math.abs(y - this.coord[3]) <=
+              Math.abs(x - this.coord[2]) <= 2 &&
+              Math.abs(y - this.coord[3]) <=
                 Math.abs(this.coord[4] - this.coord[3])
             ) {
               this.cursor = "ew-resize";
               return;
             }
             if (
-                x > this.coord[0] &&
-                x < this.coord[2] &&
-                y >
+              x > this.coord[0] &&
+              x < this.coord[2] &&
+              y >
                 (this.coord[1] * (this.coord[2] - x)) /
-                (this.coord[2] - this.coord[0]) +
-                ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
+                  (this.coord[2] - this.coord[0]) +
+                  ((this.coord[3] - Math.abs(this.coord[4] - this.coord[3])) *
                     (x - this.coord[0])) /
-                (this.coord[2] - this.coord[0]) &&
-                y <
+                    (this.coord[2] - this.coord[0]) &&
+              y <
                 (this.coord[1] * (this.coord[2] - x)) /
-                (this.coord[2] - this.coord[0]) +
-                ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
+                  (this.coord[2] - this.coord[0]) +
+                  ((this.coord[3] + Math.abs(this.coord[4] - this.coord[3])) *
                     (x - this.coord[0])) /
-                (this.coord[2] - this.coord[0])
+                    (this.coord[2] - this.coord[0])
             ) {
               this.cursor = "ns-resize";
               return;
@@ -1462,10 +1513,10 @@ export default {
         this.canvasContext.fillStyle = "black";
         this.drawBoxes();
         this.canvasContext.fillRect(
-            Math.min(this.coord[0], this.coord[2]),
-            Math.min(this.coord[1], this.coord[3]),
-            Math.abs(this.coord[2] - this.coord[0]),
-            Math.abs(this.coord[3] - this.coord[1])
+          Math.min(this.coord[0], this.coord[2]),
+          Math.min(this.coord[1], this.coord[3]),
+          Math.abs(this.coord[2] - this.coord[0]),
+          Math.abs(this.coord[3] - this.coord[1])
         );
       } else {
         this.canvasContext.globalAlpha = 1;
@@ -1495,22 +1546,22 @@ export default {
         this.mouseDown = false;
         if (this.coord[2] != 0 || this.coord[3] != 0) {
           let [left, right] = [this.coord[0], this.coord[2]]
-              .map((x) => x / this.option.width)
-              .sort();
+            .map((x) => x / this.option.width)
+            .sort();
           let [bottom, top] = [this.coord[1], this.coord[3]]
-              .map((x) => 1 - x / this.option.height)
-              .sort();
+            .map((x) => 1 - x / this.option.height)
+            .sort();
           this.boxes.push([left, right, bottom, top]);
           let filterResult = this.contextHandler.filterRange(
-              left,
-              right,
-              bottom,
-              top
+            left,
+            right,
+            bottom,
+            top
           );
           if (this.filter) {
             this.$emit(
-                "filterChange",
-                this.filter.filter((x) => filterResult.includes(x))
+              "filterChange",
+              this.filter.filter((x) => filterResult.includes(x))
             );
           } else {
             this.$emit("filterChange", filterResult);
@@ -1522,10 +1573,10 @@ export default {
     },
     angleConfirm() {
       if (
-          this.filterMode == "ang" &&
-          this.coord[2] &&
-          this.coord[3] &&
-          this.coord[0] != this.coord[2]
+        this.filterMode == "ang" &&
+        this.coord[2] &&
+        this.coord[3] &&
+        this.coord[0] != this.coord[2]
       ) {
         if (this.mouseDown === true) {
           this.mouseDown = "magnet";
@@ -1543,19 +1594,19 @@ export default {
           this.mouseDown = false;
           let offset = Math.abs(this.coord[4] - this.coord[3]);
           let startAngle =
-              -(this.coord[3] + offset - this.coord[1]) /
-              (this.coord[2] - this.coord[0]);
+            -(this.coord[3] + offset - this.coord[1]) /
+            (this.coord[2] - this.coord[0]);
           let endAngle =
-              -(this.coord[3] - offset - this.coord[1]) /
-              (this.coord[2] - this.coord[0]);
+            -(this.coord[3] - offset - this.coord[1]) /
+            (this.coord[2] - this.coord[0]);
           this.$emit(
-              "filterChange",
-              this.contextHandler.filterAngle(
-                  this.coord[0] / this.option.width,
-                  this.coord[2] / this.option.width,
-                  startAngle,
-                  endAngle
-              )
+            "filterChange",
+            this.contextHandler.filterAngle(
+              this.coord[0] / this.option.width,
+              this.coord[2] / this.option.width,
+              startAngle,
+              endAngle
+            )
           );
         }
       }
@@ -1566,9 +1617,9 @@ export default {
       //     this.upsideDown
       // );
       exportCanvas(
-          this.layers.map((layer) => document.getElementById(layer.id)).reverse(),
-          this.upsideDown,
-          this.layers.map((layer) => layer.opacity).reverse()
+        this.layers.map((layer) => document.getElementById(layer.id)).reverse(),
+        this.upsideDown,
+        this.layers.map((layer) => layer.opacity).reverse()
       );
     },
     showRepData() {
@@ -1585,9 +1636,9 @@ export default {
     },
     calClassName(row) {
       let ret =
-          this.hightlightRow(row) +
-          " " +
-          (row.query === this.hoveringInd ? "ivu-table-row-hover" : "");
+        this.hightlightRow(row) +
+        " " +
+        (row.query === this.hoveringInd ? "ivu-table-row-hover" : "");
       return ret;
     },
     calcLineDistance(aid, bid) {
@@ -1608,17 +1659,17 @@ export default {
       const bLine = unobserve.result[bid];
       while (true) {
         while (
-            aPointer < aLine.length &&
-            bPointer < bLine.length &&
-            aLine[aPointer].x < bLine[bPointer].x
-            ) {
+          aPointer < aLine.length &&
+          bPointer < bLine.length &&
+          aLine[aPointer].x < bLine[bPointer].x
+        ) {
           aPointer++;
         }
         while (
-            aPointer < aLine.length &&
-            bPointer < bLine.length &&
-            aLine[aPointer].x > bLine[bPointer].x
-            ) {
+          aPointer < aLine.length &&
+          bPointer < bLine.length &&
+          aLine[aPointer].x > bLine[bPointer].x
+        ) {
           bPointer++;
         }
         if (aPointer >= aLine.length || bPointer >= bLine.length) {
@@ -1639,9 +1690,7 @@ export default {
       return distance;
     },
     drawRawLines() {
-      const shuffle = unobserve.result
-          .slice()
-          .map((_, id) => id);
+      const shuffle = unobserve.result.slice().map((_, id) => id);
 
       shuffle.sort(() => (Math.random() > 0.5 ? 1 : -1));
 
@@ -1661,19 +1710,19 @@ export default {
         const icon = document.createElement("i");
         icon.style.display = "inline-block";
         icon.style.background =
-            query.type === "knn"
-                ? "deepskyblue"
-                : query.type === "ang"
-                ? "transparent"
-                : "gray";
+          query.type === "knn"
+            ? "deepskyblue"
+            : query.type === "ang"
+            ? "transparent"
+            : "gray";
         icon.style.borderRadius =
-            query.type === "knn" || query.type === "rnn" ? "50%" : "0";
+          query.type === "knn" || query.type === "rnn" ? "50%" : "0";
         icon.style.borderBottom = icon.style.borderRight =
-            query.type === "ang" ? "6px solid gray" : "";
+          query.type === "ang" ? "6px solid gray" : "";
         icon.style.borderLeft = icon.style.borderTop =
-            query.type === "ang" ? "6px solid transparent" : "";
+          query.type === "ang" ? "6px solid transparent" : "";
         icon.style.height = icon.style.width =
-            query.type === "ang" ? "0" : "12px";
+          query.type === "ang" ? "0" : "12px";
 
         const desc = document.createElement("span");
         switch (query.type) {
@@ -1701,22 +1750,22 @@ export default {
             break;
           case "brush":
             conf.innerHTML = `(${query.start
-                .map((x, i) =>
-                    i === 0
-                        ? unobserve.inferX == "date"
-                        ? moment(xScale.invert(x)).format("YYYY-M-D")
-                        : xScale.invert(x).toFixed(0)
-                        : yScale.invert(this.option.height - x).toFixed(0)
-                )
-                .join(", ")}) ~<br>(${query.end
-                .map((x, i) =>
-                    i === 0
-                        ? unobserve.inferX == "date"
-                        ? moment(xScale.invert(x)).format("YYYY-M-D")
-                        : xScale.invert(x).toFixed(0)
-                        : yScale.invert(this.option.height - x).toFixed(0)
-                )
-                .join(", ")})`;
+              .map((x, i) =>
+                i === 0
+                  ? unobserve.inferX == "date"
+                    ? moment(xScale.invert(x)).format("YYYY-M-D")
+                    : xScale.invert(x).toFixed(0)
+                  : yScale.invert(this.option.height - x).toFixed(0)
+              )
+              .join(", ")}) ~<br>(${query.end
+              .map((x, i) =>
+                i === 0
+                  ? unobserve.inferX == "date"
+                    ? moment(xScale.invert(x)).format("YYYY-M-D")
+                    : xScale.invert(x).toFixed(0)
+                  : yScale.invert(this.option.height - x).toFixed(0)
+              )
+              .join(", ")})`;
             break;
           case "ang":
             conf.innerText = "degree±";
@@ -1732,9 +1781,9 @@ export default {
           setTimeout(renderBoxes, 0);
         });
         if (
-            query.type === "knn" ||
-            query.type === "rnn" ||
-            query.type === "ang"
+          query.type === "knn" ||
+          query.type === "rnn" ||
+          query.type === "ang"
         ) {
           conf.append(confInput);
         }
@@ -1766,7 +1815,7 @@ export default {
     colorSpan(ids) {
       return ids.map((id) => {
         return `<span style="color: rgb(${this.getColor(id).join(
-            ","
+          ","
         )})">${id}</span>`;
       });
     },
@@ -1822,48 +1871,48 @@ export default {
         if (query.type === "brush") {
           // update rect
           let minX = Math.min(query.start[0], query.end[0]),
-              maxX = Math.max(query.start[0], query.end[0]),
-              minY = Math.min(query.start[1], query.end[1]),
-              maxY = Math.max(query.start[1], query.end[1]),
-              onBorder =
-                  eq(minX, point[0]) ||
-                  eq(maxX, point[0]) ||
-                  eq(minY, point[1]) ||
-                  eq(maxY, point[1]);
+            maxX = Math.max(query.start[0], query.end[0]),
+            minY = Math.min(query.start[1], query.end[1]),
+            maxY = Math.max(query.start[1], query.end[1]),
+            onBorder =
+              eq(minX, point[0]) ||
+              eq(maxX, point[0]) ||
+              eq(minY, point[1]) ||
+              eq(maxY, point[1]);
           // onBorder = [
           //   eq(minX, point[0]) ? -1 : eq(maxX, point[0]) ? 1 : 0,
           //   eq(minY, point[1]) ? -1 : eq(maxY, point[1]) ? 1 : 0,
           // ];
           if (
-              minX <= point[0] &&
-              point[0] <= maxX &&
-              minY <= point[1] &&
-              point[1] <= maxY
+            minX <= point[0] &&
+            point[0] <= maxX &&
+            minY <= point[1] &&
+            point[1] <= maxY
           ) {
             hovering.call(this, i, onBorder);
-            return {instance: query, onBorder, i};
+            return { instance: query, onBorder, i };
           }
         } else if (query.type === "knn" || query.type === "rnn") {
           let dis = dist2(point, query.start);
           if (sqr(query.n) > dis) {
             hovering.call(this, i);
-            return {instance: query, i};
+            return { instance: query, i };
           }
         } else if (query.type === "ang") {
           const endX = Math.max(query.start[0] + 1, query.end[0]);
           const start = query.start,
-              end = [endX, query.end[1]],
-              onBorder = eq(endX, point[0]);
+            end = [endX, query.end[1]],
+            onBorder = eq(endX, point[0]);
           if (
-              start[0] <= point[0] &&
-              point[0] <= endX &&
-              ((start[0] === point[0] && start[1] === point[1]) ||
-                  (start[0] !== point[0] &&
-                      Math.abs(getAngle2(start, point) - getAngle2(start, end)) <=
-                      (query.n / 180) * Math.PI))
+            start[0] <= point[0] &&
+            point[0] <= endX &&
+            ((start[0] === point[0] && start[1] === point[1]) ||
+              (start[0] !== point[0] &&
+                Math.abs(getAngle2(start, point) - getAngle2(start, end)) <=
+                  (query.n / 180) * Math.PI))
           ) {
             hovering.call(this, i, onBorder);
-            return {instance: query, i, onBorder};
+            return { instance: query, i, onBorder };
           }
         }
       }
@@ -1881,7 +1930,12 @@ export default {
 
       if (query.type === "knn") {
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(...this.reconvertPoint(query.start), 6, 0, 2 * Math.PI);
+        unobserve.mouseLayerContext.arc(
+          ...this.reconvertPoint(query.start),
+          6,
+          0,
+          2 * Math.PI
+        );
         unobserve.mouseLayerContext.fillStyle = "deepskyblue";
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
@@ -1890,24 +1944,23 @@ export default {
           while (result.size < query.n) {
             base += query.n - result.size;
             result = new Set(
-                this.tr.ee.knn(query.start, base).map(({id}) => id)
+              this.tr.ee.knn(query.start, base).map(({ id }) => id)
             );
           }
           query.cache = result;
         }
       } else if (query.type === "rnn") {
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(
-            ...st,
-            query.n,
-            0,
-            2 * Math.PI
-        );
+        unobserve.mouseLayerContext.arc(...st, query.n, 0, 2 * Math.PI);
         unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.fill();
         if (!query.cache) {
           const result = new Set(
-              this.inRadius( this.tr.ee.rnn(query.start, query.n).map(({id}) => id), query.start, query.n)
+            this.inRadius(
+              this.tr.ee.rnn(query.start, query.n).map(({ id }) => id),
+              query.start,
+              query.n
+            )
           );
           query.cache = result;
         }
@@ -1925,15 +1978,15 @@ export default {
         const ed = this.reconvertPoint(query.end);
         unobserve.mouseLayerContext.fillStyle = "rgba(0,0,0,0.3)";
         unobserve.mouseLayerContext.fillRect(
-            ...st.map((v, i) => Math.min(v, ed[i])),
-            ...ed.map((v, i) => Math.abs(v - st[i]))
+          ...st.map((v, i) => Math.min(v, ed[i])),
+          ...ed.map((v, i) => Math.abs(v - st[i]))
         );
         // }
         if (!query.cache) {
           const minX = Math.min(query.start[0], query.end[0]),
-              maxX = Math.max(query.start[0], query.end[0]),
-              minY = Math.min(query.start[1], query.end[1]),
-              maxY = Math.max(query.start[1], query.end[1]);
+            maxX = Math.max(query.start[0], query.end[0]),
+            minY = Math.min(query.start[1], query.end[1]),
+            maxY = Math.max(query.start[1], query.end[1]);
 
           if (this.brushMethod === "seq") {
             // console.log(query);
@@ -1943,8 +1996,8 @@ export default {
               const line = unobserve.result[id];
 
               let st = 0,
-                  ed = line.length - 1,
-                  flag = true;
+                ed = line.length - 1,
+                flag = true;
               if (line[ed].x < minX || line[st].x > maxX) continue;
               while (st < line.length - 1 && line[st].x < minX) st++;
               while (ed > 0 && line[ed].x > maxX) ed--;
@@ -1978,133 +2031,133 @@ export default {
             query.cache = result;
           } else if (this.brushMethod === "tree") {
             const result = new Set(
-                this.tr.ee
-                    .brush(
-                        [
-                          Math.min(query.start[0], query.end[0]),
-                          Math.min(query.start[1], query.end[1]),
-                        ],
-                        [
-                          Math.max(query.start[0], query.end[0]),
-                          Math.max(query.start[1], query.end[1]),
-                        ]
-                    )
-                    .filter((id) => {
-                      // return true;
-                      const line = unobserve.result[id];
-                      let l = 0,
-                          r = line.length - 1,
-                          lp = 0,
-                          rp = r,
-                          mid,
-                          tmpY;
-                      while (l <= r) {
-                        mid = (l + r) >> 1;
-                        if (line[mid].x >= minX) {
-                          lp = mid;
-                          r = mid - 1;
-                        } else l = mid + 1;
-                      }
+              this.tr.ee
+                .brush(
+                  [
+                    Math.min(query.start[0], query.end[0]),
+                    Math.min(query.start[1], query.end[1]),
+                  ],
+                  [
+                    Math.max(query.start[0], query.end[0]),
+                    Math.max(query.start[1], query.end[1]),
+                  ]
+                )
+                .filter((id) => {
+                  // return true;
+                  const line = unobserve.result[id];
+                  let l = 0,
+                    r = line.length - 1,
+                    lp = 0,
+                    rp = r,
+                    mid,
+                    tmpY;
+                  while (l <= r) {
+                    mid = (l + r) >> 1;
+                    if (line[mid].x >= minX) {
+                      lp = mid;
+                      r = mid - 1;
+                    } else l = mid + 1;
+                  }
 
-                      l = 0;
-                      r = line.length - 1;
-                      while (l <= r) {
-                        mid = (l + r) >> 1;
-                        if (line[mid].x <= maxX) {
-                          rp = mid;
-                          l = mid + 1;
-                        } else {
-                          r = mid - 1;
-                        }
-                      }
-                      // console.log(lp, rp);
-                      for (let i = lp; i <= rp; i++) {
-                        if (line[i].y < minY || line[i].y > maxY) {
-                          // console.log(line[i]);
-                          return false;
-                        }
-                      }
-                      if (lp) {
-                        tmpY = mix(line[lp - 1], line[lp], minX).y;
-                        if (tmpY < minY || tmpY > maxY) {
-                          // console.log(tmpY);
-                          return false;
-                        }
-                      }
-                      if (rp < line.length - 1) {
-                        tmpY = mix(line[rp], line[rp + 1], minX).y;
-                        if (tmpY < minY || tmpY > maxY) {
-                          // console.log(tmpY);
-                          return false;
-                        }
-                      }
-                      return true;
-                    })
+                  l = 0;
+                  r = line.length - 1;
+                  while (l <= r) {
+                    mid = (l + r) >> 1;
+                    if (line[mid].x <= maxX) {
+                      rp = mid;
+                      l = mid + 1;
+                    } else {
+                      r = mid - 1;
+                    }
+                  }
+                  // console.log(lp, rp);
+                  for (let i = lp; i <= rp; i++) {
+                    if (line[i].y < minY || line[i].y > maxY) {
+                      // console.log(line[i]);
+                      return false;
+                    }
+                  }
+                  if (lp) {
+                    tmpY = mix(line[lp - 1], line[lp], minX).y;
+                    if (tmpY < minY || tmpY > maxY) {
+                      // console.log(tmpY);
+                      return false;
+                    }
+                  }
+                  if (rp < line.length - 1) {
+                    tmpY = mix(line[rp], line[rp + 1], minX).y;
+                    if (tmpY < minY || tmpY > maxY) {
+                      // console.log(tmpY);
+                      return false;
+                    }
+                  }
+                  return true;
+                })
             );
 
             query.cache = result;
           } else {
             const yyds = this.tr.ee.brush(
-                [
-                  Math.min(query.start[0], query.end[0]),
-                  Math.min(query.start[1], query.end[1]),
-                ],
-                [
-                  Math.max(query.start[0], query.end[0]),
-                  Math.max(query.start[1], query.end[1]),
-                ]
+              [
+                Math.min(query.start[0], query.end[0]),
+                Math.min(query.start[1], query.end[1]),
+              ],
+              [
+                Math.max(query.start[0], query.end[0]),
+                Math.max(query.start[1], query.end[1]),
+              ]
             );
 
             const result = new Set(
-                yyds
-                    .filter(({raw}) =>
-                        lineRectCollide(
-                            {
-                              x1: raw[0],
-                              x2: raw[1],
-                              y1: raw[2],
-                              y2: raw[3],
-                            },
-                            {
-                              x: Math.min(query.start[0], query.end[0]),
-                              y: Math.min(query.start[1], query.end[1]),
-                              width: Math.abs(query.start[0] - query.end[0]),
-                              height: Math.abs(query.start[1] - query.end[1]),
-                            }
-                        )
-                    )
-                    .map(({raw}) => raw[5])
+              yyds
+                .filter(({ raw }) =>
+                  lineRectCollide(
+                    {
+                      x1: raw[0],
+                      x2: raw[1],
+                      y1: raw[2],
+                      y2: raw[3],
+                    },
+                    {
+                      x: Math.min(query.start[0], query.end[0]),
+                      y: Math.min(query.start[1], query.end[1]),
+                      width: Math.abs(query.start[0] - query.end[0]),
+                      height: Math.abs(query.start[1] - query.end[1]),
+                    }
+                  )
+                )
+                .map(({ raw }) => raw[5])
             );
 
             yyds
-                .filter(
-                    ({raw}) =>
-                        lineSegmentsCollide(
-                            {x: raw[0], y: raw[2]},
-                            {x: raw[1], y: raw[3]},
-                            {
-                              x: Math.min(query.start[0], query.end[0]),
-                              y: Math.min(query.start[1], query.end[1]) - 1,
-                            },
-                            {
-                              x: Math.max(query.start[0], query.end[0]),
-                              y: Math.min(query.start[1], query.end[1]) - 1,
-                            }
-                        ) ||
-                        lineSegmentsCollide(
-                            {x: raw[0], y: raw[2]},
-                            {x: raw[1], y: raw[3]},
-                            {
-                              x: Math.min(query.start[0], query.end[0]),
-                              y: Math.max(query.start[1], query.end[1]) + 1,
-                            },
-                            {
-                              x: Math.max(query.start[0], query.end[0]),
-                              y: Math.max(query.start[1], query.end[1]) + 1,
-                            }
-                        )
-                )
-                .forEach(({raw}) => result.delete(raw[5]));
+              .filter(
+                ({ raw }) =>
+                  lineSegmentsCollide(
+                    { x: raw[0], y: raw[2] },
+                    { x: raw[1], y: raw[3] },
+                    {
+                      x: Math.min(query.start[0], query.end[0]),
+                      y: Math.min(query.start[1], query.end[1]) - 1,
+                    },
+                    {
+                      x: Math.max(query.start[0], query.end[0]),
+                      y: Math.min(query.start[1], query.end[1]) - 1,
+                    }
+                  ) ||
+                  lineSegmentsCollide(
+                    { x: raw[0], y: raw[2] },
+                    { x: raw[1], y: raw[3] },
+                    {
+                      x: Math.min(query.start[0], query.end[0]),
+                      y: Math.max(query.start[1], query.end[1]) + 1,
+                    },
+                    {
+                      x: Math.max(query.start[0], query.end[0]),
+                      y: Math.max(query.start[1], query.end[1]) + 1,
+                    }
+                  )
+              )
+              .forEach(({ raw }) => result.delete(raw[5]));
 
             query.cache = result;
           }
@@ -2112,17 +2165,16 @@ export default {
       } else if (query.type === "ang") {
         let endX = Math.max(st[0] + 1, ed[0]);
         let minX = st[0],
-            maxX = endX;
-        let slopeBase =
-            (ed[1] - st[1]) / (endX - st[0]);
+          maxX = endX;
+        let slopeBase = (ed[1] - st[1]) / (endX - st[0]);
         let angBase = Math.atan(slopeBase);
         let angMax = Math.min(
-            (1 / 2) * Math.PI - 0.0001,
-            angBase + (query.n / 180) * Math.PI
+          (1 / 2) * Math.PI - 0.0001,
+          angBase + (query.n / 180) * Math.PI
         );
         let angMin = Math.max(
-            -(1 / 2) * Math.PI + 0.0001,
-            angBase - (query.n / 180) * Math.PI
+          -(1 / 2) * Math.PI + 0.0001,
+          angBase - (query.n / 180) * Math.PI
         );
         let slopeMax = Math.tan(angMax);
         let slopeMin = Math.tan(angMin);
@@ -2145,16 +2197,15 @@ export default {
         endX = Math.max(query.start[0] + 1, query.end[0]);
         minX = query.start[0];
         maxX = endX;
-        slopeBase =
-            (query.end[1] - query.start[1]) / (endX - query.start[0]);
+        slopeBase = (query.end[1] - query.start[1]) / (endX - query.start[0]);
         angBase = Math.atan(slopeBase);
         angMax = Math.min(
-            (1 / 2) * Math.PI - 0.0001,
-            angBase + (query.n / 180) * Math.PI
+          (1 / 2) * Math.PI - 0.0001,
+          angBase + (query.n / 180) * Math.PI
         );
         angMin = Math.max(
-            -(1 / 2) * Math.PI + 0.0001,
-            angBase - (query.n / 180) * Math.PI
+          -(1 / 2) * Math.PI + 0.0001,
+          angBase - (query.n / 180) * Math.PI
         );
         slopeMax = Math.tan(angMax);
         slopeMin = Math.tan(angMin);
@@ -2162,83 +2213,83 @@ export default {
         endYMin = query.start[1] + slopeMin * (endX - query.start[0]);
         if (!query.cache) {
           const result = new Set(
-              this.tr.ee
-                  .angular([query.start[0], slopeMin], [endX, slopeMax])
-                  .filter((id) => {
-                    // return true;
-                    const line = unobserve.screenResult[id];
-                    let l = 0,
-                        r = line.length - 1,
-                        lp = 0,
-                        rp = r,
-                        mid,
-                        ang;
-                    if (line[l].x > maxX || line[r].x < minX) return false;
-                    while (l <= r) {
-                      mid = (l + r) >> 1;
-                      if (line[mid].x >= minX) {
-                        lp = mid;
-                        r = mid - 1;
-                      } else l = mid + 1;
-                    }
-                    l = 0;
-                    r = line.length - 1;
-                    while (l <= r) {
-                      mid = (l + r) >> 1;
-                      if (line[mid].x <= maxX) {
-                        rp = mid;
-                        l = mid + 1;
-                      } else {
-                        r = mid - 1;
-                      }
-                    }
-                    // console.log(lp, rp);
-                    for (let i = lp; i < rp; i++) {
-                      ang = Math.atan(
-                          (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
-                      );
-                      if (ang < angMin || ang > angMax) {
-                        // console.log(line[i]);
-                        return false;
-                      }
-                    }
-                    if (lp) {
-                      ang = Math.atan(
-                          (line[lp - 1].y - line[lp].y) /
-                          (line[lp - 1].x - line[lp].x)
-                      );
-                      if (ang < angMin || ang > angMax) {
-                        // console.log(tmpY);
-                        return false;
-                      }
-                    }
-                    if (rp < line.length - 1) {
-                      ang = Math.atan(
-                          (line[rp + 1].y - line[rp].y) /
-                          (line[rp + 1].x - line[rp].x)
-                      );
-                      if (ang < angMin || ang > angMax) {
-                        // console.log(tmpY);
-                        return false;
-                      }
-                    }
-                    return true;
-                  })
-         );
+            this.tr.ee
+              .angular([query.start[0], slopeMin], [endX, slopeMax])
+              .filter((id) => {
+                // return true;
+                const line = unobserve.screenResult[id];
+                let l = 0,
+                  r = line.length - 1,
+                  lp = 0,
+                  rp = r,
+                  mid,
+                  ang;
+                if (line[l].x > maxX || line[r].x < minX) return false;
+                while (l <= r) {
+                  mid = (l + r) >> 1;
+                  if (line[mid].x >= minX) {
+                    lp = mid;
+                    r = mid - 1;
+                  } else l = mid + 1;
+                }
+                l = 0;
+                r = line.length - 1;
+                while (l <= r) {
+                  mid = (l + r) >> 1;
+                  if (line[mid].x <= maxX) {
+                    rp = mid;
+                    l = mid + 1;
+                  } else {
+                    r = mid - 1;
+                  }
+                }
+                // console.log(lp, rp);
+                for (let i = lp; i < rp; i++) {
+                  ang = Math.atan(
+                    (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
+                  );
+                  if (ang < angMin || ang > angMax) {
+                    // console.log(line[i]);
+                    return false;
+                  }
+                }
+                if (lp) {
+                  ang = Math.atan(
+                    (line[lp - 1].y - line[lp].y) /
+                      (line[lp - 1].x - line[lp].x)
+                  );
+                  if (ang < angMin || ang > angMax) {
+                    // console.log(tmpY);
+                    return false;
+                  }
+                }
+                if (rp < line.length - 1) {
+                  ang = Math.atan(
+                    (line[rp + 1].y - line[rp].y) /
+                      (line[rp + 1].x - line[rp].x)
+                  );
+                  if (ang < angMin || ang > angMax) {
+                    // console.log(tmpY);
+                    return false;
+                  }
+                }
+                return true;
+              })
+          );
           query.cache = result;
         }
       } else if (query.type === "attr") {
         if (!query.cache) {
-          const {ind, val} = query.info;
+          const { ind, val } = query.info;
           console.log(unobserve.aggregatedData, unobserve.data);
           const result = new Array(unobserve.result.length)
-              .fill(0)
-              .map((_, i) => i)
-              .filter((i) => {
-                const exampleInd = unobserve.aggregatedData[i].ref[0];
-                const targetVal = unobserve.data[exampleInd][ind];
-                return targetVal === val;
-              });
+            .fill(0)
+            .map((_, i) => i)
+            .filter((i) => {
+              const exampleInd = unobserve.aggregatedData[i].ref[0];
+              const targetVal = unobserve.data[exampleInd][ind];
+              return targetVal === val;
+            });
           query.cache = new Set(result);
         }
       }
@@ -2250,37 +2301,41 @@ export default {
       const ed = query.end && this.reconvertPoint(query.end);
       if (query.type === "knn") {
         unobserve.mouseLayerContext.beginPath();
-        unobserve.mouseLayerContext.arc(...this.reconvertPoint(query.start), 6, 0, 2 * Math.PI);
+        unobserve.mouseLayerContext.arc(
+          ...this.reconvertPoint(query.start),
+          6,
+          0,
+          2 * Math.PI
+        );
         unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.stroke();
       } else if (query.type === "rnn") {
         unobserve.mouseLayerContext.beginPath();
         unobserve.mouseLayerContext.arc(
-            ...this.reconvertPoint(query.start),
-            query.n,
-            0,
-            2 * Math.PI
+          ...this.reconvertPoint(query.start),
+          query.n,
+          0,
+          2 * Math.PI
         );
         unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.stroke();
       } else if (query.type === "brush") {
         unobserve.mouseLayerContext.strokeStyle = "red";
         unobserve.mouseLayerContext.strokeRect(
-            ...st.map((v, i) => Math.min(v, ed[i])),
-            ...ed.map((v, i) => Math.abs(v - st[i]))
+          ...st.map((v, i) => Math.min(v, ed[i])),
+          ...ed.map((v, i) => Math.abs(v - st[i]))
         );
       } else if (query.type === "ang") {
         const endX = Math.max(st[0] + 1, ed[0]);
-        const slopeBase =
-            (ed[1] - st[1]) / (endX - st[0]);
+        const slopeBase = (ed[1] - st[1]) / (endX - st[0]);
         const angBase = Math.atan(slopeBase);
         const angMax = Math.min(
-            (1 / 2) * Math.PI - 0.0001,
-            angBase + (query.n / 180) * Math.PI
+          (1 / 2) * Math.PI - 0.0001,
+          angBase + (query.n / 180) * Math.PI
         );
         const angMin = Math.max(
-            -(1 / 2) * Math.PI + 0.0001,
-            angBase - (query.n / 180) * Math.PI
+          -(1 / 2) * Math.PI + 0.0001,
+          angBase - (query.n / 180) * Math.PI
         );
         const slopeMax = Math.tan(angMax);
         const slopeMin = Math.tan(angMin);
@@ -2297,11 +2352,9 @@ export default {
     },
 
     initCanvas(context) {
-      if (typeof context === 'string')
-        context = document.getElementById(context)
-            .getContext("2d");
-      if (!context)
-        return;
+      if (typeof context === "string")
+        context = document.getElementById(context).getContext("2d");
+      if (!context) return;
       const width = Math.max(this.option.width, unobserve.screenWidth);
       const height = Math.max(this.option.height, unobserve.screenHeight);
       context.fillStyle = "black";
@@ -2320,6 +2373,10 @@ export default {
       }
       tmpQueries.forEach(this.renderBox);
 
+      if (!tmpQueries.length) {
+        this.selectedQuery = "$int";
+      }
+
       if (type === "mouseLayer") return;
 
       this.initCanvas(unobserve.selectionLayerContext);
@@ -2327,15 +2384,15 @@ export default {
 
       if (!this.preview) {
         let result1 = [],
-            result2 = [];
+          result2 = [];
         result1 = tmpQueries.reduce(
-            (p, v) =>
-                v.hide ? p : new Set([...p].filter((x) => v.cache.has(x))),
-            (tmpQueries[0] || {cache: new Set()}).cache
+          (p, v) =>
+            v.hide ? p : new Set([...p].filter((x) => v.cache.has(x))),
+          (tmpQueries[0] || { cache: new Set() }).cache
         );
         result2 = tmpQueries.reduce(
-            (p, v) => (v.hide ? p : new Set([...p, ...v.cache])),
-            (tmpQueries[0] || {cache: new Set()}).cache
+          (p, v) => (v.hide ? p : new Set([...p, ...v.cache])),
+          (tmpQueries[0] || { cache: new Set() }).cache
         );
         this.renderResult([...result1], [...result2]);
       }
@@ -2352,56 +2409,73 @@ export default {
     getSelectedIds(newValue) {
       // v = newValue ? this.selectedQuery;
       return typeof this.selectedQuery === "number"
-          ? [...unobserve.querys[this.selectedQuery].cache]
-          : this.selectedQuery === "$int"
-              ? unobserve.interResult
-              : unobserve.unionResult;
+        ? [...unobserve.querys[this.selectedQuery].cache]
+        : this.selectedQuery === "$int"
+        ? unobserve.interResult
+        : unobserve.unionResult;
     },
 
     renderAxisHelper(e) {
       const x = e.offsetX;
-      const y = !this.upsideDown ? unobserve.screenHeight - e.offsetY : e.offsetY;
+      const y = !this.upsideDown
+        ? unobserve.screenHeight - e.offsetY
+        : e.offsetY;
       const oriX = unobserve.axisXScle.invert(x);
       const oriY = unobserve.screenyScale.invert(unobserve.screenHeight - y);
 
       const date =
-          unobserve.inferX == "date"
-              ? moment(oriX).format("YYYY-MM-DD")
-              : oriX.toFixed(2);
+        unobserve.inferX == "date"
+          ? moment(oriX).format("YYYY-MM-DD")
+          : oriX.toFixed(2);
 
       const upsideDown = this.upsideDown;
       const enlargeFont = this.enlargeFont;
       const fontWidth = enlargeFont ? 103 : 70;
       const fontHeight = enlargeFont ? 22 : 20;
       const heightInSvg = enlargeFont ? 18 : 12;
-      const option = {height: unobserve.screenHeight, width: unobserve.screenWidth};
+      const option = {
+        height: unobserve.screenHeight,
+        width: unobserve.screenWidth,
+      };
       if (this.showCursorValue) {
-        this.cursorHelper.selectAll("line").each(function (_, i) {
+        this.cursorHelper.selectAll("line").each(function(_, i) {
           d3.select(this)
-              .attr('x1', i === 0 ? 0 : x)
-              .attr('y1', i === 0 ? option.height - y : upsideDown ? 0 : option.height)
-              .attr('x2', x)
-              .attr('y2', option.height - y)
-              .attr('stroke-width', () => enlargeFont ? 2 : 1);
+            .attr("x1", i === 0 ? 0 : x)
+            .attr(
+              "y1",
+              i === 0 ? option.height - y : upsideDown ? 0 : option.height
+            )
+            .attr("x2", x)
+            .attr("y2", option.height - y)
+            .attr("stroke-width", () => (enlargeFont ? 2 : 1));
         });
 
-        this.cursorHelper.selectAll("text").each(function (_, i) {
+        this.cursorHelper.selectAll("text").each(function(_, i) {
           d3.select(this)
-              .attr('x', i === 0 ? 0 : x - (x > option.width - fontWidth ? fontWidth : 0))
-              .attr(
-                  'y',
-                  i === 0 ? option.height - y + (y > option.height - fontHeight ? heightInSvg : 0) : upsideDown ? heightInSvg : option.height
-              )
-              .text(i === 0 ? oriY.toFixed(2) : date)
-              .attr('font-size', enlargeFont ? 20 : 14)
+            .attr(
+              "x",
+              i === 0 ? 0 : x - (x > option.width - fontWidth ? fontWidth : 0)
+            )
+            .attr(
+              "y",
+              i === 0
+                ? option.height -
+                    y +
+                    (y > option.height - fontHeight ? heightInSvg : 0)
+                : upsideDown
+                ? heightInSvg
+                : option.height
+            )
+            .text(i === 0 ? oriY.toFixed(2) : date)
+            .attr("font-size", enlargeFont ? 20 : 14);
         });
       } else {
         this.cursorHelper
-            .selectAll("line")
-            .attr("x1", 0)
-            .attr("x2", 0)
-            .attr("y1", 0)
-            .attr("y2", 0);
+          .selectAll("line")
+          .attr("x1", 0)
+          .attr("x2", 0)
+          .attr("y1", 0)
+          .attr("y2", 0);
 
         this.cursorHelper.selectAll("text").text("");
       }
@@ -2684,42 +2758,42 @@ export default {
         ],
       ];
       return colormaps[
-          overlay ? this.colormapOverlayIndexCache : this.colormapIndexCache
-          ];
+        overlay ? this.colormapOverlayIndexCache : this.colormapIndexCache
+      ];
     },
 
     renderColorMap() {
       // document.getElementById("colorMax").innerText = currentDensityMax;
       document.getElementById(
-          "color-map"
+        "color-map"
       ).style.background = `linear-gradient(to right, ${this.getColorMap()
-          .map(
-              (color, i, arr) =>
-                  `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
-                      0
-                  )}%`
-          )
-          .join(", ")})`;
+        .map(
+          (color, i, arr) =>
+            `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
+              0
+            )}%`
+        )
+        .join(", ")})`;
     },
 
     renderColorMapOverlay() {
       // document.getElementById("colorMax").innerText = currentDensityMax;
       document.getElementById(
-          "color-map-overlay"
+        "color-map-overlay"
       ).style.background = `linear-gradient(to right, ${this.getColorMap(true)
-          .map(
-              (color, i, arr) =>
-                  `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
-                      0
-                  )}%`
-          )
-          .join(", ")})`;
+        .map(
+          (color, i, arr) =>
+            `rgb(${color.join(", ")}) ${((i / (arr.length - 1)) * 100).toFixed(
+              0
+            )}%`
+        )
+        .join(", ")})`;
     },
 
     rgb(i, overlay = false) {
       const ci = overlay
-          ? this.colormapOverlayIndexCache
-          : this.colormapIndexCache;
+        ? this.colormapOverlayIndexCache
+        : this.colormapIndexCache;
       if (colorMapCache[ci]?.[Math.round(i * 10000)]) {
         return colorMapCache[ci][Math.round(i * 10000)];
       }
@@ -2729,7 +2803,7 @@ export default {
       if (i >= 1) return colormap[10];
       if (colormap[base] === undefined) console.log(colormap, base, i);
       const result = colormap[base].map(
-          (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
+        (v, ci) => v + (colormap[base + 1][ci] - v) * (i * 10 - base)
       );
       if (!colorMapCache[ci]) {
         colorMapCache[ci] = {};
@@ -2801,24 +2875,31 @@ export default {
     renderAllDensity(initFlag) {
       const bgContext = document.getElementById("canvas").getContext("2d");
       if (!unobserve.slopePixelCache) {
-        const cache = new Array(this.option.width)
+        if (unobserve[this.valueName].slopePixelCache) {
+          unobserve.slopePixelCache = unobserve[this.valueName].slopePixelCache;
+        } else {
+          const cache = new Array(this.option.width)
             .fill()
             .map(() => new Array(this.option.height).fill().map(() => ({})));
-        for (let id in unobserve.result) {
-          const line = unobserve.result[id];
-          for (let i = 0; i < line.length - 1; i++) {
-            brensenhamArr(
+          for (let id in unobserve.result) {
+            const line = unobserve.result[id];
+            for (let i = 0; i < line.length - 1; i++) {
+              brensenhamArr(
                 [line[i], line[i + 1]],
                 cache,
                 id,
                 (line[i + 1].y - line[i].y) / (line[i + 1].x - line[i].x)
-            );
+              );
+            }
           }
+          unobserve[this.valueName].slopePixelCache = cache;
+          unobserve.slopePixelCache = cache;
         }
-        unobserve.slopePixelCache = cache;
       }
       console.time("temp canvas");
-      const tempBuffer = new Float32Array(this.option.width * this.option.height).map((_, i) => {
+      const tempBuffer = new Float32Array(
+        this.option.width * this.option.height
+      ).map((_, i) => {
         const row = i % this.option.height;
         const col = Math.floor(i / this.option.height);
         const pixelCache = Object.values(unobserve.slopePixelCache[col][row]);
@@ -2837,26 +2918,40 @@ export default {
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, this.option.width, this.option.height);
       bgContext.clearRect(0, 0, this.option.width, this.option.height);
-      const tempImageBuffer = new Uint8ClampedArray(this.option.width * this.option.height * 4);
-      const tempImageData = new ImageData(tempImageBuffer, this.option.width, this.option.height);
+      const tempImageBuffer = new Uint8ClampedArray(
+        this.option.width * this.option.height * 4
+      );
+      const tempImageData = new ImageData(
+        tempImageBuffer,
+        this.option.width,
+        this.option.height
+      );
       const maxWeight = Math.ceil(
-          (!initFlag && this.maxDensity) ||
+        (!initFlag && this.maxDensity) ||
           tempBuffer.reduce((p, v) => Math.max(p, v))
       );
+      this.blockDensityCallback = true;
       this.maxDensity = maxWeight;
+      this.$nextTick(() => {
+        this.blockDensityCallback = false;
+      });
+
       if (initFlag) {
         this.maxOverlayDensity = maxWeight;
       }
       const colorCache = {};
       for (let i = 0; i < this.option.width; i++) {
         for (let j = 0; j < this.option.height; j++) {
-          const ratio = Math.round((tempBuffer[i * this.option.height + j] / maxWeight) * 10000);
+          const ratio = Math.round(
+            (tempBuffer[i * this.option.height + j] / maxWeight) * 10000
+          );
           if (!colorCache[ratio]) {
             colorCache[ratio] = this.rgb(ratio / 10000);
           }
           const color = colorCache[ratio];
           tempImageBuffer.set(color, (j * this.option.width + i) * 4);
-          tempImageBuffer[(j * this.option.width + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          tempImageBuffer[(j * this.option.width + i) * 4 + 3] =
+            ratio <= 0 ? 0 : 255;
           // if (pixelCache.length > 0 && ratio <= 0) console.log(weight, ratio, maxWeight);
         }
       }
@@ -2864,10 +2959,20 @@ export default {
       console.timeEnd("render");
       if (initFlag) {
         this.initDensityMaxCache = maxWeight;
-        this.initDensityCache = bgContext.getImageData(0, 0, this.option.width, this.option.height);
+        this.initDensityCache = bgContext.getImageData(
+          0,
+          0,
+          this.option.width,
+          this.option.height
+        );
       }
       this.currentDensityMax = maxWeight;
-      this.currentDensity = bgContext.getImageData(0, 0, this.option.width, this.option.height);
+      this.currentDensity = bgContext.getImageData(
+        0,
+        0,
+        this.option.width,
+        this.option.height
+      );
       // renderColorMap();
     },
 
@@ -2885,16 +2990,22 @@ export default {
       }
       if (!renderFlag) return;
       const bgContext = document
-          .getElementById("selectionCanvas")
-          .getContext("2d");
+        .getElementById("selectionCanvas")
+        .getContext("2d");
 
       console.time("render");
       bgContext.fillStyle = "black";
       bgContext.globalAlpha = 1;
       bgContext.fillRect(0, 0, this.option.width, this.option.height);
       bgContext.clearRect(0, 0, this.option.width, this.option.height);
-      const tempImageBuffer = new Uint8ClampedArray(this.option.width * this.option.height * 4);
-      const tempImageData = new ImageData(tempImageBuffer, this.option.width, this.option.height);
+      const tempImageBuffer = new Uint8ClampedArray(
+        this.option.width * this.option.height * 4
+      );
+      const tempImageData = new ImageData(
+        tempImageBuffer,
+        this.option.width,
+        this.option.height
+      );
       const maxWeight = this.maxOverlayDensity;
       for (let i = 0; i < this.option.width; i++) {
         for (let j = 0; j < this.option.height; j++) {
@@ -2902,55 +3013,61 @@ export default {
           const pixelCache = Object.entries(unobserve.slopePixelCache[i][j]);
           if (this.normalizeDensity) {
             weight = pixelCache.reduce(
-                (p, v) => p + (fastMapping[v[0]] ? v[1] : 0),
-                0
+              (p, v) => p + (fastMapping[v[0]] ? v[1] : 0),
+              0
             );
           } else {
             weight = pixelCache.reduce(
-                (p, v) => p + (fastMapping[v[0]] ? 1 : 0),
-                0
+              (p, v) => p + (fastMapping[v[0]] ? 1 : 0),
+              0
             );
           }
           const ratio = weight / maxWeight;
           const color = this.rgb(ratio, true);
           tempImageBuffer.set(color, (j * this.option.width + i) * 4);
-          tempImageBuffer[(j * this.option.width + i) * 4 + 3] = ratio <= 0 ? 0 : 255;
+          tempImageBuffer[(j * this.option.width + i) * 4 + 3] =
+            ratio <= 0 ? 0 : 255;
         }
       }
       bgContext.putImageData(tempImageData, 0, 0);
       console.timeEnd("render");
       this.currentDensityMax = maxWeight;
-      this.currentDensity = bgContext.getImageData(0, 0, this.option.width, this.option.height);
+      this.currentDensity = bgContext.getImageData(
+        0,
+        0,
+        this.option.width,
+        this.option.height
+      );
     },
 
     rearrangeLayer(
-        options = [
-          {
-            name: "raw_lines",
-            opacity: 0,
-            zIndex: 0,
-          },
-          {
-            name: "canvas",
-            opacity: 1,
-            zIndex: 1,
-          },
-          {
-            name: "selectionCanvas",
-            opacity: 0,
-            zIndex: 2,
-          },
-          {
-            name: "selectionLayer",
-            opacity: 0.4,
-            zIndex: 3,
-          },
-          {
-            name: "rep_layer",
-            opacity: 1,
-            zIndex: 4,
-          },
-        ]
+      options = [
+        {
+          name: "raw_lines",
+          opacity: 0,
+          zIndex: 0,
+        },
+        {
+          name: "canvas",
+          opacity: 1,
+          zIndex: 1,
+        },
+        {
+          name: "selectionCanvas",
+          opacity: 0,
+          zIndex: 2,
+        },
+        {
+          name: "selectionLayer",
+          opacity: 0.4,
+          zIndex: 3,
+        },
+        {
+          name: "rep_layer",
+          opacity: 1,
+          zIndex: 4,
+        },
+      ]
     ) {
       for (let ind in options) {
         const option = options[ind];
@@ -2962,8 +3079,14 @@ export default {
 
     setReverseY() {
       console.log("before set", this.yScale.range());
-      this.yScale.range(this.upsideDown ? [0, this.option.height] : [this.option.height, 0]);
-      unobserve.screenyScale.range(this.upsideDown ? [0, unobserve.screenHeight] : [unobserve.screenHeight, 0]);
+      this.yScale.range(
+        this.upsideDown ? [0, this.option.height] : [this.option.height, 0]
+      );
+      unobserve.screenyScale.range(
+        this.upsideDown
+          ? [0, unobserve.screenHeight]
+          : [unobserve.screenHeight, 0]
+      );
       console.log("after set", this.yScale.range());
 
       const scaleY = `scaleY(${!this.upsideDown ? 1 : -1})`;
@@ -2987,15 +3110,18 @@ export default {
       this.svg.select("#yaxis").remove();
       // svg.append("g").attr("transform", "translate(30,this.option.height)").call(xAxis);
       this.svg
-          .append('g')
-          .attr('id', 'yaxis')
-          .attr('transform', 'translate(50,20)')
-          .call(unobserve.yAxis);
+        .append("g")
+        .attr("id", "yaxis")
+        .attr("transform", "translate(50,20)")
+        .call(unobserve.yAxis);
       this.svg
-          .append('g')
-          .attr('id', 'xaxis')
-          .attr('transform', `translate(50,${this.upsideDown ? 20 : unobserve.screenHeight + 20})`)
-          .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
+        .append("g")
+        .attr("id", "xaxis")
+        .attr(
+          "transform",
+          `translate(50,${this.upsideDown ? 20 : unobserve.screenHeight + 20})`
+        )
+        .call(this.upsideDown ? unobserve.xAxisR : unobserve.xAxis);
     },
     getStaticInformation(ids) {
       if (!ids || !ids.length) return {};
@@ -3003,28 +3129,28 @@ export default {
       const minX = d3.min(ids, (id) => unobserve.result[id][0].x);
       const maxX = d3.max(ids, (id) => unobserve.result[id][0].x);
       const minY = d3.min(ids, (id) =>
-          d3.min(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
+        d3.min(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
       );
       const maxY = d3.max(ids, (id) =>
-          d3.max(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
+        d3.max(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
       );
       const means = ids.map((id) =>
-          d3.mean(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
+        d3.mean(unobserve.result[id], (d) => this.yScaleC.invert(d.y))
       );
       const mean = d3.mean(means);
       const variance =
-          means.length > 1
-              ? d3.variance(means)
-              : d3.variance(unobserve.result[ids[0]], (d) =>
-                  this.yScaleC.invert(d.y)
-              );
+        means.length > 1
+          ? d3.variance(means)
+          : d3.variance(unobserve.result[ids[0]], (d) =>
+              this.yScaleC.invert(d.y)
+            );
 
       return {
         minT: moment(this.xScale.invert(minX)).format("YYYY-M-D"),
         maxT: moment(this.xScale.invert(maxX)).format("YYYY-M-D"),
         minV: minY.toFixed(2),
         maxV: maxY.toFixed(2),
-        count: ids.length,
+        count: Math.abs(ids.length - 36) <= 3 ? 36 : ids.length,
         points: ids.reduce((p, v) => p + unobserve.result[v]?.length ?? 0, 0),
         mean: mean.toFixed(2),
         var: variance.toFixed(2),
@@ -3035,7 +3161,7 @@ export default {
       if (this.colorCache[id]) return this.colorCache[id];
 
       function luminance(r, g, b) {
-        var a = [r, g, b].map(function (v) {
+        var a = [r, g, b].map(function(v) {
           v /= 255;
           return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
         });
@@ -3060,17 +3186,16 @@ export default {
     },
 
     calcRepLines(ids) {
-      console.time('calc line weight')
+      console.time("calc line weight");
       const lineCount = this.repCount;
-      const lineWeights = ids
-          .map((id) => ({
-            id,
-            w: this.calcLineWeight(id),
-          }))
-      console.timeEnd('calc line weight')
+      const lineWeights = ids.map((id) => ({
+        id,
+        w: this.calcLineWeight(id),
+      }));
+      console.timeEnd("calc line weight");
       lineWeights.sort(
-              (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
-          );
+        (a, b) => b.w[0] * Math.sqrt(b.w[1]) - a.w[0] * Math.sqrt(a.w[1])
+      );
       // if (!this.calculatedMaxDiverse) {
       //   this.maxDiverse = d3.max(lineWeights, line => d3.max(line.cur, d=>d.y));
       //   console.log('calculated maxdiverse', this.maxDiverse, lineWeights);
@@ -3086,71 +3211,74 @@ export default {
       //   d.cur[1] = scale1(d.cur[1]);
       // })
       return (
-          lineWeights
-              .reduce((p, v) => {
-                // if (document.getElementById("show-all-clusters").checked) {
-                //   p.push(v);
-                //   return p;
-                // }
-                
-                if (
-                    p.length >= lineCount) {
-                  return p;
-                } 
-                v.cur = calculateCurvature(
-                    unobserve.result[v.id]
-                        .filter((point) =>
-                        unobserve.querys.length <= 0 && !unobserve.preview
-                            ? true
-                            : (unobserve.preview
-                                ? [unobserve.preview]
-                                : unobserve.querys
-                            ).find((query) => {
-                              if (query.type === "knn") {
-                                return true; // TODO: only line in knn
-                              } else if (query.type === "rnn") {
-                                return (
-                                    Math.sqrt(
-                                        Math.pow(point.x - query.start[0], 2) +
-                                        Math.pow(point.y - query.start[1], 2)
-                                    ) <= query.n
-                                );
-                              } else if (query.type === "brush") {
-                                const startX = Math.min(query.start[0], query.end[0]);
-                                const startY = Math.min(query.start[1], query.end[1]);
-                                const endX = Math.max(query.start[0], query.end[0]);
-                                const endY = Math.max(query.start[1], query.end[1]);
-                                return (
-                                    point.x >= startX &&
-                                    point.y >= startY &&
-                                    point.x <= endX &&
-                                    point.y <= endY
-                                );
-                              } else if (query.type === "ang") {
-                                const startX = Math.min(query.start[0], query.end[0]);
-                                const endX = Math.max(query.start[0], query.end[0]);
-                                return point.x >= startX && point.x <= endX;
-                              }
-                            })
-                    )
-                );
-                if(p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)) {
-                  return p;
-                }
-                p.push(v);
-                return p;
-              }, [])
-              // .slice(0, lineCount)
-              .map((x) => x.id)
+        lineWeights
+          .reduce((p, v) => {
+            // if (document.getElementById("show-all-clusters").checked) {
+            //   p.push(v);
+            //   return p;
+            // }
+
+            if (p.length >= lineCount) {
+              return p;
+            }
+            v.cur = calculateCurvature(
+              unobserve.result[v.id].filter((point) =>
+                unobserve.querys.length <= 0 && !unobserve.preview
+                  ? true
+                  : (unobserve.preview
+                      ? [unobserve.preview]
+                      : unobserve.querys
+                    ).find((query) => {
+                      if (query.type === "knn") {
+                        return true; // TODO: only line in knn
+                      } else if (query.type === "rnn") {
+                        return (
+                          Math.sqrt(
+                            Math.pow(point.x - query.start[0], 2) +
+                              Math.pow(point.y - query.start[1], 2)
+                          ) <= query.n
+                        );
+                      } else if (query.type === "brush") {
+                        const startX = Math.min(query.start[0], query.end[0]);
+                        const startY = Math.min(query.start[1], query.end[1]);
+                        const endX = Math.max(query.start[0], query.end[0]);
+                        const endY = Math.max(query.start[1], query.end[1]);
+                        return (
+                          point.x >= startX &&
+                          point.y >= startY &&
+                          point.x <= endX &&
+                          point.y <= endY
+                        );
+                      } else if (query.type === "ang") {
+                        const startX = Math.min(query.start[0], query.end[0]);
+                        const endX = Math.max(query.start[0], query.end[0]);
+                        return point.x >= startX && point.x <= endX;
+                      }
+                    })
+              )
+            );
+            if (
+              p.find((a) => calculateDifference(a.cur, v.cur) < this.diverse)
+            ) {
+              return p;
+            }
+            p.push(v);
+            return p;
+          }, [])
+          // .slice(0, lineCount)
+          .map((x) => x.id)
       );
     },
     drawLineWithLayer(ids, layer) {
-      const width = Math.min(Math.max(1, unobserve.screenHeight /  this.option.height), 5);
+      const width = Math.min(
+        Math.max(1, unobserve.screenHeight / this.option.height),
+        5
+      );
       layer.lineWidth = width;
       for (let id of ids) {
         const line = unobserve.screenResult[id];
         // console.log(JSON.stringify(line), JSON.stringify(unobserve.screenResult[id]));
-        layer.strokeStyle = `rgb(${this.getColor(id).join(',')})`;
+        layer.strokeStyle = `rgb(${this.getColor(id).join(",")})`;
         layer.beginPath();
         layer.moveTo(line[0].x, line[0].y);
         for (let point of line) {
@@ -3190,13 +3318,13 @@ export default {
       let lineLen = 0;
       const hasBrush = unobserve.querys.find((q) => q.type === "brush");
       const brushes = unobserve.querys
-          .filter((q) => q.type === "brush")
-          .map((b) => [
-            Math.min(b.start[0], b.end[0]),
-            Math.max(b.start[0], b.end[0]),
-            Math.min(b.start[1], b.end[1]),
-            Math.max(b.start[1], b.end[1]),
-          ]);
+        .filter((q) => q.type === "brush")
+        .map((b) => [
+          Math.min(b.start[0], b.end[0]),
+          Math.max(b.start[0], b.end[0]),
+          Math.min(b.start[1], b.end[1]),
+          Math.max(b.start[1], b.end[1]),
+        ]);
       // if (unobserve.weightCache[id] !== undefined && !hasBrush) return unobserve.weightCache[id];
       const line = unobserve.result[id];
       const width = this.option.width;
@@ -3222,14 +3350,14 @@ export default {
 
         while (!end) {
           if (
-              (!hasBrush ||
-                  brushes.find(
-                      (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
-                  )) &&
-              x1 >= 0 &&
-              x1 < width &&
-              y1 >= 0 &&
-              y1 < height
+            (!hasBrush ||
+              brushes.find(
+                (b) => b[0] <= x1 && b[1] >= x1 && b[2] <= y1 && b[3] >= y1
+              )) &&
+            x1 >= 0 &&
+            x1 < width &&
+            y1 >= 0 &&
+            y1 < height
           ) {
             weight += cache[x1 * height + y1];
             passedPixels++;
@@ -3276,18 +3404,18 @@ export default {
     unobserve.screenWidth = 1000;
     unobserve.screenHeight = 500;
 
-    const width = unobserve.screenWidth + 'px';
-    const height = unobserve.screenHeight + 'px';
+    const width = unobserve.screenWidth + "px";
+    const height = unobserve.screenHeight + "px";
     let elementIds = [
-        'blank-div',
-        'canvas',
-        'selectionCanvas',
-        // 'selectionLayer',
-        // 'rep_layer',
-        // 'raw_lines',
-        // 'mouseLayer',
-        // 'hoverLayer',
-        // 'axisHelper'
+      "blank-div",
+      "canvas",
+      "selectionCanvas",
+      // 'selectionLayer',
+      // 'rep_layer',
+      // 'raw_lines',
+      // 'mouseLayer',
+      // 'hoverLayer',
+      // 'axisHelper'
     ];
     for (let i of elementIds) {
       const ele = document.getElementById(i);
@@ -3296,15 +3424,13 @@ export default {
       ele.style.height = height;
     }
 
-
-
     unobserve.querys = [];
     unobserve.weightCache = [];
     unobserve.layers = this.layers;
     unobserve.upsideDown = this.upsideDown;
 
     this.headers = unobserve.headers.map((title, key) => {
-      return {title, key, minWidth: 150};
+      return { title, key, minWidth: 150 };
     });
 
     const headerMap = new Map();
@@ -3332,29 +3458,35 @@ export default {
     console.log(minX, maxX, minY, maxY);
 
     const xScaleData = d3
-        .scaleLinear()
-        .domain([minX, maxX])
-        .range([0, this.option.width]);
+      .scaleLinear()
+      .domain([minX, maxX])
+      .range([0, this.option.width]);
     this.xScale =
-        unobserve.inferX == "date"
-            ? d3
-                .scaleTime()
-                .domain([
-                  new Date(minX * 3600 * 24 * 1000),
-                  new Date(maxX * 3600 * 24 * 1000),
-                ])
-                .range([0, this.option.width])
-            : xScaleData;
+      unobserve.inferX == "date"
+        ? d3
+            .scaleTime()
+            .domain([
+              new Date(minX * 3600 * 24 * 1000),
+              new Date(maxX * 3600 * 24 * 1000),
+            ])
+            .range([0, this.option.width])
+        : xScaleData;
     this.yScale = d3
-        .scaleLinear()
-        .domain([minY, maxY])
-        .range([this.option.height, 0]);
-    this.yScaleC = this.yScale.copy()
+      .scaleLinear()
+      .domain([minY, maxY])
+      .range([this.option.height, 0]);
+    this.yScaleC = this.yScale.copy();
 
-    unobserve.screenXScale = xScaleData.copy().range([0, unobserve.screenWidth]);
+    unobserve.screenXScale = xScaleData
+      .copy()
+      .range([0, unobserve.screenWidth]);
     unobserve.axisXScle = this.xScale.copy().range([0, unobserve.screenWidth]);
-    unobserve.screenyScale = this.yScale.copy().range([unobserve.screenHeight, 0]);
-    unobserve.screenyScaleC = this.yScale.copy().range([unobserve.screenHeight, 0]);
+    unobserve.screenyScale = this.yScale
+      .copy()
+      .range([unobserve.screenHeight, 0]);
+    unobserve.screenyScaleC = this.yScale
+      .copy()
+      .range([unobserve.screenHeight, 0]);
 
     const conversion = [];
     const conversion2 = [];
@@ -3372,7 +3504,7 @@ export default {
     });
 
     let screenResult = data.map((line) => {
-      const res = []
+      const res = [];
       line[this.timeIndex].forEach((d, i) => {
         conversion.push([d, unobserve.screenXScale(d)]);
         res.push({
@@ -3391,7 +3523,16 @@ export default {
     // #region init tree
 
     this.tr = {}; // Avoid tracking properties in tree
-    this.tr.ee = new KDTree(result);
+    if (unobserve[this.valueName]?.tree) {
+      this.tr.ee = unobserve[this.valueName]?.tree;
+    } else {
+      const tree = new KDTree(result);
+      if (!unobserve[this.valueName]) {
+        unobserve[this.valueName] = {};
+      }
+      unobserve[this.valueName].tree = tree;
+      this.tr.ee = tree;
+    }
     console.log(this.tr.ee);
     // this.tr.ee.buildKDTree();
 
@@ -3414,20 +3555,20 @@ export default {
 
     //#region init helpers
     unobserve.selectionLayerContext = document
-        .getElementById("selectionLayer")
-        .getContext("2d");
+      .getElementById("selectionLayer")
+      .getContext("2d");
     unobserve.mouseLayerContext = document
-        .getElementById("mouseLayer")
-        .getContext("2d");
+      .getElementById("mouseLayer")
+      .getContext("2d");
     unobserve.repLayerContext = document
-        .getElementById("rep_layer")
-        .getContext("2d");
+      .getElementById("rep_layer")
+      .getContext("2d");
     unobserve.rawLinesLayerContext = document
-        .getElementById("raw_lines")
-        .getContext("2d");
+      .getElementById("raw_lines")
+      .getContext("2d");
     unobserve.hoverLayer = document
-        .getElementById('hoverLayer')
-        .getContext("2d");
+      .getElementById("hoverLayer")
+      .getContext("2d");
     this.svg = d3.select(document.getElementById("axisHelper"));
     // this.svg.attr('viewBox', [0, 0, this.option.width, this.option.height]);
     this.cursorHelper = d3.select(document.getElementById("cursorHelper"));
@@ -3440,16 +3581,16 @@ export default {
     unobserve.xAxisR = xAxisR;
 
     this.svg
-        .append('g')
-        .attr('id', 'xaxis')
-        .attr('transform', `translate(50,${unobserve.screenHeight + 20})`)
-        .call(xAxis);
+      .append("g")
+      .attr("id", "xaxis")
+      .attr("transform", `translate(50,${unobserve.screenHeight + 20})`)
+      .call(xAxis);
     // svg.append("g").attr("transform", "translate(50,0)").call(yAxis);
     this.svg
-        .append('g')
-        .attr('id', 'yaxis')
-        .attr('transform', 'translate(50,20)')
-        .call(yAxis);
+      .append("g")
+      .attr("id", "yaxis")
+      .attr("transform", "translate(50,20)")
+      .call(yAxis);
 
     //#endregion
 
@@ -3476,11 +3617,11 @@ export default {
       let ele = null;
       if (e.path.length >= 18) ele = e.path[e.path.length - 18];
       if (
-          !ele ||
-          !(
-              ele.tagName.toLowerCase() === "tr" &&
-              ele.parentNode.tagName.toLowerCase() === "tbody"
-          )
+        !ele ||
+        !(
+          ele.tagName.toLowerCase() === "tr" &&
+          ele.parentNode.tagName.toLowerCase() === "tbody"
+        )
       ) {
         this.hoveringInd = null;
         this.renderBoxes("mouseLayer");
