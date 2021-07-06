@@ -207,7 +207,7 @@ export default class AlphaOptimize{
     {
         this.#totalWeight = new Array(this.#classInfo.classCount);
         this.#totalWeight.fill(0);
-
+/*
         for(let i=0;i<this.#data.length;i++)
         {
             for(let j=0;j<this.lineWeight[i].length;j++)
@@ -216,7 +216,7 @@ export default class AlphaOptimize{
                 let w = this.lineWeight[i][j];
                 this.#totalWeight[this.#classInfo.elementClass[id1d]]+=w*w;
             }
-        }
+        }*/
     }
     //TODO: use cache
     /*
@@ -249,13 +249,22 @@ export default class AlphaOptimize{
     }
 */
     //TODO: fade effect
-    computeAlphaLists()
+    computeAlphaLists(selectIDs)
     {
         //compute total value
-        
+        for(let i of selectIDs)
+        {
+            for(let j=0;j<this.lineWeight[i].length;j++)
+            {
+                let id1d = this.#pID.ind(i,j);
+                let w = this.lineWeight[i][j];
+                this.#totalWeight[this.#classInfo.elementClass[id1d]]+=w*w;
+            }
+        }
 
         //compute alpha
-        for(let i=0;i<this.#data.length;i++)
+        //for(let i=0;i<this.#data.length;i++)
+        for(let i of selectIDs)
         {
             for(let j=0;j<this.lineWeight[i].length;j++)
             {
@@ -283,8 +292,8 @@ export default class AlphaOptimize{
             this.alphaLists[i]=tempArray;
         }*/
 
-        console.log(this.lineWeight[0]);
-        console.log(this.alphaLists[0]);
+        //console.log(this.lineWeight[0]);
+        //console.log(this.alphaLists[0]);
         console.log("lam:"+this.lambda+" P:"+this.p+" rq:"+this.rq);
     }
 }

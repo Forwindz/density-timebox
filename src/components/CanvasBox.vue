@@ -793,9 +793,9 @@ export default {
         unobserve.alphas = value;
         console.log(unobserve.alphas);
         this.alphaComponent.lambda=unobserve.alphas[0].opacity*10;
-        this.alphaComponent.rq=unobserve.alphas[1].opacity*1000;
+        this.alphaComponent.rq=Math.pow(100,(unobserve.alphas[1].opacity-0.5)*4);
         this.alphaComponent.p=unobserve.alphas[2].opacity*5;
-        this.alphaComponent.computeAlphaLists();
+        this.alphaComponent.computeAlphaLists(unobserve.cache);
         //this.drawLine(unobserve.cache);
         unobserve.selectionLayerContext.clearRect(0, 0, this.option.width, this.option.height);
         this.drawLineWithLayer(unobserve.cache, unobserve.selectionLayerContext);
@@ -1144,7 +1144,10 @@ export default {
           }
           this.initCanvas(unobserve.hoverLayer);
           if (unobserve.hoverEvent)
+          {
+            this.alphaComponent.computeAlphaLists(res);
             this.drawLineWithLayer(res, unobserve.hoverLayer);
+          }
           unobserve.hoverCache = new Set(res);
         }, 10);
         return;
@@ -3326,6 +3329,7 @@ export default {
         ids = ids.slice(0, 5);
       }
       if (!this.preview) {
+        this.alphaComponent.computeAlphaLists(ids);
         this.drawLineWithLayer(ids, unobserve.selectionLayerContext);
         unobserve.selectedLines = ids;
       }
@@ -3553,7 +3557,7 @@ export default {
 
     // add alpha component
     this.alphaComponent= new AlphaOptimize(unobserve.result);
-    this.alphaComponent.computeAlphaLists();
+    //this.alphaComponent.computeAlphaLists();
     let drawMode = "all";
     let reverseY = false;
     //#endregion
