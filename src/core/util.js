@@ -1164,3 +1164,96 @@ function brensenhamArrHigh(x0, y0, x1, y1, hashmap, lineId, slope) {
     if (D > 0) (x += xi), (D -= 2 * dy);
   }
 }
+
+
+export class UnionSet
+{
+  #setIndex=[];
+  constructor(len)
+  {
+    this.#setIndex=new Array(len);
+    for(let i=0;i<len;i++)
+    {
+      this.#setIndex[i]=i;
+    }
+  }
+
+  searchRoot(a)
+  {
+    let t=a;
+    while(this.#setIndex[t]!=t)
+    {
+      t = this.#setIndex[t];
+    }
+    this.#setIndex[a]=t;
+    return t;
+  }
+
+  union(a,b)
+  {
+    let ar=this.searchRoot(a);
+    let br=this.searchRoot(b);
+    this.#setIndex[ar]=br;
+  }
+
+  length()
+  {
+    return this.#setIndex.length
+  }
+
+  // return the class ID for each element
+  // class IDs are consecutive integeters
+  generateClassInfo()
+  {
+    let tempDic={};
+    let tpIndex=0;
+    let eleClassInfo = new Array(this.#setIndex.length);
+    let classEleCount = [];
+    for(let i=0;i<this.#setIndex.length;i++)
+    {
+      let tp = this.searchRoot(i);
+      if (!tempDic.hasOwnProperty(tp))
+      {
+        tempDic[tp]=tpIndex;
+        tpIndex++;
+        classEleCount.push(0);
+      }
+      let ind=tempDic[tp];
+      eleClassInfo[i]=ind;
+      classEleCount[ind]++;
+    }
+    return {
+        elementClass:eleClassInfo,
+        classCount:tpIndex,
+        classEleCount:classEleCount
+      };
+  }
+}
+
+export class PlainID
+{
+  #offset=[];
+  length=0;
+  constructor(data2dim)
+  {
+    this.#offset = new Array(data2dim.length);
+    let total=0;
+    for(let i=0;i<data2dim.length;i++)
+    {
+      this.#offset[i]=total;
+      total+=data2dim[i].length;
+    }
+    this.length=total;
+  }
+
+  ind(i,j)
+  {
+    return this.#offset[i]+j;
+  }
+
+  at(data,i,j)
+  {
+    return data[this.#offset[i]+j];
+  }
+
+}

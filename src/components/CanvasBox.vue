@@ -273,56 +273,6 @@
               style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
             >
               <Icon type="md-menu" style="cursor:move" />
-              <!-- <Poptip
-                v-if="layer.id == 'selectionCanvas'"
-                :width="340"
-                :offset="62"
-                trigger="click"
-              >
-                <p style="width:170px;padding-left: 12px">
-                  {{ layer.name }}
-                </p>
-                <div slot="content" style="display:flex;align-items:center">
-                  <div class="select-colormap">
-                    <span style="margin:0">Colormap:</span>
-                    <Select
-                      id="colormap"
-                      placeholder="Choose colormap"
-                      v-model="colormapOverlayIndexCache"
-                    >
-                      <Option value="0">viridis</Option>
-                      <Option value="1" selected>magma</Option>
-                      <Option value="2">inferno</Option>
-                      <Option value="3">plasma</Option>
-                      <Option value="4">cividis</Option>
-                      <Option value="5">turbo</Option>
-                      <Option value="6">bluegreen</Option>
-                      <Option value="7">bluepurple</Option>
-                      <Option value="8">goldgreen</Option>
-                      <Option value="9">goldorange</Option>
-                      <Option value="10">goldred</Option>
-                      <Option value="11">greenblue</Option>
-                      <Option value="12">orangered</Option>
-                      <Option value="13">purplebluegreen</Option>
-                      <Option value="14">purpleblue</Option>
-                      <Option value="15">purplered</Option>
-                      <Option value="16">redpurple</Option>
-                      <Option value="17">yellowgreenblue</Option>
-                      <Option value="18">yellowgreen</Option>
-                      <Option value="19">yelloworangebrown</Option>
-                      <Option value="20">yelloworangered</Option>
-                    </Select>
-                  </div>
-                  <span>1</span>
-                  <span class="color-map" id="color-map"></span>
-                  <InputNumber
-                    :min="1"
-                    v-model="maxOverlayDensity"
-                    :active-change="false"
-                    style="width: 50px"
-                  />
-                </div>
-              </Poptip> -->
               <div style="flex-grow:1">
                 <div style="display:flex;align-items:center">
                   <p style="width:170px;padding-left: 12px">
@@ -390,6 +340,41 @@
           </draggable>
         </div>
 
+        <div>
+          <span>Alpha:</span>
+        </div>
+
+        <div style="margin-left:2em">
+          <draggable v-model="alphas">
+            <div
+              v-for="alpha in alphas"
+              :key="alpha.id"
+              style="display:flex;align-items:center;border:1px solid #dcdee2;margin-top:4px;background:white;cursor:pointer;border-radius:4px;padding:0 8px"
+            >
+              <Icon type="md-menu" style="cursor:move" />
+              <div style="flex-grow:1">
+                <div style="display:flex;align-items:center">
+                  <p style="width:170px;padding-left: 12px">
+                    {{ alpha.name }}
+                  </p>
+                  <Icon
+                    :type="alpha.opacity === 0 ? 'md-eye-off' : 'md-eye'"
+                    :style="{ opacity: alpha.opacity * 0.7 + 0.3 }"
+                    @click="alpha.opacity = alpha.opacity === 0 ? 1 : 0"
+                  />
+                  <Slider
+                    v-model="alpha.opacity"
+                    :min="0"
+                    :max="1"
+                    :step="0.01"
+                    show-tip="never"
+                    style="flex-grow:1; margin-left:12px;margin-right:8px"
+                  />
+                </div>
+              </div>
+            </div>
+          </draggable>
+        </div>
         <!-- <Button icon="ios-apps" type="primary" @click="showRepData"
           >view selected data
         </Button> -->
@@ -504,6 +489,7 @@ import KDTree from "../core/kdtree";
 import seedrandom from "seedrandom";
 import moment from "moment";
 import { brensenham, brensenhamArr } from "../core/util";
+import AlphaOptimize from "@/core/alphaOpt.js";
 
 const colorMapCache = {};
 
@@ -610,6 +596,23 @@ export default {
           opacity: 0,
         },
       ],
+      alphas:[
+        {
+          id:"lambda",
+          name:"Lambda",
+          opacity:0.2
+        },
+        {
+          id:"rq",
+          name:"rq",
+          opacity:0.2
+        },
+        {
+          id:"p",
+          name:"p",
+          opacity:0.2
+        }
+      ],
       colormapIndexCache: 17,
       colormapOverlayIndexCache: 20,
       initDensityCache: null,
@@ -637,6 +640,8 @@ export default {
       tr: null,
       cnt: 0,
       renderSelectedDensity: 0,
+
+      alphaComponent:null,
 
       // representative line presentation
       repModal: false,
@@ -780,6 +785,20 @@ export default {
             this.renderSelectedDensity = layer.opacity > 0;
           }
         }
+      },
+    },
+    alphas: {
+      deep: true,
+      handler(value) {
+        unobserve.alphas = value;
+        console.log(unobserve.alphas);
+        this.alphaComponent.lambda=unobserve.alphas[0].opacity*10;
+        this.alphaComponent.rq=unobserve.alphas[1].opacity*1000;
+        this.alphaComponent.p=unobserve.alphas[2].opacity*5;
+        this.alphaComponent.computeAlphaLists();
+        //this.drawLine(unobserve.cache);
+        unobserve.selectionLayerContext.clearRect(0, 0, this.option.width, this.option.height);
+        this.drawLineWithLayer(unobserve.cache, unobserve.selectionLayerContext);
       },
     },
     showCursorValue() {
@@ -3279,11 +3298,24 @@ export default {
       for (let id of ids) {
         const line = unobserve.screenResult[id];
         // console.log(JSON.stringify(line), JSON.stringify(unobserve.screenResult[id]));
-        layer.strokeStyle = `rgb(${this.getColor(id).join(",")})`;
+        //layer.strokeStyle = `rgb(${this.getColor(id).join(",")})`;
         layer.beginPath();
         layer.moveTo(line[0].x, line[0].y);
+        let i=0;
+        let avga=0;
+        for(let a of this.alphaComponent.alphaLists[id])
+        {
+          avga+=a;
+        }
+        avga/=this.alphaComponent.alphaLists[id].length;
         for (let point of line) {
+          let baseColor = this.getColor(id);
+          layer.strokeStyle =`rgba(${this.getColor(id).join(",")},${this.alphaComponent.alphaLists[id][i]})`;
+          //layer.strokeStyle =`rgba(${this.getColor(id).join(",")},0.01)`;
+          layer.strokeStyle =`rgba(${this.getColor(id).join(",")},${avga})`;
+          //layer.strokeStyle =`rgba(${this.getColor(id).join(",")},0)`;
           layer.lineTo(point.x, point.y);
+          i++;
         }
         layer.stroke();
       }
@@ -3428,6 +3460,7 @@ export default {
     unobserve.querys = [];
     unobserve.weightCache = [];
     unobserve.layers = this.layers;
+    unobserve.alphas = this.alphas;
     unobserve.upsideDown = this.upsideDown;
 
     this.headers = unobserve.headers.map((title, key) => {
@@ -3517,6 +3550,10 @@ export default {
     });
     unobserve.result = result;
     unobserve.screenResult = screenResult;
+
+    // add alpha component
+    this.alphaComponent= new AlphaOptimize(unobserve.result);
+    this.alphaComponent.computeAlphaLists();
     let drawMode = "all";
     let reverseY = false;
     //#endregion
